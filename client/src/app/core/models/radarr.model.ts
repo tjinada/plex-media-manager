@@ -22,6 +22,25 @@ export interface RadarrMissingMovie {
   qualityProfile: string;
   posterUrl: string | null;
   added?: string;
+  digitalRelease?: string;
+  physicalRelease?: string;
+  inCinemas?: string;
+}
+
+export interface RadarrUpcomingMovie {
+  id: number;
+  title: string;
+  year: number;
+  tmdbId?: number;
+  imdbId?: string;
+  monitored: boolean;
+  qualityProfile: string;
+  posterUrl: string | null;
+  added?: string;
+  digitalRelease?: string;
+  physicalRelease?: string;
+  inCinemas?: string;
+  status?: string;
 }
 
 export interface RadarrUpgradeMovie {
@@ -56,6 +75,13 @@ export interface RadarrMissingResponse {
   total: number;
 }
 
+export interface RadarrUpcomingResponse {
+  movies: RadarrUpcomingMovie[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface RadarrUpgradesResponse {
   movies: RadarrUpgradeMovie[];
   page: number;
@@ -70,6 +96,7 @@ export interface RadarrDowngradesResponse {
 
 export interface RadarrStats {
   missing: number;
+  upcoming: number;
   upgrades: number;
   downgrades: number;
   configured: boolean;

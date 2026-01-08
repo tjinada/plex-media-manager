@@ -5,6 +5,7 @@ import {
   RadarrConfig,
   RadarrTestResult,
   RadarrMissingResponse,
+  RadarrUpcomingResponse,
   RadarrUpgradesResponse,
   RadarrDowngradesResponse,
   RadarrStats,
@@ -47,6 +48,12 @@ export class RadarrService {
 
   getMissing(page = 1, pageSize = 50): Observable<RadarrMissingResponse> {
     return this.http.get<RadarrMissingResponse>(`${this.baseUrl}/missing`, {
+      params: { page: page.toString(), pageSize: pageSize.toString() }
+    });
+  }
+
+  getUpcoming(page = 1, pageSize = 50): Observable<RadarrUpcomingResponse> {
+    return this.http.get<RadarrUpcomingResponse>(`${this.baseUrl}/upcoming`, {
       params: { page: page.toString(), pageSize: pageSize.toString() }
     });
   }

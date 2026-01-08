@@ -11,8 +11,13 @@ router.post('/test', radarrController.testConnection);
 // Stats (for dashboard)
 router.get('/stats', radarrController.getStats);
 
-// Missing & Upgrades & Downgrades
+// Missing (released but not downloaded)
 router.get('/missing', radarrController.getMissing);
+
+// Upcoming (not yet released)
+router.get('/upcoming', radarrController.getUpcoming);
+
+// Upgrades & Downgrades
 router.get('/upgrades', radarrController.getUpgrades);
 router.get('/downgrades', radarrController.getDowngrades);
 

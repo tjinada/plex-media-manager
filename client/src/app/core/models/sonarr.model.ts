@@ -24,6 +24,18 @@ export interface SonarrMissingEpisode {
   posterUrl: string | null;
 }
 
+export interface SonarrUpcomingEpisode {
+  id: number;
+  seriesId: number;
+  seriesTitle: string;
+  seasonNumber: number;
+  episodeNumber: number;
+  title: string;
+  airDate: string | null;
+  monitored: boolean;
+  posterUrl: string | null;
+}
+
 export interface SonarrUpgradeEpisode {
   id: number;
   seriesId: number;
@@ -60,6 +72,13 @@ export interface SonarrMissingResponse {
   total: number;
 }
 
+export interface SonarrUpcomingResponse {
+  episodes: SonarrUpcomingEpisode[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface SonarrUpgradesResponse {
   episodes: SonarrUpgradeEpisode[];
   page: number;
@@ -75,6 +94,7 @@ export interface SonarrDowngradesResponse {
 
 export interface SonarrStats {
   missing: number;
+  upcoming: number;
   upgrades: number;
   downgrades: number;
   totalEstimatedSavings: number;

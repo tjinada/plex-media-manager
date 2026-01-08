@@ -65,13 +65,26 @@ exports.testConnection = async (req, res, next) => {
   }
 };
 
-// Get missing movies
+// Get missing movies (released but not downloaded)
 exports.getMissing = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 50;
 
     const result = await radarrService.getMissing(page, pageSize);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get upcoming movies (not yet released)
+exports.getUpcoming = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 50;
+
+    const result = await radarrService.getUpcoming(page, pageSize);
     res.json(result);
   } catch (error) {
     next(error);

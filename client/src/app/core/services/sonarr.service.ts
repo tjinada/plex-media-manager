@@ -5,6 +5,7 @@ import {
   SonarrConfig,
   SonarrTestResult,
   SonarrMissingResponse,
+  SonarrUpcomingResponse,
   SonarrUpgradesResponse,
   SonarrDowngradesResponse,
   SonarrStats,
@@ -47,6 +48,12 @@ export class SonarrService {
 
   getMissing(page = 1, pageSize = 50): Observable<SonarrMissingResponse> {
     return this.http.get<SonarrMissingResponse>(`${this.baseUrl}/missing`, {
+      params: { page: page.toString(), pageSize: pageSize.toString() }
+    });
+  }
+
+  getUpcoming(page = 1, pageSize = 50): Observable<SonarrUpcomingResponse> {
+    return this.http.get<SonarrUpcomingResponse>(`${this.baseUrl}/upcoming`, {
       params: { page: page.toString(), pageSize: pageSize.toString() }
     });
   }

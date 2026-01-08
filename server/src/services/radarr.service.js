@@ -44,12 +44,10 @@ class RadarrService {
   }
 
   async saveConfig(host, apiKey) {
-    // Test connection first
     const testResult = await this.testConnection(host, apiKey);
     
-    // Save config with encrypted API key
     const config = await RadarrConfig.saveConfig({
-      host: host.replace(/\/$/, ''), // Remove trailing slash
+      host: host.replace(/\/$/, ''),
       apiKey: encrypt(apiKey),
       enabled: true,
       isConnected: true,
@@ -57,9 +55,7 @@ class RadarrService {
       lastCheckedAt: new Date()
     });
 
-    // Re-initialize client
     await this.initialize();
-
     return config;
   }
 
@@ -67,7 +63,6 @@ class RadarrService {
     const config = await RadarrConfig.getConfig();
     if (!config) return null;
     
-    // Don't expose the API key
     return {
       host: config.host,
       enabled: config.enabled,
@@ -116,7 +111,10 @@ class RadarrService {
     const qualityProfiles = await this.getQualityProfiles();
     const profileMap = new Map(qualityProfiles.map(p => [p.id, p.name]));
 
-    const movies = response.data.records.map(movie => ({
+    // Filter to only include movies that are available (released)
+    const missingMovies = response.data.records.filter(movie => movie.isAvailable);
+
+    const movies = missingMovies.map(movie => ({
       id: movie.id,
       title: movie.title,
       year: movie.year,
@@ -125,14 +123,76 @@ class RadarrService {
       monitored: movie.monitored,
       qualityProfile: profileMap.get(movie.qualityProfileId) || 'Unknown',
       posterUrl: movie.images?.find(i => i.coverType === 'poster')?.remoteUrl || null,
-      added: movie.added
+      added: movie.added,
+      digitalRelease: movie.digitalRelease,
+      physicalRelease: movie.physicalRelease,
+      inCinemas: movie.inCinemas
     }));
+
+    // Recalculate total for missing only (available movies)
+    const allMissingResponse = await this.client.get('/wanted/missing', {
+      params: { page: 1, pageSize: 1, monitored: true }
+    });
+    
+    // Count available vs upcoming from all records
+    const fullResponse = await this.client.get('/wanted/missing', {
+      params: { page: 1, pageSize: allMissingResponse.data.totalRecords, monitored: true }
+    });
+    const totalMissing = fullResponse.data.records.filter(m => m.isAvailable).length;
 
     return {
       movies,
-      page: response.data.page,
-      pageSize: response.data.pageSize,
-      total: response.data.totalRecords
+      page,
+      pageSize,
+      total: totalMissing
+    };
+  }
+
+  async getUpcoming(page = 1, pageSize = 50) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Radarr not configured');
+
+    const response = await this.client.get('/wanted/missing', {
+      params: {
+        page: 1,
+        pageSize: 10000, // Get all to filter
+        sortKey: 'digitalRelease',
+        sortDirection: 'ascending',
+        monitored: true
+      }
+    });
+
+    const qualityProfiles = await this.getQualityProfiles();
+    const profileMap = new Map(qualityProfiles.map(p => [p.id, p.name]));
+
+    // Filter to only include movies that are NOT available (not released)
+    const upcomingMovies = response.data.records.filter(movie => !movie.isAvailable);
+
+    const movies = upcomingMovies.map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      year: movie.year,
+      tmdbId: movie.tmdbId,
+      imdbId: movie.imdbId,
+      monitored: movie.monitored,
+      qualityProfile: profileMap.get(movie.qualityProfileId) || 'Unknown',
+      posterUrl: movie.images?.find(i => i.coverType === 'poster')?.remoteUrl || null,
+      added: movie.added,
+      digitalRelease: movie.digitalRelease,
+      physicalRelease: movie.physicalRelease,
+      inCinemas: movie.inCinemas,
+      status: movie.status
+    }));
+
+    // Apply pagination manually
+    const startIndex = (page - 1) * pageSize;
+    const paginatedMovies = movies.slice(startIndex, startIndex + pageSize);
+
+    return {
+      movies: paginatedMovies,
+      page,
+      pageSize,
+      total: upcomingMovies.length
     };
   }
 
@@ -183,7 +243,6 @@ class RadarrService {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Radarr not configured');
 
-    // Get all movies with files
     const allMovies = await this.getAllMovies();
     const qualityProfiles = await this.getQualityProfiles();
     const profileMap = new Map(qualityProfiles.map(p => [p.id, { name: p.name, cutoff: p.cutoff, items: p.items }]));
@@ -199,13 +258,11 @@ class RadarrService {
       const currentQualityId = movie.movieFile.quality?.quality?.id;
       const cutoffId = profile.cutoff;
 
-      // Check if current quality is above cutoff
       if (this.isQualityAboveCutoff(profile, currentQualityId, cutoffId)) {
         const currentQuality = movie.movieFile.quality?.quality?.name || 'Unknown';
         const cutoffQuality = this.getQualityNameById(profile, cutoffId);
         const currentSize = movie.movieFile.size || 0;
         
-        // Estimate savings (rough estimate: assume target is ~60% of current for downgrades)
         const estimatedTargetSize = Math.round(currentSize * 0.6);
         const estimatedSavings = currentSize - estimatedTargetSize;
 
@@ -251,7 +308,6 @@ class RadarrService {
   isQualityAboveCutoff(profile, currentQualityId, cutoffId) {
     if (!profile || !profile.items) return false;
 
-    // Build ordered list of quality IDs from profile
     const qualityOrder = [];
     for (const item of profile.items) {
       if (item.allowed) {
@@ -271,7 +327,6 @@ class RadarrService {
     const currentIndex = qualityOrder.indexOf(currentQualityId);
     const cutoffIndex = qualityOrder.indexOf(cutoffId);
 
-    // Higher index = better quality in Radarr profiles
     return currentIndex > cutoffIndex && cutoffIndex !== -1;
   }
 
@@ -294,25 +349,27 @@ class RadarrService {
   async getStats() {
     if (!this.client) await this.initialize();
     if (!this.client) {
-      return { missing: 0, upgrades: 0, downgrades: 0, configured: false };
+      return { missing: 0, upcoming: 0, upgrades: 0, downgrades: 0, configured: false };
     }
 
     try {
-      const [missing, upgrades, downgrades] = await Promise.all([
+      const [missing, upcoming, upgrades, downgrades] = await Promise.all([
         this.getMissing(1, 1),
+        this.getUpcoming(1, 1),
         this.getUpgrades(1, 1),
         this.getDowngrades()
       ]);
 
       return {
         missing: missing.total,
+        upcoming: upcoming.total,
         upgrades: upgrades.total,
         downgrades: downgrades.total,
         configured: true
       };
     } catch (error) {
       console.error('Error getting Radarr stats:', error.message);
-      return { missing: 0, upgrades: 0, downgrades: 0, configured: true, error: error.message };
+      return { missing: 0, upcoming: 0, upgrades: 0, downgrades: 0, configured: true, error: error.message };
     }
   }
 }

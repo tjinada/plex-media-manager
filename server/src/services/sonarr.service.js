@@ -44,12 +44,10 @@ class SonarrService {
   }
 
   async saveConfig(host, apiKey) {
-    // Test connection first
     const testResult = await this.testConnection(host, apiKey);
     
-    // Save config with encrypted API key
     const config = await SonarrConfig.saveConfig({
-      host: host.replace(/\/$/, ''), // Remove trailing slash
+      host: host.replace(/\/$/, ''),
       apiKey: encrypt(apiKey),
       enabled: true,
       isConnected: true,
@@ -57,9 +55,7 @@ class SonarrService {
       lastCheckedAt: new Date()
     });
 
-    // Re-initialize client
     await this.initialize();
-
     return config;
   }
 
@@ -67,7 +63,6 @@ class SonarrService {
     const config = await SonarrConfig.getConfig();
     if (!config) return null;
     
-    // Don't expose the API key
     return {
       host: config.host,
       enabled: config.enabled,
@@ -119,14 +114,22 @@ class SonarrService {
     return response.data;
   }
 
+  isEpisodeAired(episode) {
+    if (!episode.airDateUtc) return false;
+    const airDate = new Date(episode.airDateUtc);
+    const now = new Date();
+    return airDate <= now;
+  }
+
   async getMissing(page = 1, pageSize = 50) {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Sonarr not configured');
 
+    // Get all missing episodes to filter
     const response = await this.client.get('/wanted/missing', {
       params: {
-        page,
-        pageSize,
+        page: 1,
+        pageSize: 10000,
         sortKey: 'airDateUtc',
         sortDirection: 'descending',
         includeSeries: true,
@@ -134,7 +137,10 @@ class SonarrService {
       }
     });
 
-    const episodes = response.data.records.map(episode => ({
+    // Filter to only include episodes that have already aired
+    const airedEpisodes = response.data.records.filter(episode => this.isEpisodeAired(episode));
+
+    const episodes = airedEpisodes.map(episode => ({
       id: episode.id,
       seriesId: episode.seriesId,
       seriesTitle: episode.series?.title || 'Unknown',
@@ -146,11 +152,58 @@ class SonarrService {
       posterUrl: episode.series?.images?.find(i => i.coverType === 'poster')?.remoteUrl || null
     }));
 
+    // Apply pagination manually
+    const startIndex = (page - 1) * pageSize;
+    const paginatedEpisodes = episodes.slice(startIndex, startIndex + pageSize);
+
     return {
-      episodes,
-      page: response.data.page,
-      pageSize: response.data.pageSize,
-      total: response.data.totalRecords
+      episodes: paginatedEpisodes,
+      page,
+      pageSize,
+      total: airedEpisodes.length
+    };
+  }
+
+  async getUpcoming(page = 1, pageSize = 50) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Sonarr not configured');
+
+    // Get all missing episodes to filter
+    const response = await this.client.get('/wanted/missing', {
+      params: {
+        page: 1,
+        pageSize: 10000,
+        sortKey: 'airDateUtc',
+        sortDirection: 'ascending',
+        includeSeries: true,
+        monitored: true
+      }
+    });
+
+    // Filter to only include episodes that have NOT aired yet
+    const upcomingEpisodes = response.data.records.filter(episode => !this.isEpisodeAired(episode));
+
+    const episodes = upcomingEpisodes.map(episode => ({
+      id: episode.id,
+      seriesId: episode.seriesId,
+      seriesTitle: episode.series?.title || 'Unknown',
+      seasonNumber: episode.seasonNumber,
+      episodeNumber: episode.episodeNumber,
+      title: episode.title,
+      airDate: episode.airDateUtc,
+      monitored: episode.monitored,
+      posterUrl: episode.series?.images?.find(i => i.coverType === 'poster')?.remoteUrl || null
+    }));
+
+    // Apply pagination manually
+    const startIndex = (page - 1) * pageSize;
+    const paginatedEpisodes = episodes.slice(startIndex, startIndex + pageSize);
+
+    return {
+      episodes: paginatedEpisodes,
+      page,
+      pageSize,
+      total: upcomingEpisodes.length
     };
   }
 
@@ -233,7 +286,6 @@ class SonarrService {
             const cutoffQuality = this.getQualityNameById(profile, cutoffId);
             const currentSize = file.size || 0;
             
-            // Estimate savings
             const estimatedTargetSize = Math.round(currentSize * 0.6);
             const estimatedSavings = currentSize - estimatedTargetSize;
             totalEstimatedSavings += estimatedSavings;
@@ -328,18 +380,20 @@ class SonarrService {
   async getStats() {
     if (!this.client) await this.initialize();
     if (!this.client) {
-      return { missing: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: false };
+      return { missing: 0, upcoming: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: false };
     }
 
     try {
-      const [missing, upgrades, downgrades] = await Promise.all([
+      const [missing, upcoming, upgrades, downgrades] = await Promise.all([
         this.getMissing(1, 1),
+        this.getUpcoming(1, 1),
         this.getUpgrades(1, 1),
         this.getDowngrades()
       ]);
 
       return {
         missing: missing.total,
+        upcoming: upcoming.total,
         upgrades: upgrades.total,
         downgrades: downgrades.total,
         totalEstimatedSavings: downgrades.totalEstimatedSavings,
@@ -347,7 +401,7 @@ class SonarrService {
       };
     } catch (error) {
       console.error('Error getting Sonarr stats:', error.message);
-      return { missing: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: true, error: error.message };
+      return { missing: 0, upcoming: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: true, error: error.message };
     }
   }
 }

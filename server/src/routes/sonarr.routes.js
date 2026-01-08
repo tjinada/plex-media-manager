@@ -11,8 +11,13 @@ router.post('/test', sonarrController.testConnection);
 // Stats (for dashboard)
 router.get('/stats', sonarrController.getStats);
 
-// Missing & Upgrades & Downgrades
+// Missing (aired but not downloaded)
 router.get('/missing', sonarrController.getMissing);
+
+// Upcoming (not yet aired)
+router.get('/upcoming', sonarrController.getUpcoming);
+
+// Upgrades & Downgrades
 router.get('/upgrades', sonarrController.getUpgrades);
 router.get('/downgrades', sonarrController.getDowngrades);
 

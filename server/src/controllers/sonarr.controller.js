@@ -65,13 +65,26 @@ exports.testConnection = async (req, res, next) => {
   }
 };
 
-// Get missing episodes
+// Get missing episodes (aired but not downloaded)
 exports.getMissing = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 50;
 
     const result = await sonarrService.getMissing(page, pageSize);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get upcoming episodes (not yet aired)
+exports.getUpcoming = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 50;
+
+    const result = await sonarrService.getUpcoming(page, pageSize);
     res.json(result);
   } catch (error) {
     next(error);

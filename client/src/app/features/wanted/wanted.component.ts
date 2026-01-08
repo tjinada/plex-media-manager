@@ -4,20 +4,23 @@ import { RouterLink } from '@angular/router';
 import { RadarrService, SonarrService } from '@core/services';
 import {
   RadarrMissingMovie,
+  RadarrUpcomingMovie,
   RadarrUpgradeMovie,
   RadarrDowngradeMovie,
   SonarrMissingEpisode,
+  SonarrUpcomingEpisode,
   SonarrUpgradeEpisode,
   SonarrDowngradeEpisode,
   RadarrConfig,
   SonarrConfig
 } from '@core/models';
 
-type TabId = 'missing-movies' | 'missing-episodes' | 'movie-upgrades' | 'episode-upgrades' | 'movie-downgrades' | 'episode-downgrades';
+type TabId = 'missing-movies' | 'missing-episodes' | 'upcoming-movies' | 'upcoming-episodes' | 'movie-upgrades' | 'episode-upgrades' | 'movie-downgrades' | 'episode-downgrades';
 
 interface Tab {
   id: TabId;
   label: string;
+  icon: 'warning' | 'clock' | 'arrow-up' | 'arrow-down';
   count: number;
 }
 
@@ -34,18 +37,22 @@ export class WantedComponent implements OnInit {
   // Radarr data
   radarrConfigured = false;
   missingMovies: RadarrMissingMovie[] = [];
+  upcomingMovies: RadarrUpcomingMovie[] = [];
   movieUpgrades: RadarrUpgradeMovie[] = [];
   movieDowngrades: RadarrDowngradeMovie[] = [];
   
   // Sonarr data
   sonarrConfigured = false;
   missingEpisodes: SonarrMissingEpisode[] = [];
+  upcomingEpisodes: SonarrUpcomingEpisode[] = [];
   episodeUpgrades: SonarrUpgradeEpisode[] = [];
   episodeDowngrades: SonarrDowngradeEpisode[] = [];
   
   // Pagination
   missingMoviesTotal = 0;
+  upcomingMoviesTotal = 0;
   missingEpisodesTotal = 0;
+  upcomingEpisodesTotal = 0;
   movieUpgradesTotal = 0;
   episodeUpgradesTotal = 0;
   
@@ -57,12 +64,14 @@ export class WantedComponent implements OnInit {
   searchingId: number | null = null;
 
   tabs: Tab[] = [
-    { id: 'missing-movies', label: 'Missing Movies', count: 0 },
-    { id: 'missing-episodes', label: 'Missing Episodes', count: 0 },
-    { id: 'movie-upgrades', label: 'Movie Upgrades', count: 0 },
-    { id: 'episode-upgrades', label: 'Episode Upgrades', count: 0 },
-    { id: 'movie-downgrades', label: 'Movie Downgrades', count: 0 },
-    { id: 'episode-downgrades', label: 'Episode Downgrades', count: 0 }
+    { id: 'missing-movies', label: 'Missing Movies', icon: 'warning', count: 0 },
+    { id: 'missing-episodes', label: 'Missing Episodes', icon: 'warning', count: 0 },
+    { id: 'upcoming-movies', label: 'Upcoming Movies', icon: 'clock', count: 0 },
+    { id: 'upcoming-episodes', label: 'Upcoming Episodes', icon: 'clock', count: 0 },
+    { id: 'movie-upgrades', label: 'Movie Upgrades', icon: 'arrow-up', count: 0 },
+    { id: 'episode-upgrades', label: 'Episode Upgrades', icon: 'arrow-up', count: 0 },
+    { id: 'movie-downgrades', label: 'Movie Downgrades', icon: 'arrow-down', count: 0 },
+    { id: 'episode-downgrades', label: 'Episode Downgrades', icon: 'arrow-down', count: 0 }
   ];
 
   constructor(
@@ -107,12 +116,21 @@ export class WantedComponent implements OnInit {
   }
 
   loadRadarrData(): void {
-    // Missing movies
+    // Missing movies (released but not downloaded)
     this.radarrService.getMissing(1, 100).subscribe({
       next: (response) => {
         this.missingMovies = response.movies;
         this.missingMoviesTotal = response.total;
         this.updateTabCount('missing-movies', response.total);
+      }
+    });
+
+    // Upcoming movies (not yet released)
+    this.radarrService.getUpcoming(1, 100).subscribe({
+      next: (response) => {
+        this.upcomingMovies = response.movies;
+        this.upcomingMoviesTotal = response.total;
+        this.updateTabCount('upcoming-movies', response.total);
       }
     });
 
@@ -136,12 +154,21 @@ export class WantedComponent implements OnInit {
   }
 
   loadSonarrData(): void {
-    // Missing episodes
+    // Missing episodes (aired but not downloaded)
     this.sonarrService.getMissing(1, 100).subscribe({
       next: (response) => {
         this.missingEpisodes = response.episodes;
         this.missingEpisodesTotal = response.total;
         this.updateTabCount('missing-episodes', response.total);
+      }
+    });
+
+    // Upcoming episodes (not yet aired)
+    this.sonarrService.getUpcoming(1, 100).subscribe({
+      next: (response) => {
+        this.upcomingEpisodes = response.episodes;
+        this.upcomingEpisodesTotal = response.total;
+        this.updateTabCount('upcoming-episodes', response.total);
       }
     });
 
@@ -180,7 +207,6 @@ export class WantedComponent implements OnInit {
     this.radarrService.triggerSearch(movie.id).subscribe({
       next: () => {
         this.searchingId = null;
-        // Could show a toast notification here
       },
       error: () => {
         this.searchingId = null;
@@ -208,12 +234,27 @@ export class WantedComponent implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  formatDate(dateString: string | null): string {
-    if (!dateString) return 'N/A';
+  formatDate(dateString: string | null | undefined): string {
+    if (!dateString) return 'TBA';
     return new Date(dateString).toLocaleDateString();
   }
 
   formatEpisodeNumber(season: number, episode: number): string {
     return `S${season.toString().padStart(2, '0')}E${episode.toString().padStart(2, '0')}`;
+  }
+
+  getRelativeDate(dateString: string | null | undefined): string {
+    if (!dateString) return 'TBA';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return this.formatDate(dateString);
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays <= 7) return `In ${diffDays} days`;
+    if (diffDays <= 30) return `In ${Math.ceil(diffDays / 7)} weeks`;
+    return this.formatDate(dateString);
   }
 }

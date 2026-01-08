@@ -4,6 +4,7 @@ export interface SonarrConfig {
   isConnected: boolean;
   version: string | null;
   lastCheckedAt: string | null;
+  maxEpisodeSize: number;
 }
 
 export interface SonarrTestResult {
@@ -63,6 +64,7 @@ export interface SonarrDowngradeEpisode {
   fileSize: number;
   estimatedSavings: number;
   posterUrl: string | null;
+  reason: 'quality' | 'size' | 'both';
 }
 
 export interface SonarrMissingResponse {

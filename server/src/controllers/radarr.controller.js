@@ -13,7 +13,7 @@ exports.getConfig = async (req, res, next) => {
 // Save Radarr configuration
 exports.saveConfig = async (req, res, next) => {
   try {
-    const { host, apiKey } = req.body;
+    const { host, apiKey, maxMovieSize } = req.body;
 
     if (!host || !apiKey) {
       return res.status(400).json({ 
@@ -21,7 +21,7 @@ exports.saveConfig = async (req, res, next) => {
       });
     }
 
-    const config = await radarrService.saveConfig(host, apiKey);
+    const config = await radarrService.saveConfig(host, apiKey, maxMovieSize);
     
     res.json({ 
       success: true,
@@ -29,7 +29,30 @@ exports.saveConfig = async (req, res, next) => {
         host: config.host,
         enabled: config.enabled,
         isConnected: config.isConnected,
-        version: config.version
+        version: config.version,
+        maxMovieSize: config.maxMovieSize
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update Radarr configuration (for settings like max size)
+exports.updateConfig = async (req, res, next) => {
+  try {
+    const { maxMovieSize } = req.body;
+
+    const config = await radarrService.updateConfig({ maxMovieSize });
+    
+    res.json({ 
+      success: true,
+      config: {
+        host: config.host,
+        enabled: config.enabled,
+        isConnected: config.isConnected,
+        version: config.version,
+        maxMovieSize: config.maxMovieSize
       }
     });
   } catch (error) {

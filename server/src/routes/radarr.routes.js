@@ -5,6 +5,7 @@ const radarrController = require('../controllers/radarr.controller');
 // Configuration
 router.get('/config', radarrController.getConfig);
 router.post('/config', radarrController.saveConfig);
+router.patch('/config', radarrController.updateConfig);
 router.delete('/config', radarrController.deleteConfig);
 router.post('/test', radarrController.testConnection);
 

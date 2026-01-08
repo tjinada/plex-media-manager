@@ -18,7 +18,7 @@ class SonarrService {
           'X-Api-Key': decrypt(config.apiKey),
           'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 30000
       });
     }
     return this;
@@ -43,19 +43,38 @@ class SonarrService {
     }
   }
 
-  async saveConfig(host, apiKey) {
+  async saveConfig(host, apiKey, maxEpisodeSize) {
     const testResult = await this.testConnection(host, apiKey);
     
-    const config = await SonarrConfig.saveConfig({
+    const configData = {
       host: host.replace(/\/$/, ''),
       apiKey: encrypt(apiKey),
       enabled: true,
       isConnected: true,
       version: testResult.version,
       lastCheckedAt: new Date()
-    });
+    };
+
+    if (maxEpisodeSize !== undefined) {
+      configData.maxEpisodeSize = maxEpisodeSize;
+    }
+
+    const config = await SonarrConfig.saveConfig(configData);
 
     await this.initialize();
+    return config;
+  }
+
+  async updateConfig(updates) {
+    const config = await SonarrConfig.getConfig();
+    if (!config) throw new Error('Sonarr not configured');
+
+    if (updates.maxEpisodeSize !== undefined) {
+      config.maxEpisodeSize = updates.maxEpisodeSize;
+    }
+
+    await config.save();
+    this.config = config;
     return config;
   }
 
@@ -68,7 +87,8 @@ class SonarrService {
       enabled: config.enabled,
       isConnected: config.isConnected,
       version: config.version,
-      lastCheckedAt: config.lastCheckedAt
+      lastCheckedAt: config.lastCheckedAt,
+      maxEpisodeSize: config.maxEpisodeSize || 5368709120 // 5GB default
     };
   }
 
@@ -211,10 +231,11 @@ class SonarrService {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Sonarr not configured');
 
+    // Get all cutoff unmet episodes
     const response = await this.client.get('/wanted/cutoff', {
       params: {
-        page,
-        pageSize,
+        page: 1,
+        pageSize: 10000,
         sortKey: 'airDateUtc',
         sortDirection: 'descending',
         includeSeries: true,
@@ -225,10 +246,27 @@ class SonarrService {
     const qualityProfiles = await this.getQualityProfiles();
     const profileMap = new Map(qualityProfiles.map(p => [p.id, { name: p.name, cutoff: p.cutoff, items: p.items }]));
 
+    // Build a map of series to their episode files for accurate size data
+    const seriesIds = [...new Set(response.data.records.map(e => e.seriesId))];
+    const episodeFileMap = new Map();
+
+    for (const seriesId of seriesIds) {
+      try {
+        const files = await this.getEpisodeFiles(seriesId);
+        for (const file of files) {
+          episodeFileMap.set(file.id, file);
+        }
+      } catch (error) {
+        console.error(`Error fetching files for series ${seriesId}:`, error.message);
+      }
+    }
+
     const episodes = response.data.records.map(episode => {
       const profile = profileMap.get(episode.series?.qualityProfileId);
-      const currentQuality = episode.episodeFile?.quality?.quality?.name || 'Unknown';
+      const episodeFile = episodeFileMap.get(episode.episodeFileId) || episode.episodeFile;
+      const currentQuality = episodeFile?.quality?.quality?.name || 'Unknown';
       const cutoffQuality = this.getQualityNameById(profile, profile?.cutoff);
+      const fileSize = episodeFile?.size || 0;
 
       return {
         id: episode.id,
@@ -240,22 +278,30 @@ class SonarrService {
         monitored: episode.monitored,
         currentQuality,
         targetQuality: cutoffQuality,
-        fileSize: episode.episodeFile?.size || 0,
+        fileSize,
         posterUrl: episode.series?.images?.find(i => i.coverType === 'poster')?.remoteUrl || null
       };
     });
 
+    // Apply pagination manually
+    const startIndex = (page - 1) * pageSize;
+    const paginatedEpisodes = episodes.slice(startIndex, startIndex + pageSize);
+
     return {
-      episodes,
-      page: response.data.page,
-      pageSize: response.data.pageSize,
-      total: response.data.totalRecords
+      episodes: paginatedEpisodes,
+      page,
+      pageSize,
+      total: episodes.length
     };
   }
 
   async getDowngrades() {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Sonarr not configured');
+
+    // Get config for max size limit
+    const config = await SonarrConfig.getConfig();
+    const maxEpisodeSize = config?.maxEpisodeSize || 5368709120; // 5GB default
 
     const allSeries = await this.getAllSeries();
     const qualityProfiles = await this.getQualityProfiles();
@@ -280,15 +326,37 @@ class SonarrService {
 
           const currentQualityId = file.quality?.quality?.id;
           const cutoffId = profile.cutoff;
+          const currentSize = file.size || 0;
 
-          if (this.isQualityAboveCutoff(profile, currentQualityId, cutoffId)) {
+          const isAboveCutoff = this.isQualityAboveCutoff(profile, currentQualityId, cutoffId);
+          const isOversized = currentSize > maxEpisodeSize;
+
+          // Include if above quality cutoff OR exceeds size limit
+          if (isAboveCutoff || isOversized) {
             const currentQuality = file.quality?.quality?.name || 'Unknown';
             const cutoffQuality = this.getQualityNameById(profile, cutoffId);
-            const currentSize = file.size || 0;
             
-            const estimatedTargetSize = Math.round(currentSize * 0.6);
+            // Calculate estimated savings
+            let estimatedTargetSize;
+            if (isOversized) {
+              // If oversized, target is max size
+              estimatedTargetSize = maxEpisodeSize;
+            } else {
+              // If above cutoff, estimate 60% of current size
+              estimatedTargetSize = Math.round(currentSize * 0.6);
+            }
             const estimatedSavings = currentSize - estimatedTargetSize;
-            totalEstimatedSavings += estimatedSavings;
+            totalEstimatedSavings += Math.max(0, estimatedSavings);
+
+            // Determine reason
+            let reason;
+            if (isAboveCutoff && isOversized) {
+              reason = 'both';
+            } else if (isAboveCutoff) {
+              reason = 'quality';
+            } else {
+              reason = 'size';
+            }
 
             downgrades.push({
               id: episode.id,
@@ -299,10 +367,11 @@ class SonarrService {
               title: episode.title,
               monitored: episode.monitored,
               currentQuality,
-              targetQuality: cutoffQuality,
+              targetQuality: isOversized && !isAboveCutoff ? currentQuality : cutoffQuality,
               fileSize: currentSize,
-              estimatedSavings,
-              posterUrl: series.images?.find(i => i.coverType === 'poster')?.remoteUrl || null
+              estimatedSavings: Math.max(0, estimatedSavings),
+              posterUrl: series.images?.find(i => i.coverType === 'poster')?.remoteUrl || null,
+              reason
             });
           }
         }
@@ -310,6 +379,9 @@ class SonarrService {
         console.error(`Error processing series ${series.title}:`, error.message);
       }
     }
+
+    // Sort by estimated savings descending
+    downgrades.sort((a, b) => b.estimatedSavings - a.estimatedSavings);
 
     return {
       episodes: downgrades,

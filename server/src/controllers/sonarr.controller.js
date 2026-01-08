@@ -13,7 +13,7 @@ exports.getConfig = async (req, res, next) => {
 // Save Sonarr configuration
 exports.saveConfig = async (req, res, next) => {
   try {
-    const { host, apiKey } = req.body;
+    const { host, apiKey, maxEpisodeSize } = req.body;
 
     if (!host || !apiKey) {
       return res.status(400).json({ 
@@ -21,7 +21,7 @@ exports.saveConfig = async (req, res, next) => {
       });
     }
 
-    const config = await sonarrService.saveConfig(host, apiKey);
+    const config = await sonarrService.saveConfig(host, apiKey, maxEpisodeSize);
     
     res.json({ 
       success: true,
@@ -29,7 +29,30 @@ exports.saveConfig = async (req, res, next) => {
         host: config.host,
         enabled: config.enabled,
         isConnected: config.isConnected,
-        version: config.version
+        version: config.version,
+        maxEpisodeSize: config.maxEpisodeSize
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update Sonarr configuration (for settings like max size)
+exports.updateConfig = async (req, res, next) => {
+  try {
+    const { maxEpisodeSize } = req.body;
+
+    const config = await sonarrService.updateConfig({ maxEpisodeSize });
+    
+    res.json({ 
+      success: true,
+      config: {
+        host: config.host,
+        enabled: config.enabled,
+        isConnected: config.isConnected,
+        version: config.version,
+        maxEpisodeSize: config.maxEpisodeSize
       }
     });
   } catch (error) {

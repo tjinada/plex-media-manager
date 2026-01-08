@@ -25,6 +25,10 @@ const radarrConfigSchema = new mongoose.Schema({
   lastCheckedAt: {
     type: Date,
     default: null
+  },
+  maxMovieSize: {
+    type: Number,
+    default: 32212254720 // 30 GB in bytes
   }
 }, {
   timestamps: true

@@ -49,6 +49,7 @@ export class SettingsComponent implements OnInit {
   radarrTesting = false;
   radarrError = '';
   radarrTestResult: { success: boolean; version?: string } | null = null;
+  maxMovieSizeGB = 30; // Default 30GB
 
   // Sonarr state
   sonarrConfig: SonarrConfig | null = null;
@@ -58,6 +59,11 @@ export class SettingsComponent implements OnInit {
   sonarrTesting = false;
   sonarrError = '';
   sonarrTestResult: { success: boolean; version?: string } | null = null;
+  maxEpisodeSizeGB = 5; // Default 5GB
+
+  // Saving size limits
+  savingRadarrSize = false;
+  savingSonarrSize = false;
 
   constructor(
     private plexService: PlexService,
@@ -193,6 +199,7 @@ export class SettingsComponent implements OnInit {
         this.radarrConfig = response.config;
         if (this.radarrConfig) {
           this.radarrHost = this.radarrConfig.host;
+          this.maxMovieSizeGB = Math.round(this.radarrConfig.maxMovieSize / (1024 * 1024 * 1024));
         }
       }
     });
@@ -235,6 +242,7 @@ export class SettingsComponent implements OnInit {
         this.radarrConnecting = false;
         this.radarrApiKey = '';
         this.radarrTestResult = null;
+        this.maxMovieSizeGB = Math.round(response.config.maxMovieSize / (1024 * 1024 * 1024));
       },
       error: (error: { error?: { message?: string } }) => {
         this.radarrError = error.error?.message || 'Failed to connect to Radarr';
@@ -260,6 +268,22 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  saveMaxMovieSize(): void {
+    this.savingRadarrSize = true;
+    const sizeInBytes = this.maxMovieSizeGB * 1024 * 1024 * 1024;
+    
+    this.radarrService.updateConfig(sizeInBytes).subscribe({
+      next: (response: { success: boolean; config: RadarrConfig }) => {
+        this.radarrConfig = response.config;
+        this.savingRadarrSize = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.radarrError = error.error?.message || 'Failed to update size limit';
+        this.savingRadarrSize = false;
+      }
+    });
+  }
+
   // ===== Sonarr Methods =====
   loadSonarrConfig(): void {
     this.sonarrService.getConfig().subscribe({
@@ -267,6 +291,7 @@ export class SettingsComponent implements OnInit {
         this.sonarrConfig = response.config;
         if (this.sonarrConfig) {
           this.sonarrHost = this.sonarrConfig.host;
+          this.maxEpisodeSizeGB = Math.round(this.sonarrConfig.maxEpisodeSize / (1024 * 1024 * 1024));
         }
       }
     });
@@ -309,6 +334,7 @@ export class SettingsComponent implements OnInit {
         this.sonarrConnecting = false;
         this.sonarrApiKey = '';
         this.sonarrTestResult = null;
+        this.maxEpisodeSizeGB = Math.round(response.config.maxEpisodeSize / (1024 * 1024 * 1024));
       },
       error: (error: { error?: { message?: string } }) => {
         this.sonarrError = error.error?.message || 'Failed to connect to Sonarr';
@@ -330,6 +356,22 @@ export class SettingsComponent implements OnInit {
       },
       error: (error: { error?: { message?: string } }) => {
         this.sonarrError = error.error?.message || 'Failed to disconnect Sonarr';
+      }
+    });
+  }
+
+  saveMaxEpisodeSize(): void {
+    this.savingSonarrSize = true;
+    const sizeInBytes = this.maxEpisodeSizeGB * 1024 * 1024 * 1024;
+    
+    this.sonarrService.updateConfig(sizeInBytes).subscribe({
+      next: (response: { success: boolean; config: SonarrConfig }) => {
+        this.sonarrConfig = response.config;
+        this.savingSonarrSize = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.sonarrError = error.error?.message || 'Failed to update size limit';
+        this.savingSonarrSize = false;
       }
     });
   }

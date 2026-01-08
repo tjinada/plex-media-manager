@@ -207,6 +207,33 @@
               </div>
             </div>
           </div>
+
+          <!-- Max Movie Size Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Max Movie Size (GB)</label>
+            <p class="text-xs text-gray-500 mb-3">Movies larger than this will be flagged as downgrade candidates</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="number"
+                [(ngModel)]="maxMovieSizeGB"
+                min="1"
+                max="200"
+                class="input-field w-24"
+                placeholder="30">
+              <span class="text-gray-400">GB</span>
+              <button 
+                (click)="saveMaxMovieSize()"
+                [disabled]="savingRadarrSize"
+                class="btn-secondary text-sm">
+                @if (savingRadarrSize) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button 
             (click)="disconnectRadarr()"
             class="btn-danger flex items-center gap-2">
@@ -314,6 +341,33 @@
               </div>
             </div>
           </div>
+
+          <!-- Max Episode Size Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Max Episode Size (GB)</label>
+            <p class="text-xs text-gray-500 mb-3">Episodes larger than this will be flagged as downgrade candidates</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="number"
+                [(ngModel)]="maxEpisodeSizeGB"
+                min="1"
+                max="50"
+                class="input-field w-24"
+                placeholder="5">
+              <span class="text-gray-400">GB</span>
+              <button 
+                (click)="saveMaxEpisodeSize()"
+                [disabled]="savingSonarrSize"
+                class="btn-secondary text-sm">
+                @if (savingSonarrSize) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button 
             (click)="disconnectSonarr()"
             class="btn-danger flex items-center gap-2">

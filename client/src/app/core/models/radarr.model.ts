@@ -4,6 +4,7 @@ export interface RadarrConfig {
   isConnected: boolean;
   version: string | null;
   lastCheckedAt: string | null;
+  maxMovieSize: number;
 }
 
 export interface RadarrTestResult {
@@ -66,6 +67,7 @@ export interface RadarrDowngradeMovie {
   fileSize: number;
   estimatedSavings: number;
   posterUrl: string | null;
+  reason: 'quality' | 'size' | 'both';
 }
 
 export interface RadarrMissingResponse {
@@ -92,6 +94,7 @@ export interface RadarrUpgradesResponse {
 export interface RadarrDowngradesResponse {
   movies: RadarrDowngradeMovie[];
   total: number;
+  totalEstimatedSavings: number;
 }
 
 export interface RadarrStats {

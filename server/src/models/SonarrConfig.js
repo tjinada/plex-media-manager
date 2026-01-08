@@ -25,6 +25,10 @@ const sonarrConfigSchema = new mongoose.Schema({
   lastCheckedAt: {
     type: Date,
     default: null
+  },
+  maxEpisodeSize: {
+    type: Number,
+    default: 5368709120 // 5 GB in bytes
   }
 }, {
   timestamps: true

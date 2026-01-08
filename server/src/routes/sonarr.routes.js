@@ -5,6 +5,7 @@ const sonarrController = require('../controllers/sonarr.controller');
 // Configuration
 router.get('/config', sonarrController.getConfig);
 router.post('/config', sonarrController.saveConfig);
+router.patch('/config', sonarrController.updateConfig);
 router.delete('/config', sonarrController.deleteConfig);
 router.post('/test', sonarrController.testConnection);
 

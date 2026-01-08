@@ -24,10 +24,17 @@ export class RadarrService {
     return this.http.get<{ config: RadarrConfig | null }>(`${this.baseUrl}/config`);
   }
 
-  saveConfig(host: string, apiKey: string): Observable<{ success: boolean; config: RadarrConfig }> {
+  saveConfig(host: string, apiKey: string, maxMovieSize?: number): Observable<{ success: boolean; config: RadarrConfig }> {
     return this.http.post<{ success: boolean; config: RadarrConfig }>(`${this.baseUrl}/config`, {
       host,
-      apiKey
+      apiKey,
+      maxMovieSize
+    });
+  }
+
+  updateConfig(maxMovieSize: number): Observable<{ success: boolean; config: RadarrConfig }> {
+    return this.http.patch<{ success: boolean; config: RadarrConfig }>(`${this.baseUrl}/config`, {
+      maxMovieSize
     });
   }
 

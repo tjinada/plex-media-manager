@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:7
+    container_name: tjpmm-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - tjpmm-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Backend API Server
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    container_name: tjpmm-server
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/plex-media-manager
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - tjpmm-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Client (Nginx)
+  client:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.client
+    container_name: tjpmm-client
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - tjpmm-network
+
+networks:
+  tjpmm-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    name: tjpmm-mongo-data

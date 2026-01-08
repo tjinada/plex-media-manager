@@ -1,0 +1,261 @@
+<mxfile host="app.diagrams.net" modified="2026-01-07T12:00:00.000Z" agent="TJ Plex Media Manager" version="22.1.0" type="device">
+  <diagram id="tv-show-detail-desktop" name="TV Show Detail - Desktop">
+    <mxGraphModel dx="1434" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" background="#0a0a0a" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Sidebar Background -->
+        <mxCell id="sidebar-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=#2a2a2a;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="240" height="900" as="geometry" />
+        </mxCell>
+        
+        <!-- Logo -->
+        <mxCell id="logo" value="TJ Plex Media Manager" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#14b8a6;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="200" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Nav Items -->
+        <mxCell id="nav-dashboard" value="📊  Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="90" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-movies" value="🎬  Movies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="140" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-shows" value="📺  TV Shows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="190" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-divider1" value="" style="line;strokeWidth=1;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="245" width="210" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-wanted" value="📥  Wanted" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="265" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-divider2" value="" style="line;strokeWidth=1;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="320" width="210" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-settings" value="⚙️  Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="340" width="210" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Main Content Area -->
+        <mxCell id="main-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0a0a0a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="240" y="0" width="1160" height="900" as="geometry" />
+        </mxCell>
+        
+        <!-- Back Button -->
+        <mxCell id="back-btn" value="← Back to TV Shows" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#14b8a6;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="30" width="180" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Hero Section -->
+        <mxCell id="hero-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="280" y="70" width="1090" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Poster -->
+        <mxCell id="poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="300" y="85" width="110" height="165" as="geometry" />
+        </mxCell>
+        
+        <!-- Show Info -->
+        <mxCell id="show-title" value="Breaking Bad (2008-2013)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=26;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="85" width="500" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="show-meta" value="TV-MA  •  5 Seasons  •  62 Episodes  •  180 GB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="430" y="120" width="400" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="show-genres" value="Drama, Crime, Thriller" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="430" y="145" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="show-summary" value="A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontColor=#cccccc;fontSize=13;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="430" y="175" width="700" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="show-network" value="Network: AMC" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="430" y="230" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Seasons Section -->
+        <mxCell id="seasons-title" value="Seasons" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="290" width="100" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Season Cards -->
+        <mxCell id="season-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="280" y="330" width="150" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="season-1-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="300" y="345" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="season-1-title" value="Season 1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="450" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="season-1-info" value="7 Episodes • 25 GB" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="470" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="season-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="450" y="330" width="150" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="season-2-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="470" y="345" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="season-2-title" value="Season 2" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="450" y="450" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="season-2-info" value="13 Episodes • 35 GB" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="470" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="season-3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="620" y="330" width="150" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="season-3-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="640" y="345" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="season-3-title" value="Season 3" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="450" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="season-3-info" value="13 Episodes • 38 GB" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="470" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="season-4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="790" y="330" width="150" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="season-4-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="810" y="345" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="season-4-title" value="Season 4" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="790" y="450" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="season-4-info" value="13 Episodes • 40 GB" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="790" y="470" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="season-5" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="960" y="330" width="150" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="season-5-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="980" y="345" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="season-5-title" value="Season 5" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="450" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="season-5-info" value="16 Episodes • 42 GB" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="960" y="470" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Episodes Section -->
+        <mxCell id="episodes-header" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="280" y="530" width="1090" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="season-dropdown" value="Season 1 Episodes  ▼" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="295" y="537" width="200" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Episode Table Header -->
+        <mxCell id="ep-header-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="280" y="570" width="1090" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="th-ep" value="#" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="295" y="578" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="th-title" value="Title" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="578" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="th-res" value="Resolution" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="578" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="th-codec" value="Codec" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="790" y="578" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="th-audio" value="Audio" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="890" y="578" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="th-size" value="Size" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="578" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Episode Row 1 -->
+        <mxCell id="ep1-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="280" y="605" width="1090" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ep1-num" value="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="295" y="615" width="30" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep1-title" value="Pilot" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="340" y="615" width="300" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep1-res" value="1080p" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#22c55e;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="670" y="620" width="50" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ep1-codec" value="H.264" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="620" width="45" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ep1-audio" value="AC3 5.1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="615" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep1-size" value="3.5 GB" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="615" width="70" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Episode Row 2 -->
+        <mxCell id="ep2-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="280" y="650" width="1090" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2-num" value="2" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="295" y="660" width="30" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2-title" value="Cat's in the Bag..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="340" y="660" width="300" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2-res" value="1080p" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#22c55e;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="670" y="665" width="50" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2-codec" value="H.264" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="665" width="45" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2-audio" value="AC3 5.1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="660" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2-size" value="3.2 GB" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="660" width="70" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Episode Row 3 -->
+        <mxCell id="ep3-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="280" y="695" width="1090" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3-num" value="3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="295" y="705" width="30" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3-title" value="...And the Bag's in the River" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="340" y="705" width="300" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3-res" value="1080p" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#22c55e;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="670" y="710" width="50" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3-codec" value="H.264" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="710" width="45" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3-audio" value="AC3 5.1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="705" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3-size" value="3.4 GB" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="705" width="70" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- More episodes indicator -->
+        <mxCell id="more-eps" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="280" y="750" width="1090" height="30" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

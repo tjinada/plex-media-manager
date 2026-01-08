@@ -1,0 +1,170 @@
+<mxfile host="app.diagrams.net" modified="2026-01-07T12:00:00.000Z" agent="TJ Plex Media Manager" version="22.1.0" type="device">
+  <diagram id="wanted-mobile" name="Wanted - Mobile">
+    <mxGraphModel dx="400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="375" pageHeight="812" background="#0a0a0a" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Phone Frame -->
+        <mxCell id="phone-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0a0a0a;strokeColor=#2a2a2a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="375" height="812" as="geometry" />
+        </mxCell>
+        
+        <!-- Status Bar -->
+        <mxCell id="status-bar" value="9:41" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="5" width="375" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Header -->
+        <mxCell id="header-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="30" width="375" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="header-title" value="Wanted" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="45" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="refresh-btn" value="🔄" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="320" y="45" width="40" height="36" as="geometry" />
+        </mxCell>
+        
+        <!-- Tab Buttons -->
+        <mxCell id="tab-movies" value="Movies (15)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="15" y="105" width="165" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="tab-episodes" value="Episodes (25)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;fontColor=#ffffff;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="195" y="105" width="165" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Missing Section -->
+        <mxCell id="section-title" value="Missing" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="160" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Card 1 -->
+        <mxCell id="card-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="195" width="345" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="card-1-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="25" y="205" width="45" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="card-1-title" value="Dune: Part Two" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="205" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="card-1-meta" value="2024 • Ultra-HD" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="80" y="227" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="card-1-btn" value="🔍 Search" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="80" y="252" width="90" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Card 2 -->
+        <mxCell id="card-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="295" width="345" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="card-2-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="25" y="305" width="45" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="card-2-title" value="Oppenheimer" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="305" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="card-2-meta" value="2023 • Ultra-HD" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="80" y="327" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="card-2-btn" value="🔍 Search" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="80" y="352" width="90" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Upgrades Section -->
+        <mxCell id="upgrade-title" value="Upgrades Available" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="405" width="150" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Upgrade Card 1 -->
+        <mxCell id="upgrade-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="440" width="345" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-1-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="25" y="450" width="45" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-1-title" value="The Batman" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="450" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-1-current" value="1080p" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#22c55e;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="475" width="45" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-1-arrow" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="130" y="473" width="25" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-1-wanted" value="4K" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="160" y="475" width="35" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-1-btn" value="🔍 Search Upgrade" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f97316;strokeColor=none;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="498" width="130" height="28" as="geometry" />
+        </mxCell>
+        
+        <!-- Upgrade Card 2 -->
+        <mxCell id="upgrade-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="540" width="345" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-2-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="25" y="550" width="45" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-2-title" value="Top Gun: Maverick" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="550" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-2-current" value="720p" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eab308;strokeColor=none;fontColor=#000000;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="575" width="40" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-2-arrow" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="125" y="573" width="25" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-2-wanted" value="4K" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="155" y="575" width="35" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="upgrade-2-btn" value="🔍 Search Upgrade" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f97316;strokeColor=none;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="598" width="130" height="28" as="geometry" />
+        </mxCell>
+        
+        <!-- Bottom Navigation -->
+        <mxCell id="bottom-nav-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=#2a2a2a;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="742" width="375" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-dashboard" value="📊" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="15" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-dashboard-label" value="Dashboard" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="7" y="780" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-movies" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="85" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-movies-label" value="Movies" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="82" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-shows" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="160" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-shows-label" value="Shows" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="157" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-wanted" value="📥" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#14b8a6;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="235" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-wanted-label" value="Wanted" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#14b8a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="232" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-settings" value="⚙️" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="305" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-settings-label" value="Settings" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="302" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

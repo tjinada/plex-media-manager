@@ -1,0 +1,141 @@
+<mxfile host="app.diagrams.net" modified="2026-01-07T12:00:00.000Z" agent="TJ Plex Media Manager" version="22.1.0" type="device">
+  <diagram id="movie-detail-mobile" name="Movie Detail - Mobile">
+    <mxGraphModel dx="400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="375" pageHeight="812" background="#0a0a0a" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Phone Frame -->
+        <mxCell id="phone-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0a0a0a;strokeColor=#2a2a2a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="375" height="812" as="geometry" />
+        </mxCell>
+        
+        <!-- Status Bar -->
+        <mxCell id="status-bar" value="9:41" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="5" width="375" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Header -->
+        <mxCell id="header-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="30" width="375" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="back-btn" value="← Avatar" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#14b8a6;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="15" y="45" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Poster Section -->
+        <mxCell id="poster-container" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="90" width="375" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2a2a2a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="127" y="105" width="120" height="170" as="geometry" />
+        </mxCell>
+        
+        <!-- Movie Info -->
+        <mxCell id="movie-title" value="Avatar (2009)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=22;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="300" width="335" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="movie-meta" value="PG-13 • 2h 42m" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="20" y="330" width="335" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="movie-genres" value="Action, Adventure, Sci-Fi" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="20" y="350" width="335" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="movie-summary" value="A paraplegic Marine dispatched to the moon Pandora on a unique mission becomes torn between following orders and protecting his new home." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontColor=#cccccc;fontSize=12;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="380" width="335" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="director" value="Director: James Cameron" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="430" width="335" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Video Info Card -->
+        <mxCell id="video-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="465" width="345" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="video-title" value="Video Information" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="472" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="video-codec" value="Codec: HEVC (Main 10)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="498" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="video-res" value="Resolution: 3840x2160 (4K)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="520" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="video-bitrate" value="Bitrate: 35,000 kbps" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="542" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="video-framerate" value="24p" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="564" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Audio Info Card -->
+        <mxCell id="audio-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="595" width="345" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="audio-title" value="Audio Information" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="602" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="audio-primary" value="Primary: TrueHD Atmos 7.1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="628" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="audio-extra" value="+ 2 additional tracks" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="650" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- File Info Card -->
+        <mxCell id="file-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="685" width="345" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="file-title" value="File Information" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="690" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="file-info" value="MKV • 45.2 GB • 2:42:00" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="710" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Bottom Navigation -->
+        <mxCell id="bottom-nav-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=#2a2a2a;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="742" width="375" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-dashboard" value="📊" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="15" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-dashboard-label" value="Dashboard" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="7" y="780" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-movies" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#14b8a6;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="85" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-movies-label" value="Movies" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#14b8a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="82" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-shows" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="160" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-shows-label" value="Shows" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="157" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-wanted" value="📥" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="235" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-wanted-label" value="Wanted" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="232" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-settings" value="⚙️" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="305" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-settings-label" value="Settings" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="302" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

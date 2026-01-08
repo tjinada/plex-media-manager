@@ -1,0 +1,155 @@
+<mxfile host="app.diagrams.net" modified="2026-01-07T12:00:00.000Z" agent="TJ Plex Media Manager" version="22.1.0" type="device">
+  <diagram id="settings-mobile" name="Settings - Mobile">
+    <mxGraphModel dx="400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="375" pageHeight="812" background="#0a0a0a" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Phone Frame -->
+        <mxCell id="phone-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0a0a0a;strokeColor=#2a2a2a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="375" height="812" as="geometry" />
+        </mxCell>
+        
+        <!-- Status Bar -->
+        <mxCell id="status-bar" value="9:41" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="5" width="375" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Header -->
+        <mxCell id="header-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="30" width="375" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="header-title" value="Settings" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="45" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Settings List -->
+        <!-- Plex Server Card -->
+        <mxCell id="plex-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="110" width="345" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="plex-title" value="Plex Server" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="120" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="plex-status-dot" value="●" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#22c55e;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="145" width="15" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="plex-status" value="Connected - TJPlex" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="42" y="145" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="plex-arrow" value="▶" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="320" y="130" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Radarr Card -->
+        <mxCell id="radarr-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="195" width="345" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="radarr-title" value="Radarr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="205" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="radarr-status-dot" value="●" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#22c55e;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="230" width="15" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="radarr-status" value="Connected" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="42" y="230" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="radarr-arrow" value="▶" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="320" y="215" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Sonarr Card -->
+        <mxCell id="sonarr-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="280" width="345" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sonarr-title" value="Sonarr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="290" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="sonarr-status-dot" value="○" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="25" y="315" width="15" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="sonarr-status" value="Not configured" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="42" y="315" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="sonarr-arrow" value="▶" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="320" y="300" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- General Card -->
+        <mxCell id="general-card" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="365" width="345" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="general-title" value="General" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="25" y="375" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="general-subtitle" value="Sync interval, theme" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="25" y="400" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="general-arrow" value="▶" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="320" y="385" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Divider -->
+        <mxCell id="divider" value="" style="line;strokeWidth=1;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="460" width="345" height="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Sync Button -->
+        <mxCell id="sync-btn" value="🔄 Full Library Sync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="15" y="485" width="345" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Last Sync Info -->
+        <mxCell id="last-sync" value="Last sync: Jan 7, 2026 10:30 AM" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="15" y="545" width="345" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- App Info -->
+        <mxCell id="app-info" value="TJ Plex Media Manager v1.0.0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#555555;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="15" y="680" width="345" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Bottom Navigation -->
+        <mxCell id="bottom-nav-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=#2a2a2a;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="742" width="375" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-dashboard" value="📊" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="15" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-dashboard-label" value="Dashboard" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="7" y="780" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-movies" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="85" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-movies-label" value="Movies" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="82" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-shows" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="160" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-shows-label" value="Shows" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="157" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-wanted" value="📥" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="235" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-wanted-label" value="Wanted" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#888888;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="232" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-settings" value="⚙️" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#14b8a6;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="305" y="752" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-settings-label" value="Settings" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#14b8a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="302" y="780" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

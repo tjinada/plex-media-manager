@@ -1,0 +1,242 @@
+<mxfile host="app.diagrams.net" modified="2026-01-07T12:00:00.000Z" agent="TJ Plex Media Manager" version="22.1.0" type="device">
+  <diagram id="dashboard-desktop" name="Dashboard - Desktop">
+    <mxGraphModel dx="1434" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" background="#0a0a0a" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Sidebar Background -->
+        <mxCell id="sidebar-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#141414;strokeColor=#2a2a2a;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="240" height="900" as="geometry" />
+        </mxCell>
+        
+        <!-- Logo -->
+        <mxCell id="logo" value="TJ Plex Media Manager" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#14b8a6;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="200" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Nav Items -->
+        <mxCell id="nav-dashboard" value="📊  Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="90" width="210" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-movies" value="🎬  Movies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="140" width="210" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-shows" value="📺  TV Shows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="190" width="210" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-divider1" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=0;spacingRight=0;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="245" width="210" height="10" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-wanted" value="📥  Wanted" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="265" width="210" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-divider2" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=0;spacingRight=0;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="15" y="320" width="210" height="10" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nav-settings" value="⚙️  Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#888888;align=left;spacingLeft=15;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="15" y="340" width="210" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Main Content Area Background -->
+        <mxCell id="main-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0a0a0a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="240" y="0" width="1160" height="900" as="geometry" />
+        </mxCell>
+        
+        <!-- Header -->
+        <mxCell id="header-title" value="Dashboard" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#ffffff;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="30" width="200" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="sync-btn" value="🔄 Sync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="30" width="80" height="36" as="geometry" />
+        </mxCell>
+        
+        <!-- Stat Cards Row -->
+        <mxCell id="stat-card-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="280" y="100" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-icon-1" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+          <mxGeometry x="295" y="125" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-value-1" value="557" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="355" y="115" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-label-1" value="Movies" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="355" y="150" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="stat-card-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="550" y="100" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-icon-2" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+          <mxGeometry x="565" y="125" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-value-2" value="89" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="625" y="115" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-label-2" value="TV Shows" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="625" y="150" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="stat-card-3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="820" y="100" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-icon-3" value="📁" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+          <mxGeometry x="835" y="125" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-value-3" value="2,456" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="895" y="115" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-label-3" value="Episodes" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="895" y="150" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="stat-card-4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="100" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-icon-4" value="💾" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+          <mxGeometry x="1105" y="125" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-value-4" value="15 TB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="115" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-label-4" value="Storage" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="150" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Charts Row 1 -->
+        <mxCell id="chart-card-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="280" y="230" width="520" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="chart-title-1" value="Resolution Distribution" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="245" width="200" height="30" as="geometry" />
+        </mxCell>
+        <!-- Donut Chart Placeholder -->
+        <mxCell id="donut-1" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="420" y="300" width="180" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="donut-1-inner" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="460" y="340" width="100" height="100" as="geometry" />
+        </mxCell>
+        <!-- Legend -->
+        <mxCell id="legend-1-4k" value="● 4K (27%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#14b8a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="320" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-1-1080" value="● 1080p (63%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#22c55e;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="350" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-1-720" value="● 720p (8%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#eab308;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="380" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-1-sd" value="● SD (2%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="410" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="chart-card-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="820" y="230" width="520" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="chart-title-2" value="Video Codec Distribution" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="245" width="200" height="30" as="geometry" />
+        </mxCell>
+        <!-- Donut Chart Placeholder -->
+        <mxCell id="donut-2" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#a855f7;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="960" y="300" width="180" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="donut-2-inner" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="340" width="100" height="100" as="geometry" />
+        </mxCell>
+        <!-- Legend -->
+        <mxCell id="legend-2-hevc" value="● HEVC (45%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#a855f7;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="320" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-2-h264" value="● H.264 (52%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#3b82f6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="350" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-2-other" value="● Other (3%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="380" width="120" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Charts Row 2 -->
+        <mxCell id="chart-card-3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="280" y="560" width="520" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="chart-title-3" value="Audio Codec Distribution" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="575" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="donut-3" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ec4899;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="420" y="630" width="180" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="donut-3-inner" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="460" y="670" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3-truehd" value="● TrueHD (18%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ec4899;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="650" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3-dts" value="● DTS (25%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#f97316;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="680" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3-aac" value="● AAC (40%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#14b8a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="710" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3-ac3" value="● AC3 (17%)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#3b82f6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="740" width="120" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="chart-card-4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#2a2a2a;" vertex="1" parent="1">
+          <mxGeometry x="820" y="560" width="520" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="chart-title-4" value="Storage by Resolution" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="575" width="200" height="30" as="geometry" />
+        </mxCell>
+        <!-- Bar Chart -->
+        <mxCell id="bar-4k" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="920" y="630" width="350" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-4k-label" value="4K" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="855" y="630" width="50" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-4k-value" value="8 TB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="630" width="50" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="bar-1080" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#22c55e;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="920" y="680" width="220" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-1080-label" value="1080p" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="855" y="680" width="50" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-1080-value" value="5 TB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="680" width="50" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="bar-720" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eab308;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="920" y="730" width="70" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-720-label" value="720p" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="855" y="730" width="50" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-720-value" value="1.5 TB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="730" width="50" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="bar-sd" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#888888;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="920" y="780" width="25" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-sd-label" value="SD" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="855" y="780" width="50" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bar-sd-value" value="0.5 TB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="955" y="780" width="50" height="35" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

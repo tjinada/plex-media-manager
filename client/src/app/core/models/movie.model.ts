@@ -95,3 +95,27 @@ export interface Pagination {
   total: number;
   totalPages: number;
 }
+
+// Filter related interfaces
+export interface FilterOption {
+  value: string;
+  label: string;
+  count?: number;
+}
+
+export interface FilterState {
+  search?: string;
+  resolution?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  container?: string;
+  minSize?: number;
+  maxSize?: number;
+}
+
+export interface FilterOptions {
+  resolutions: FilterOption[];
+  videoCodecs: FilterOption[];
+  audioCodecs: FilterOption[];
+  containers: FilterOption[];
+}

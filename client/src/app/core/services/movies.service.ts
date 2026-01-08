@@ -11,6 +11,7 @@ export interface MovieQueryParams {
   search?: string;
   resolution?: string;
   videoCodec?: string;
+  audioCodec?: string;
   container?: string;
   minSize?: number;
   maxSize?: number;
@@ -26,7 +27,14 @@ export class MoviesService {
    * Get all movies with optional filtering
    */
   getMovies(params: MovieQueryParams = {}): Observable<MoviesResponse> {
-    return this.api.get<MoviesResponse>('/movies', params as Record<string, string | number | boolean>);
+    // Clean up undefined values
+    const cleanParams: Record<string, string | number | boolean> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        cleanParams[key] = value;
+      }
+    });
+    return this.api.get<MoviesResponse>('/movies', cleanParams);
   }
 
   /**

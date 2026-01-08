@@ -1,34 +1,106 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ShowsService, ShowQueryParams, PlexService } from '@core/services';
-import { TVShowListItem, Pagination } from '@core/models';
+import { TVShowListItem, Pagination, FilterState } from '@core/models';
+import { FilterPanelComponent, FilterConfig } from '@shared/components/filter-panel/filter-panel.component';
 
 @Component({
   selector: 'app-shows',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, FilterPanelComponent],
   templateUrl: './shows.component.html'
 })
-export class ShowsComponent implements OnInit {
+export class ShowsComponent implements OnInit, OnDestroy {
   shows: TVShowListItem[] = [];
   pagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   isLoading = true;
   
-  // Query params
+  // Filter state
+  filters: FilterState = {};
+  filterConfig: FilterConfig = {
+    showResolution: true,
+    showVideoCodec: true,
+    showAudioCodec: true,
+    showContainer: false, // TV shows don't have container filter at show level
+    showFileSize: true
+  };
+
+  // Search with debounce
   searchQuery = '';
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
+  // Sorting and pagination
   currentPage = 1;
   sortField = 'title';
   sortOrder: 'asc' | 'desc' = 'asc';
 
   constructor(
     private showsService: ShowsService,
-    private plexService: PlexService
+    private plexService: PlexService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.loadShows();
+    // Setup debounced search
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(query => {
+      this.searchQuery = query;
+      this.currentPage = 1;
+      this.updateUrlAndLoad();
+    });
+
+    // Load filters from URL query params
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.loadFiltersFromParams(params);
+      this.loadShows();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadFiltersFromParams(params: any): void {
+    this.searchQuery = params['search'] || '';
+    this.filters = {
+      resolution: params['resolution'] || undefined,
+      videoCodec: params['videoCodec'] || undefined,
+      audioCodec: params['audioCodec'] || undefined,
+      minSize: params['minSize'] ? parseInt(params['minSize'], 10) : undefined,
+      maxSize: params['maxSize'] ? parseInt(params['maxSize'], 10) : undefined
+    };
+    this.sortField = params['sort'] || 'title';
+    this.sortOrder = params['order'] || 'asc';
+    this.currentPage = params['page'] ? parseInt(params['page'], 10) : 1;
+  }
+
+  private updateUrlAndLoad(): void {
+    const queryParams: any = {};
+    
+    if (this.searchQuery) queryParams['search'] = this.searchQuery;
+    if (this.filters.resolution) queryParams['resolution'] = this.filters.resolution;
+    if (this.filters.videoCodec) queryParams['videoCodec'] = this.filters.videoCodec;
+    if (this.filters.audioCodec) queryParams['audioCodec'] = this.filters.audioCodec;
+    if (this.filters.minSize) queryParams['minSize'] = this.filters.minSize;
+    if (this.filters.maxSize) queryParams['maxSize'] = this.filters.maxSize;
+    if (this.sortField !== 'title') queryParams['sort'] = this.sortField;
+    if (this.sortOrder !== 'asc') queryParams['order'] = this.sortOrder;
+    if (this.currentPage > 1) queryParams['page'] = this.currentPage;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true
+    });
   }
 
   loadShows(): void {
@@ -39,7 +111,12 @@ export class ShowsComponent implements OnInit {
       limit: this.pagination.limit,
       sort: this.sortField,
       order: this.sortOrder,
-      search: this.searchQuery || undefined
+      search: this.searchQuery || undefined,
+      resolution: this.filters.resolution,
+      videoCodec: this.filters.videoCodec,
+      audioCodec: this.filters.audioCodec,
+      minSize: this.filters.minSize,
+      maxSize: this.filters.maxSize
     };
 
     this.showsService.getShows(params).subscribe({
@@ -55,14 +132,32 @@ export class ShowsComponent implements OnInit {
     });
   }
 
-  onSearch(): void {
+  onSearchInput(event: Event): void {
+    const query = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(query);
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchSubject.next('');
+  }
+
+  onFiltersChange(newFilters: FilterState): void {
+    this.filters = newFilters;
     this.currentPage = 1;
-    this.loadShows();
+    this.updateUrlAndLoad();
+  }
+
+  onClearFilters(): void {
+    this.filters = {};
+    this.searchQuery = '';
+    this.currentPage = 1;
+    this.updateUrlAndLoad();
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadShows();
+    this.updateUrlAndLoad();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -73,7 +168,11 @@ export class ShowsComponent implements OnInit {
       this.sortField = field;
       this.sortOrder = 'asc';
     }
-    this.loadShows();
+    this.updateUrlAndLoad();
+  }
+
+  onShowClick(show: TVShowListItem): void {
+    this.router.navigate(['/shows', show.id]);
   }
 
   getImageUrl(path: string | undefined): string {

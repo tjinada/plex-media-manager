@@ -1,0 +1,220 @@
+<div class="p-4 md:p-6 lg:p-8">
+  <!-- Back Button -->
+  <button 
+    (click)="goBack()"
+    class="flex items-center gap-2 text-gray-400 hover:text-gray-200 mb-6 transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    <span>Back to TV Shows</span>
+  </button>
+
+  @if (isLoading) {
+    <!-- Loading State -->
+    <div class="flex items-center justify-center h-64">
+      <div class="text-center">
+        <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-400">Loading show details...</p>
+      </div>
+    </div>
+  } @else if (error) {
+    <!-- Error State -->
+    <div class="card p-8 text-center">
+      <div class="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Error</h2>
+      <p class="text-gray-400">{{ error }}</p>
+    </div>
+  } @else if (show) {
+    <!-- Show Header -->
+    <div class="flex flex-col md:flex-row gap-6 mb-8">
+      <!-- Poster -->
+      <div class="flex-shrink-0">
+        <img 
+          [src]="getImageUrl(show.posterUrl)"
+          [alt]="show.title"
+          class="w-48 md:w-64 rounded-lg shadow-lg mx-auto md:mx-0"
+          (error)="onImageError($event)">
+      </div>
+
+      <!-- Info -->
+      <div class="flex-1">
+        <div class="flex flex-wrap items-center gap-3 mb-2">
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-100">{{ show.title }}</h1>
+          @if (show.year) {
+            <span class="text-gray-400 text-xl">({{ show.year }})</span>
+          }
+        </div>
+
+        <!-- Badges -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          @if (show.dominantResolution) {
+            <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getResolutionClass(show.dominantResolution)">
+              {{ show.dominantResolution }}
+            </span>
+          }
+          @if (show.dominantVideoCodec) {
+            <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getCodecClass(show.dominantVideoCodec)">
+              {{ show.dominantVideoCodec }}
+            </span>
+          }
+          @if (show.contentRating) {
+            <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-600/20 text-gray-400">
+              {{ show.contentRating }}
+            </span>
+          }
+          @if (show.rating) {
+            <span class="px-3 py-1 rounded-full text-sm font-medium bg-yellow-600/20 text-yellow-400">
+              ★ {{ show.rating.toFixed(1) }}
+            </span>
+          }
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div class="bg-dark-800 rounded-lg p-3 text-center">
+            <div class="text-2xl font-bold text-primary-400">{{ show.seasonCount || 0 }}</div>
+            <div class="text-xs text-gray-500">Seasons</div>
+          </div>
+          <div class="bg-dark-800 rounded-lg p-3 text-center">
+            <div class="text-2xl font-bold text-primary-400">{{ show.episodeCount || 0 }}</div>
+            <div class="text-xs text-gray-500">Episodes</div>
+          </div>
+          <div class="bg-dark-800 rounded-lg p-3 text-center col-span-2 md:col-span-2">
+            <div class="text-2xl font-bold text-primary-400">{{ formatFileSize(show.totalFileSize) }}</div>
+            <div class="text-xs text-gray-500">Total Size</div>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="space-y-2 text-sm">
+          @if (show.genres && show.genres.length > 0) {
+            <p><span class="text-gray-500">Genres:</span> <span class="text-gray-300">{{ show.genres.join(', ') }}</span></p>
+          }
+          @if (show.studio) {
+            <p><span class="text-gray-500">Network:</span> <span class="text-gray-300">{{ show.studio }}</span></p>
+          }
+        </div>
+
+        @if (show.summary) {
+          <p class="mt-4 text-gray-400 leading-relaxed">{{ show.summary }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Seasons Accordion -->
+    <div class="space-y-2">
+      <h2 class="text-xl font-semibold text-gray-100 mb-4">Seasons</h2>
+      
+      @for (season of show.seasons; track season.id) {
+        <div class="card overflow-hidden">
+          <!-- Season Header -->
+          <button 
+            (click)="toggleSeason(season.seasonNumber)"
+            class="w-full p-4 flex items-center justify-between hover:bg-dark-800/50 transition-colors">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-dark-700 rounded-lg flex items-center justify-center">
+                <span class="text-lg font-bold text-primary-400">{{ season.seasonNumber }}</span>
+              </div>
+              <div class="text-left">
+                <h3 class="font-medium text-gray-100">{{ season.title }}</h3>
+                <p class="text-sm text-gray-500">{{ season.episodeCount }} episodes</p>
+              </div>
+            </div>
+            <svg 
+              class="w-5 h-5 text-gray-400 transition-transform"
+              [class.rotate-180]="expandedSeason === season.seasonNumber"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Season Episodes -->
+          @if (expandedSeason === season.seasonNumber) {
+            <div class="border-t border-dark-700">
+              @if (isSeasonLoading(season.seasonNumber)) {
+                <div class="p-8 text-center">
+                  <svg class="animate-spin h-6 w-6 text-primary-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              } @else {
+                <!-- Mobile: Card List -->
+                <div class="md:hidden divide-y divide-dark-700">
+                  @for (episode of getSeasonEpisodes(season.seasonNumber); track episode.id) {
+                    <div class="p-4">
+                      <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-dark-700 rounded flex items-center justify-center flex-shrink-0">
+                          <span class="text-sm font-medium text-gray-400">{{ episode.episodeNumber }}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-gray-100 font-medium truncate">{{ episode.title }}</h4>
+                          <div class="flex flex-wrap gap-2 mt-1">
+                            @if (episode.resolution) {
+                              <span class="text-xs px-2 py-0.5 rounded" [ngClass]="getResolutionClass(episode.resolution)">
+                                {{ episode.resolution }}
+                              </span>
+                            }
+                            @if (episode.videoCodec) {
+                              <span class="text-xs text-gray-500">{{ episode.videoCodec }}</span>
+                            }
+                            <span class="text-xs text-gray-500">{{ formatFileSize(episode.fileSize) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Desktop: Table -->
+                <div class="hidden md:block overflow-x-auto">
+                  <table class="w-full">
+                    <thead class="bg-dark-800/50">
+                      <tr>
+                        <th class="text-left p-3 text-gray-500 font-medium text-sm w-16">#</th>
+                        <th class="text-left p-3 text-gray-500 font-medium text-sm">Title</th>
+                        <th class="text-left p-3 text-gray-500 font-medium text-sm w-24">Resolution</th>
+                        <th class="text-left p-3 text-gray-500 font-medium text-sm w-24">Video</th>
+                        <th class="text-left p-3 text-gray-500 font-medium text-sm w-24">Audio</th>
+                        <th class="text-right p-3 text-gray-500 font-medium text-sm w-24">Size</th>
+                        <th class="text-right p-3 text-gray-500 font-medium text-sm w-24">Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-dark-700">
+                      @for (episode of getSeasonEpisodes(season.seasonNumber); track episode.id) {
+                        <tr class="hover:bg-dark-800/30">
+                          <td class="p-3 text-gray-400">{{ episode.episodeNumber }}</td>
+                          <td class="p-3 text-gray-100">{{ episode.title }}</td>
+                          <td class="p-3">
+                            @if (episode.resolution) {
+                              <span class="text-xs px-2 py-1 rounded" [ngClass]="getResolutionClass(episode.resolution)">
+                                {{ episode.resolution }}
+                              </span>
+                            } @else {
+                              <span class="text-gray-500">-</span>
+                            }
+                          </td>
+                          <td class="p-3 text-gray-400 text-sm">{{ episode.videoCodec || '-' }}</td>
+                          <td class="p-3 text-gray-400 text-sm">{{ episode.audioCodec || '-' }}</td>
+                          <td class="p-3 text-gray-400 text-sm text-right">{{ formatFileSize(episode.fileSize) }}</td>
+                          <td class="p-3 text-gray-400 text-sm text-right">{{ formatDuration(episode.duration) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,197 +1,222 @@
-<div class="p-4 md:p-6 lg:p-8">
-  <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Movies</h1>
-    <p class="text-gray-400 mt-1">{{ pagination.total }} movies in your library</p>
-  </div>
+<div class="flex h-full">
+  <!-- Filter Panel Sidebar -->
+  <app-filter-panel
+    [filters]="filters"
+    [config]="filterConfig"
+    [maxFileSizeGB]="100"
+    (filtersChange)="onFiltersChange($event)"
+    (clearFilters)="onClearFilters()">
+  </app-filter-panel>
 
-  <!-- Search Bar -->
-  <div class="mb-6">
-    <div class="relative max-w-md">
-      <input 
-        type="text"
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-        placeholder="Search movies..."
-        class="input-field pl-10">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
+  <!-- Main Content -->
+  <div class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Movies</h1>
+      <p class="text-gray-400 mt-1">{{ pagination.total }} movies in your library</p>
     </div>
-  </div>
 
-  @if (isLoading) {
-    <!-- Loading State -->
-    <div class="flex items-center justify-center h-64">
-      <div class="text-center">
-        <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <!-- Search Bar -->
+    <div class="mb-6">
+      <div class="relative max-w-md">
+        <input 
+          type="text"
+          [value]="searchQuery"
+          (input)="onSearchInput($event)"
+          placeholder="Search movies..."
+          class="input-field pl-10 w-full">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <p class="text-gray-400">Loading movies...</p>
-      </div>
-    </div>
-  } @else if (movies.length === 0) {
-    <!-- Empty State -->
-    <div class="card p-8 text-center">
-      <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-        </svg>
-      </div>
-      <h2 class="text-xl font-semibold text-gray-100 mb-2">No Movies Found</h2>
-      <p class="text-gray-400">
         @if (searchQuery) {
-          No movies match your search. Try a different query.
-        } @else {
-          Your movie library is empty. Sync your Plex library to see movies here.
+          <button 
+            (click)="clearSearch()"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         }
-      </p>
+      </div>
     </div>
-  } @else {
-    <!-- Movies Grid (Mobile) / Table (Desktop) -->
-    
-    <!-- Mobile: Card Grid -->
-    <div class="md:hidden grid grid-cols-2 sm:grid-cols-3 gap-4">
-      @for (movie of movies; track movie.id) {
-        <div class="card-hover overflow-hidden">
-          <div class="aspect-[2/3] bg-dark-800 relative">
-            <img 
-              [src]="getImageUrl(movie.posterUrl)"
-              [alt]="movie.title"
-              class="w-full h-full object-cover"
-              loading="lazy"
-              (error)="onImageError($event)">
-            @if (movie.resolution) {
-              <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-medium"
-                    [ngClass]="getResolutionClass(movie.resolution)">
-                {{ movie.resolution }}
-              </span>
+
+    @if (isLoading) {
+      <!-- Loading State -->
+      <div class="flex items-center justify-center h-64">
+        <div class="text-center">
+          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-400">Loading movies...</p>
+        </div>
+      </div>
+    } @else if (movies.length === 0) {
+      <!-- Empty State -->
+      <div class="card p-8 text-center">
+        <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-100 mb-2">No Movies Found</h2>
+        <p class="text-gray-400">
+          @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec || filters.container) {
+            No movies match your filters. Try adjusting your search criteria.
+          } @else {
+            Your movie library is empty. Sync your Plex library to see movies here.
+          }
+        </p>
+      </div>
+    } @else {
+      <!-- Movies Grid (Mobile) / Table (Desktop) -->
+      
+      <!-- Mobile: Card Grid -->
+      <div class="md:hidden grid grid-cols-2 sm:grid-cols-3 gap-4">
+        @for (movie of movies; track movie.id) {
+          <div 
+            (click)="onMovieClick(movie)"
+            class="card-hover overflow-hidden cursor-pointer">
+            <div class="aspect-[2/3] bg-dark-800 relative">
+              <img 
+                [src]="getImageUrl(movie.posterUrl)"
+                [alt]="movie.title"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                (error)="onImageError($event)">
+              @if (movie.resolution) {
+                <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-medium"
+                      [ngClass]="getResolutionClass(movie.resolution)">
+                  {{ movie.resolution }}
+                </span>
+              }
+            </div>
+            <div class="p-3">
+              <h3 class="font-medium text-gray-100 text-sm truncate">{{ movie.title }}</h3>
+              <p class="text-xs text-gray-500">{{ movie.year }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Desktop: Table -->
+      <div class="hidden md:block card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-dark-800">
+              <tr>
+                <th class="text-left p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
+                    (click)="onSort('title')">
+                  <div class="flex items-center gap-2">
+                    Title
+                    @if (sortField === 'title') {
+                      <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    }
+                  </div>
+                </th>
+                <th class="text-left p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
+                    (click)="onSort('year')">
+                  <div class="flex items-center gap-2">
+                    Year
+                    @if (sortField === 'year') {
+                      <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    }
+                  </div>
+                </th>
+                <th class="text-left p-4 text-gray-400 font-medium">Resolution</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Video</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Audio</th>
+                <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
+                    (click)="onSort('media.fileSize')">
+                  <div class="flex items-center gap-2 justify-end">
+                    Size
+                    @if (sortField === 'media.fileSize') {
+                      <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    }
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-dark-700">
+              @for (movie of movies; track movie.id) {
+                <tr 
+                  (click)="onMovieClick(movie)"
+                  class="hover:bg-dark-800/50 transition-colors cursor-pointer">
+                  <td class="p-4">
+                    <div class="flex items-center gap-3">
+                      <img 
+                        [src]="getImageUrl(movie.posterUrl)"
+                        [alt]="movie.title"
+                        class="w-10 h-14 object-cover rounded"
+                        loading="lazy"
+                        (error)="onImageError($event)">
+                      <span class="text-gray-100 font-medium">{{ movie.title }}</span>
+                    </div>
+                  </td>
+                  <td class="p-4 text-gray-400">{{ movie.year || '-' }}</td>
+                  <td class="p-4">
+                    @if (movie.resolution) {
+                      <span class="px-2 py-1 rounded text-xs font-medium"
+                            [ngClass]="getResolutionClass(movie.resolution)">
+                        {{ movie.resolution }}
+                      </span>
+                    } @else {
+                      <span class="text-gray-500">-</span>
+                    }
+                  </td>
+                  <td class="p-4 text-gray-400">{{ movie.videoCodec || '-' }}</td>
+                  <td class="p-4 text-gray-400">{{ movie.audioCodec || '-' }}</td>
+                  <td class="p-4 text-gray-400 text-right">{{ formatFileSize(movie.fileSize) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      @if (pagination.totalPages > 1) {
+        <div class="mt-6 flex justify-center">
+          <nav class="flex items-center gap-1">
+            <button 
+              (click)="onPageChange(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            @for (page of pageNumbers; track page) {
+              <button 
+                (click)="onPageChange(page)"
+                class="min-w-[40px] h-10 rounded-lg font-medium transition-colors"
+                [class.bg-primary-600]="page === currentPage"
+                [class.text-white]="page === currentPage"
+                [class.text-gray-400]="page !== currentPage"
+                [class.hover:bg-dark-800]="page !== currentPage">
+                {{ page }}
+              </button>
             }
-          </div>
-          <div class="p-3">
-            <h3 class="font-medium text-gray-100 text-sm truncate">{{ movie.title }}</h3>
-            <p class="text-xs text-gray-500">{{ movie.year }}</p>
-          </div>
+            
+            <button 
+              (click)="onPageChange(currentPage + 1)"
+              [disabled]="currentPage === pagination.totalPages"
+              class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </nav>
         </div>
       }
-    </div>
-
-    <!-- Desktop: Table -->
-    <div class="hidden md:block card overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-dark-800">
-            <tr>
-              <th class="text-left p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                  (click)="onSort('title')">
-                <div class="flex items-center gap-2">
-                  Title
-                  @if (sortField === 'title') {
-                    <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  }
-                </div>
-              </th>
-              <th class="text-left p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                  (click)="onSort('year')">
-                <div class="flex items-center gap-2">
-                  Year
-                  @if (sortField === 'year') {
-                    <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  }
-                </div>
-              </th>
-              <th class="text-left p-4 text-gray-400 font-medium">Resolution</th>
-              <th class="text-left p-4 text-gray-400 font-medium">Video</th>
-              <th class="text-left p-4 text-gray-400 font-medium">Audio</th>
-              <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                  (click)="onSort('media.fileSize')">
-                <div class="flex items-center gap-2 justify-end">
-                  Size
-                  @if (sortField === 'media.fileSize') {
-                    <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  }
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-dark-700">
-            @for (movie of movies; track movie.id) {
-              <tr class="hover:bg-dark-800/50 transition-colors">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <img 
-                      [src]="getImageUrl(movie.posterUrl)"
-                      [alt]="movie.title"
-                      class="w-10 h-14 object-cover rounded"
-                      loading="lazy"
-                      (error)="onImageError($event)">
-                    <span class="text-gray-100 font-medium">{{ movie.title }}</span>
-                  </div>
-                </td>
-                <td class="p-4 text-gray-400">{{ movie.year || '-' }}</td>
-                <td class="p-4">
-                  @if (movie.resolution) {
-                    <span class="px-2 py-1 rounded text-xs font-medium"
-                          [ngClass]="getResolutionClass(movie.resolution)">
-                      {{ movie.resolution }}
-                    </span>
-                  } @else {
-                    <span class="text-gray-500">-</span>
-                  }
-                </td>
-                <td class="p-4 text-gray-400">{{ movie.videoCodec || '-' }}</td>
-                <td class="p-4 text-gray-400">{{ movie.audioCodec || '-' }}</td>
-                <td class="p-4 text-gray-400 text-right">{{ formatFileSize(movie.fileSize) }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    @if (pagination.totalPages > 1) {
-      <div class="mt-6 flex justify-center">
-        <nav class="flex items-center gap-1">
-          <button 
-            (click)="onPageChange(currentPage - 1)"
-            [disabled]="currentPage === 1"
-            class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          
-          @for (page of pageNumbers; track page) {
-            <button 
-              (click)="onPageChange(page)"
-              class="min-w-[40px] h-10 rounded-lg font-medium transition-colors"
-              [class.bg-primary-600]="page === currentPage"
-              [class.text-white]="page === currentPage"
-              [class.text-gray-400]="page !== currentPage"
-              [class.hover:bg-dark-800]="page !== currentPage">
-              {{ page }}
-            </button>
-          }
-          
-          <button 
-            (click)="onPageChange(currentPage + 1)"
-            [disabled]="currentPage === pagination.totalPages"
-            class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </nav>
-      </div>
     }
-  }
+  </div>
 </div>

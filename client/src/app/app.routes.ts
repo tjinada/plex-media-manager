@@ -22,9 +22,19 @@ export const routes: Routes = [
           .then(m => m.MoviesComponent)
       },
       {
+        path: 'movies/:id',
+        loadComponent: () => import('./features/movies/movie-detail/movie-detail.component')
+          .then(m => m.MovieDetailComponent)
+      },
+      {
         path: 'shows',
         loadComponent: () => import('./features/shows/shows.component')
           .then(m => m.ShowsComponent)
+      },
+      {
+        path: 'shows/:id',
+        loadComponent: () => import('./features/shows/show-detail/show-detail.component')
+          .then(m => m.ShowDetailComponent)
       },
       {
         path: 'settings',

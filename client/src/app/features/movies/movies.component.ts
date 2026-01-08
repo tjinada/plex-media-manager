@@ -1,34 +1,108 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { MoviesService, MovieQueryParams, PlexService } from '@core/services';
-import { MovieListItem, Pagination } from '@core/models';
+import { MovieListItem, Pagination, FilterState } from '@core/models';
+import { FilterPanelComponent, FilterConfig } from '@shared/components/filter-panel/filter-panel.component';
 
 @Component({
   selector: 'app-movies',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, FilterPanelComponent],
   templateUrl: './movies.component.html'
 })
-export class MoviesComponent implements OnInit {
+export class MoviesComponent implements OnInit, OnDestroy {
   movies: MovieListItem[] = [];
   pagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   isLoading = true;
   
-  // Query params
+  // Filter state
+  filters: FilterState = {};
+  filterConfig: FilterConfig = {
+    showResolution: true,
+    showVideoCodec: true,
+    showAudioCodec: true,
+    showContainer: true,
+    showFileSize: true
+  };
+
+  // Search with debounce
   searchQuery = '';
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
+  // Sorting and pagination
   currentPage = 1;
   sortField = 'title';
   sortOrder: 'asc' | 'desc' = 'asc';
 
   constructor(
     private moviesService: MoviesService,
-    private plexService: PlexService
+    private plexService: PlexService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.loadMovies();
+    // Setup debounced search
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(query => {
+      this.searchQuery = query;
+      this.currentPage = 1;
+      this.updateUrlAndLoad();
+    });
+
+    // Load filters from URL query params
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.loadFiltersFromParams(params);
+      this.loadMovies();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadFiltersFromParams(params: any): void {
+    this.searchQuery = params['search'] || '';
+    this.filters = {
+      resolution: params['resolution'] || undefined,
+      videoCodec: params['videoCodec'] || undefined,
+      audioCodec: params['audioCodec'] || undefined,
+      container: params['container'] || undefined,
+      minSize: params['minSize'] ? parseInt(params['minSize'], 10) : undefined,
+      maxSize: params['maxSize'] ? parseInt(params['maxSize'], 10) : undefined
+    };
+    this.sortField = params['sort'] || 'title';
+    this.sortOrder = params['order'] || 'asc';
+    this.currentPage = params['page'] ? parseInt(params['page'], 10) : 1;
+  }
+
+  private updateUrlAndLoad(): void {
+    const queryParams: any = {};
+    
+    if (this.searchQuery) queryParams['search'] = this.searchQuery;
+    if (this.filters.resolution) queryParams['resolution'] = this.filters.resolution;
+    if (this.filters.videoCodec) queryParams['videoCodec'] = this.filters.videoCodec;
+    if (this.filters.audioCodec) queryParams['audioCodec'] = this.filters.audioCodec;
+    if (this.filters.container) queryParams['container'] = this.filters.container;
+    if (this.filters.minSize) queryParams['minSize'] = this.filters.minSize;
+    if (this.filters.maxSize) queryParams['maxSize'] = this.filters.maxSize;
+    if (this.sortField !== 'title') queryParams['sort'] = this.sortField;
+    if (this.sortOrder !== 'asc') queryParams['order'] = this.sortOrder;
+    if (this.currentPage > 1) queryParams['page'] = this.currentPage;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true
+    });
   }
 
   loadMovies(): void {
@@ -39,7 +113,13 @@ export class MoviesComponent implements OnInit {
       limit: this.pagination.limit,
       sort: this.sortField,
       order: this.sortOrder,
-      search: this.searchQuery || undefined
+      search: this.searchQuery || undefined,
+      resolution: this.filters.resolution,
+      videoCodec: this.filters.videoCodec,
+      audioCodec: this.filters.audioCodec,
+      container: this.filters.container,
+      minSize: this.filters.minSize,
+      maxSize: this.filters.maxSize
     };
 
     this.moviesService.getMovies(params).subscribe({
@@ -55,14 +135,32 @@ export class MoviesComponent implements OnInit {
     });
   }
 
-  onSearch(): void {
+  onSearchInput(event: Event): void {
+    const query = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(query);
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchSubject.next('');
+  }
+
+  onFiltersChange(newFilters: FilterState): void {
+    this.filters = newFilters;
     this.currentPage = 1;
-    this.loadMovies();
+    this.updateUrlAndLoad();
+  }
+
+  onClearFilters(): void {
+    this.filters = {};
+    this.searchQuery = '';
+    this.currentPage = 1;
+    this.updateUrlAndLoad();
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadMovies();
+    this.updateUrlAndLoad();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -73,7 +171,11 @@ export class MoviesComponent implements OnInit {
       this.sortField = field;
       this.sortOrder = 'asc';
     }
-    this.loadMovies();
+    this.updateUrlAndLoad();
+  }
+
+  onMovieClick(movie: MovieListItem): void {
+    this.router.navigate(['/movies', movie.id]);
   }
 
   getImageUrl(path: string | undefined): string {

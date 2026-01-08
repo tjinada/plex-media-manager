@@ -12,7 +12,9 @@ import {
   SonarrUpgradeEpisode,
   SonarrDowngradeEpisode,
   RadarrConfig,
-  SonarrConfig
+  SonarrConfig,
+  RadarrRelease,
+  SonarrRelease
 } from '@core/models';
 
 type TabId = 'missing-movies' | 'missing-episodes' | 'upcoming-movies' | 'upcoming-episodes' | 'movie-upgrades' | 'episode-upgrades' | 'movie-downgrades' | 'episode-downgrades';
@@ -23,6 +25,8 @@ interface Tab {
   icon: 'warning' | 'clock' | 'arrow-up' | 'arrow-down';
   count: number;
 }
+
+type Release = RadarrRelease | SonarrRelease;
 
 @Component({
   selector: 'app-wanted',
@@ -62,6 +66,16 @@ export class WantedComponent implements OnInit {
 
   // Search status
   searchingId: number | null = null;
+
+  // Interactive Search Modal
+  showSearchModal = false;
+  searchModalTitle = '';
+  searchModalType: 'movie' | 'episode' = 'movie';
+  searchModalId: number | null = null;
+  searchResults: Release[] = [];
+  isSearching = false;
+  downloadingGuid: string | null = null;
+  searchError = '';
 
   tabs: Tab[] = [
     { id: 'missing-movies', label: 'Missing Movies', icon: 'warning', count: 0 },
@@ -202,29 +216,104 @@ export class WantedComponent implements OnInit {
     this.activeTab = tabId;
   }
 
+  // ===== Interactive Search Modal Methods =====
+
+  openMovieSearch(movie: RadarrMissingMovie | RadarrUpgradeMovie): void {
+    this.searchModalTitle = `${movie.title} (${movie.year})`;
+    this.searchModalType = 'movie';
+    this.searchModalId = movie.id;
+    this.searchResults = [];
+    this.searchError = '';
+    this.showSearchModal = true;
+    this.loadSearchResults();
+  }
+
+  openEpisodeSearch(episode: SonarrMissingEpisode | SonarrUpgradeEpisode): void {
+    this.searchModalTitle = `${episode.seriesTitle} - ${this.formatEpisodeNumber(episode.seasonNumber, episode.episodeNumber)}`;
+    this.searchModalType = 'episode';
+    this.searchModalId = episode.id;
+    this.searchResults = [];
+    this.searchError = '';
+    this.showSearchModal = true;
+    this.loadSearchResults();
+  }
+
+  closeSearchModal(): void {
+    this.showSearchModal = false;
+    this.searchResults = [];
+    this.searchModalId = null;
+    this.searchError = '';
+  }
+
+  loadSearchResults(): void {
+    if (!this.searchModalId) return;
+
+    this.isSearching = true;
+    this.searchError = '';
+
+    if (this.searchModalType === 'movie') {
+      this.radarrService.getSearchResults(this.searchModalId).subscribe({
+        next: (response) => {
+          this.searchResults = response.releases;
+          this.isSearching = false;
+        },
+        error: (error: { error?: { message?: string } }) => {
+          this.searchError = error.error?.message || 'Failed to fetch search results';
+          this.isSearching = false;
+        }
+      });
+    } else {
+      this.sonarrService.getSearchResults(this.searchModalId).subscribe({
+        next: (response) => {
+          this.searchResults = response.releases;
+          this.isSearching = false;
+        },
+        error: (error: { error?: { message?: string } }) => {
+          this.searchError = error.error?.message || 'Failed to fetch search results';
+          this.isSearching = false;
+        }
+      });
+    }
+  }
+
+  downloadRelease(release: Release): void {
+    this.downloadingGuid = release.guid;
+
+    if (this.searchModalType === 'movie') {
+      this.radarrService.downloadRelease(release.guid, release.indexerId).subscribe({
+        next: () => {
+          this.downloadingGuid = null;
+          this.closeSearchModal();
+        },
+        error: (error: { error?: { message?: string } }) => {
+          this.searchError = error.error?.message || 'Failed to download release';
+          this.downloadingGuid = null;
+        }
+      });
+    } else {
+      this.sonarrService.downloadRelease(release.guid, release.indexerId).subscribe({
+        next: () => {
+          this.downloadingGuid = null;
+          this.closeSearchModal();
+        },
+        error: (error: { error?: { message?: string } }) => {
+          this.searchError = error.error?.message || 'Failed to download release';
+          this.downloadingGuid = null;
+        }
+      });
+    }
+  }
+
+  // Legacy trigger search (for backwards compatibility)
   triggerMovieSearch(movie: RadarrMissingMovie | RadarrUpgradeMovie): void {
-    this.searchingId = movie.id;
-    this.radarrService.triggerSearch(movie.id).subscribe({
-      next: () => {
-        this.searchingId = null;
-      },
-      error: () => {
-        this.searchingId = null;
-      }
-    });
+    this.openMovieSearch(movie);
   }
 
   triggerEpisodeSearch(episode: SonarrMissingEpisode | SonarrUpgradeEpisode): void {
-    this.searchingId = episode.id;
-    this.sonarrService.triggerSearch(episode.id).subscribe({
-      next: () => {
-        this.searchingId = null;
-      },
-      error: () => {
-        this.searchingId = null;
-      }
-    });
+    this.openEpisodeSearch(episode);
   }
+
+  // ===== Formatting Methods =====
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 B';
@@ -243,6 +332,12 @@ export class WantedComponent implements OnInit {
     return `S${season.toString().padStart(2, '0')}E${episode.toString().padStart(2, '0')}`;
   }
 
+  formatAge(days: number): string {
+    if (days === 0) return 'Today';
+    if (days === 1) return '1 day';
+    return `${days} days`;
+  }
+
   getRelativeDate(dateString: string | null | undefined): string {
     if (!dateString) return 'TBA';
     const date = new Date(dateString);
@@ -256,5 +351,13 @@ export class WantedComponent implements OnInit {
     if (diffDays <= 7) return `In ${diffDays} days`;
     if (diffDays <= 30) return `In ${Math.ceil(diffDays / 7)} weeks`;
     return this.formatDate(dateString);
+  }
+
+  getProtocolBadgeClass(protocol: string): string {
+    return protocol === 'torrent' ? 'bg-green-600' : 'bg-blue-600';
+  }
+
+  getProtocolLabel(protocol: string): string {
+    return protocol === 'torrent' ? 'torrent' : 'nzb';
   }
 }

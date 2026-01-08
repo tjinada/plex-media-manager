@@ -109,3 +109,39 @@ export interface SonarrSearchResult {
   commandId: number;
   status: string;
 }
+
+export interface SonarrRelease {
+  guid: string;
+  title: string;
+  indexer: string;
+  indexerId: number;
+  size: number;
+  age: number;
+  ageHours: number;
+  quality: string;
+  qualityWeight: number;
+  seeders: number;
+  leechers: number;
+  protocol: string;
+  approved: boolean;
+  rejected: boolean;
+  rejections: string[];
+  downloadUrl: string;
+  infoUrl: string;
+  languages: string[];
+  customFormatScore: number;
+  seasonNumber?: number;
+  episodeNumbers?: number[];
+  fullSeason?: boolean;
+}
+
+export interface SonarrReleasesResponse {
+  releases: SonarrRelease[];
+}
+
+export interface SonarrDownloadResult {
+  success: boolean;
+  approved: boolean;
+  rejected: boolean;
+  rejections: string[];
+}

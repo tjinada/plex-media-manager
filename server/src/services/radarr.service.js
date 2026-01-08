@@ -406,6 +406,61 @@ class RadarrService {
     };
   }
 
+  async getInteractiveSearchResults(movieId) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Radarr not configured');
+
+    // Trigger the search first
+    await this.client.post('/command', {
+      name: 'MoviesSearch',
+      movieIds: [parseInt(movieId)]
+    });
+
+    // Get releases for the movie
+    const response = await this.client.get('/release', {
+      params: { movieId: parseInt(movieId) }
+    });
+
+    return response.data.map(release => ({
+      guid: release.guid,
+      title: release.title,
+      indexer: release.indexer,
+      indexerId: release.indexerId,
+      size: release.size,
+      age: release.age,
+      ageHours: release.ageHours,
+      quality: release.quality?.quality?.name || 'Unknown',
+      qualityWeight: release.qualityWeight || 0,
+      seeders: release.seeders || 0,
+      leechers: release.leechers || 0,
+      protocol: release.protocol,
+      approved: !release.rejected,
+      rejected: release.rejected || false,
+      rejections: release.rejections || [],
+      downloadUrl: release.downloadUrl,
+      infoUrl: release.infoUrl,
+      languages: release.languages?.map(l => l.name) || ['Unknown'],
+      customFormatScore: release.customFormatScore || 0
+    }));
+  }
+
+  async downloadRelease(guid, indexerId) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Radarr not configured');
+
+    const response = await this.client.post('/release', {
+      guid,
+      indexerId
+    });
+
+    return {
+      success: true,
+      approved: response.data.approved,
+      rejected: response.data.rejected,
+      rejections: response.data.rejections || []
+    };
+  }
+
   async getStats() {
     if (!this.client) await this.initialize();
     if (!this.client) {

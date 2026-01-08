@@ -164,3 +164,39 @@ exports.getStats = async (req, res, next) => {
     next(error);
   }
 };
+
+// Get interactive search results for an episode
+exports.getSearchResults = async (req, res, next) => {
+  try {
+    const { episodeId } = req.params;
+
+    if (!episodeId) {
+      return res.status(400).json({ 
+        error: { message: 'Episode ID is required' } 
+      });
+    }
+
+    const results = await sonarrService.getInteractiveSearchResults(episodeId);
+    res.json({ releases: results });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Download a specific release
+exports.downloadRelease = async (req, res, next) => {
+  try {
+    const { guid, indexerId } = req.body;
+
+    if (!guid || indexerId === undefined) {
+      return res.status(400).json({ 
+        error: { message: 'GUID and indexerId are required' } 
+      });
+    }
+
+    const result = await sonarrService.downloadRelease(guid, indexerId);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};

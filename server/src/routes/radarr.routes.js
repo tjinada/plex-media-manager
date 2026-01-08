@@ -25,4 +25,8 @@ router.get('/downgrades', radarrController.getDowngrades);
 // Search
 router.post('/search/:radarrId', radarrController.triggerSearch);
 
+// Interactive Search
+router.get('/search/:movieId/results', radarrController.getSearchResults);
+router.post('/download', radarrController.downloadRelease);
+
 module.exports = router;

@@ -111,3 +111,36 @@ export interface RadarrSearchResult {
   commandId: number;
   status: string;
 }
+
+export interface RadarrRelease {
+  guid: string;
+  title: string;
+  indexer: string;
+  indexerId: number;
+  size: number;
+  age: number;
+  ageHours: number;
+  quality: string;
+  qualityWeight: number;
+  seeders: number;
+  leechers: number;
+  protocol: string;
+  approved: boolean;
+  rejected: boolean;
+  rejections: string[];
+  downloadUrl: string;
+  infoUrl: string;
+  languages: string[];
+  customFormatScore: number;
+}
+
+export interface RadarrReleasesResponse {
+  releases: RadarrRelease[];
+}
+
+export interface RadarrDownloadResult {
+  success: boolean;
+  approved: boolean;
+  rejected: boolean;
+  rejections: string[];
+}

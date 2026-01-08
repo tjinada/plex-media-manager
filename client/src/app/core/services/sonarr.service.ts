@@ -9,7 +9,9 @@ import {
   SonarrUpgradesResponse,
   SonarrDowngradesResponse,
   SonarrStats,
-  SonarrSearchResult
+  SonarrSearchResult,
+  SonarrReleasesResponse,
+  SonarrDownloadResult
 } from '@core/models';
 
 @Injectable({
@@ -77,5 +79,13 @@ export class SonarrService {
 
   triggerSearch(sonarrId: number): Observable<SonarrSearchResult> {
     return this.http.post<SonarrSearchResult>(`${this.baseUrl}/search/${sonarrId}`, {});
+  }
+
+  getSearchResults(episodeId: number): Observable<SonarrReleasesResponse> {
+    return this.http.get<SonarrReleasesResponse>(`${this.baseUrl}/search/${episodeId}/results`);
+  }
+
+  downloadRelease(guid: string, indexerId: number): Observable<SonarrDownloadResult> {
+    return this.http.post<SonarrDownloadResult>(`${this.baseUrl}/download`, { guid, indexerId });
   }
 }

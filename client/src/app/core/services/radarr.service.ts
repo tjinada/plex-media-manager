@@ -9,7 +9,9 @@ import {
   RadarrUpgradesResponse,
   RadarrDowngradesResponse,
   RadarrStats,
-  RadarrSearchResult
+  RadarrSearchResult,
+  RadarrReleasesResponse,
+  RadarrDownloadResult
 } from '@core/models';
 
 @Injectable({
@@ -77,5 +79,13 @@ export class RadarrService {
 
   triggerSearch(radarrId: number): Observable<RadarrSearchResult> {
     return this.http.post<RadarrSearchResult>(`${this.baseUrl}/search/${radarrId}`, {});
+  }
+
+  getSearchResults(movieId: number): Observable<RadarrReleasesResponse> {
+    return this.http.get<RadarrReleasesResponse>(`${this.baseUrl}/search/${movieId}/results`);
+  }
+
+  downloadRelease(guid: string, indexerId: number): Observable<RadarrDownloadResult> {
+    return this.http.post<RadarrDownloadResult>(`${this.baseUrl}/download`, { guid, indexerId });
   }
 }

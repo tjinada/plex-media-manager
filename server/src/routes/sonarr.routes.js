@@ -25,4 +25,8 @@ router.get('/downgrades', sonarrController.getDowngrades);
 // Search
 router.post('/search/:sonarrId', sonarrController.triggerSearch);
 
+// Interactive Search
+router.get('/search/:episodeId/results', sonarrController.getSearchResults);
+router.post('/download', sonarrController.downloadRelease);
+
 module.exports = router;

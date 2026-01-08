@@ -164,3 +164,39 @@ exports.getStats = async (req, res, next) => {
     next(error);
   }
 };
+
+// Get interactive search results for a movie
+exports.getSearchResults = async (req, res, next) => {
+  try {
+    const { movieId } = req.params;
+
+    if (!movieId) {
+      return res.status(400).json({ 
+        error: { message: 'Movie ID is required' } 
+      });
+    }
+
+    const results = await radarrService.getInteractiveSearchResults(movieId);
+    res.json({ releases: results });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Download a specific release
+exports.downloadRelease = async (req, res, next) => {
+  try {
+    const { guid, indexerId } = req.body;
+
+    if (!guid || indexerId === undefined) {
+      return res.status(400).json({ 
+        error: { message: 'GUID and indexerId are required' } 
+      });
+    }
+
+    const result = await radarrService.downloadRelease(guid, indexerId);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};

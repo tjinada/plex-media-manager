@@ -3,17 +3,49 @@
   <app-filter-panel
     [filters]="filters"
     [config]="filterConfig"
-    [maxFileSizeGB]="500"
+    [maxFileSizeGB]="viewMode === 'episodes' ? 20 : 500"
     (filtersChange)="onFiltersChange($event)"
     (clearFilters)="onClearFilters()">
   </app-filter-panel>
 
   <!-- Main Content -->
   <div class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-    <!-- Header -->
+    <!-- Header with Tabs -->
     <div class="mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-gray-100">TV Shows</h1>
-      <p class="text-gray-400 mt-1">{{ pagination.total }} shows in your library</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-100">TV Shows</h1>
+          <p class="text-gray-400 mt-1">
+            @if (viewMode === 'shows') {
+              {{ pagination.total }} shows in your library
+            } @else {
+              {{ pagination.total }} episodes in your library
+            }
+          </p>
+        </div>
+        
+        <!-- View Mode Tabs -->
+        <div class="flex bg-dark-800 rounded-lg p-1">
+          <button 
+            (click)="onViewModeChange('shows')"
+            class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+            [class.bg-primary-600]="viewMode === 'shows'"
+            [class.text-white]="viewMode === 'shows'"
+            [class.text-gray-400]="viewMode !== 'shows'"
+            [class.hover:text-gray-200]="viewMode !== 'shows'">
+            By Show
+          </button>
+          <button 
+            (click)="onViewModeChange('episodes')"
+            class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+            [class.bg-primary-600]="viewMode === 'episodes'"
+            [class.text-white]="viewMode === 'episodes'"
+            [class.text-gray-400]="viewMode !== 'episodes'"
+            [class.hover:text-gray-200]="viewMode !== 'episodes'">
+            All Episodes
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Search Bar -->
@@ -23,7 +55,7 @@
           type="text"
           [value]="searchQuery"
           (input)="onSearchInput($event)"
-          placeholder="Search TV shows..."
+          [placeholder]="viewMode === 'shows' ? 'Search TV shows...' : 'Search episodes...'"
           class="input-field pl-10 w-full">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -48,11 +80,11 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <p class="text-gray-400">Loading TV shows...</p>
+          <p class="text-gray-400">Loading {{ viewMode === 'shows' ? 'TV shows' : 'episodes' }}...</p>
         </div>
       </div>
-    } @else if (shows.length === 0) {
-      <!-- Empty State -->
+    } @else if (viewMode === 'shows' && shows.length === 0) {
+      <!-- Empty State - Shows -->
       <div class="card p-8 text-center">
         <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,8 +101,26 @@
           }
         </p>
       </div>
-    } @else {
-      <!-- Shows Grid (Mobile) / Table (Desktop) -->
+    } @else if (viewMode === 'episodes' && episodes.length === 0) {
+      <!-- Empty State - Episodes -->
+      <div class="card p-8 text-center">
+        <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-100 mb-2">No Episodes Found</h2>
+        <p class="text-gray-400">
+          @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec) {
+            No episodes match your filters. Try adjusting your search criteria.
+          } @else {
+            No episodes in your library. Sync your Plex library to see episodes here.
+          }
+        </p>
+      </div>
+    } @else if (viewMode === 'shows') {
+      <!-- Shows View -->
       
       <!-- Mobile: Card Grid -->
       <div class="md:hidden grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -185,43 +235,144 @@
           </table>
         </div>
       </div>
+    } @else {
+      <!-- Episodes View -->
+      
+      <!-- Mobile: Card List -->
+      <div class="md:hidden space-y-3">
+        @for (episode of episodes; track episode.id) {
+          <div 
+            (click)="onEpisodeClick(episode)"
+            class="card p-4 cursor-pointer hover:bg-dark-800/50 transition-colors">
+            <div class="flex justify-between items-start gap-3">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-primary-400 font-medium">{{ episode.showTitle }}</p>
+                <h3 class="text-gray-100 font-medium truncate">
+                  {{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }} - {{ episode.title }}
+                </h3>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  @if (episode.resolution) {
+                    <span class="text-xs px-2 py-0.5 rounded" [ngClass]="getResolutionClass(episode.resolution)">
+                      {{ episode.resolution }}
+                    </span>
+                  }
+                  @if (episode.videoCodec) {
+                    <span class="text-xs text-gray-500">{{ episode.videoCodec }}</span>
+                  }
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <p class="text-gray-100 font-medium">{{ formatFileSize(episode.fileSize) }}</p>
+                <p class="text-xs text-gray-500">{{ formatDuration(episode.duration) }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
 
-      <!-- Pagination -->
-      @if (pagination.totalPages > 1) {
-        <div class="mt-6 flex justify-center">
-          <nav class="flex items-center gap-1">
-            <button 
-              (click)="onPageChange(currentPage - 1)"
-              [disabled]="currentPage === 1"
-              class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
-            @for (page of pageNumbers; track page) {
-              <button 
-                (click)="onPageChange(page)"
-                class="min-w-[40px] h-10 rounded-lg font-medium transition-colors"
-                [class.bg-primary-600]="page === currentPage"
-                [class.text-white]="page === currentPage"
-                [class.text-gray-400]="page !== currentPage"
-                [class.hover:bg-dark-800]="page !== currentPage">
-                {{ page }}
-              </button>
-            }
-            
-            <button 
-              (click)="onPageChange(currentPage + 1)"
-              [disabled]="currentPage === pagination.totalPages"
-              class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </nav>
+      <!-- Desktop: Table -->
+      <div class="hidden md:block card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-dark-800">
+              <tr>
+                <th class="text-left p-4 text-gray-400 font-medium">Show</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Episode</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Title</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Resolution</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Video</th>
+                <th class="text-left p-4 text-gray-400 font-medium">Audio</th>
+                <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
+                    (click)="onSort('media.fileSize')">
+                  <div class="flex items-center gap-2 justify-end">
+                    Size
+                    @if (sortField === 'media.fileSize') {
+                      <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    }
+                  </div>
+                </th>
+                <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
+                    (click)="onSort('media.duration')">
+                  <div class="flex items-center gap-2 justify-end">
+                    Duration
+                    @if (sortField === 'media.duration') {
+                      <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    }
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-dark-700">
+              @for (episode of episodes; track episode.id) {
+                <tr 
+                  (click)="onEpisodeClick(episode)"
+                  class="hover:bg-dark-800/50 transition-colors cursor-pointer">
+                  <td class="p-4 text-primary-400 font-medium">{{ episode.showTitle }}</td>
+                  <td class="p-4 text-gray-400 font-mono text-sm">
+                    {{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}
+                  </td>
+                  <td class="p-4 text-gray-100">{{ episode.title }}</td>
+                  <td class="p-4">
+                    @if (episode.resolution) {
+                      <span class="px-2 py-1 rounded text-xs font-medium"
+                            [ngClass]="getResolutionClass(episode.resolution)">
+                        {{ episode.resolution }}
+                      </span>
+                    } @else {
+                      <span class="text-gray-500">-</span>
+                    }
+                  </td>
+                  <td class="p-4 text-gray-400">{{ episode.videoCodec || '-' }}</td>
+                  <td class="p-4 text-gray-400">{{ episode.audioCodec || '-' }}</td>
+                  <td class="p-4 text-gray-100 text-right font-medium">{{ formatFileSize(episode.fileSize) }}</td>
+                  <td class="p-4 text-gray-400 text-right">{{ formatDuration(episode.duration) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
-      }
+      </div>
+    }
+
+    <!-- Pagination -->
+    @if (pagination.totalPages > 1) {
+      <div class="mt-6 flex justify-center">
+        <nav class="flex items-center gap-1">
+          <button 
+            (click)="onPageChange(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          @for (page of pageNumbers; track page) {
+            <button 
+              (click)="onPageChange(page)"
+              class="min-w-[40px] h-10 rounded-lg font-medium transition-colors"
+              [class.bg-primary-600]="page === currentPage"
+              [class.text-white]="page === currentPage"
+              [class.text-gray-400]="page !== currentPage"
+              [class.hover:bg-dark-800]="page !== currentPage">
+              {{ page }}
+            </button>
+          }
+          
+          <button 
+            (click)="onPageChange(currentPage + 1)"
+            [disabled]="currentPage === pagination.totalPages"
+            class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </nav>
+      </div>
     }
   </div>
 </div>

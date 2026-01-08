@@ -115,8 +115,27 @@ export interface EpisodeListItem {
   duration?: number;
 }
 
+export interface EpisodeWithShow {
+  id: string;
+  showId: string;
+  showTitle: string;
+  seasonNumber: number;
+  episodeNumber: number;
+  title: string;
+  resolution?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  fileSize?: number;
+  duration?: number;
+}
+
 export interface ShowsResponse {
   shows: TVShowListItem[];
+  pagination: Pagination;
+}
+
+export interface EpisodesResponse {
+  episodes: EpisodeWithShow[];
   pagination: Pagination;
 }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { ShowsResponse, TVShow, SeasonWithEpisodes, Episode, SeasonListItem } from '../models';
+import { ShowsResponse, EpisodesResponse, TVShow, SeasonWithEpisodes, Episode, SeasonListItem } from '../models';
 
 export interface ShowQueryParams {
   page?: number;
@@ -9,6 +9,20 @@ export interface ShowQueryParams {
   sort?: string;
   order?: 'asc' | 'desc';
   search?: string;
+  resolution?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  minSize?: number;
+  maxSize?: number;
+}
+
+export interface EpisodeQueryParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  search?: string;
+  showId?: string;
   resolution?: string;
   videoCodec?: string;
   audioCodec?: string;
@@ -34,6 +48,20 @@ export class ShowsService {
       }
     });
     return this.api.get<ShowsResponse>('/shows', cleanParams);
+  }
+
+  /**
+   * Get all episodes with optional filtering
+   */
+  getEpisodes(params: EpisodeQueryParams = {}): Observable<EpisodesResponse> {
+    // Clean up undefined values
+    const cleanParams: Record<string, string | number | boolean> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        cleanParams[key] = value;
+      }
+    });
+    return this.api.get<EpisodesResponse>('/episodes', cleanParams);
   }
 
   /**

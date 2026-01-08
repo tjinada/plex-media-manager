@@ -1,0 +1,442 @@
+<div class="p-4 md:p-6 lg:p-8">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Wanted</h1>
+    <p class="text-gray-400 mt-1">Missing content and upgrade/downgrade candidates</p>
+  </div>
+
+  <!-- Not Configured Warning -->
+  @if (!radarrConfigured && !sonarrConfigured && !isLoading) {
+    <div class="card p-8 text-center">
+      <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-200 mb-2">No Services Configured</h3>
+      <p class="text-gray-400 mb-4">Connect Radarr and/or Sonarr in Settings to see wanted content.</p>
+      <a routerLink="/settings" class="btn-primary inline-flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Go to Settings
+      </a>
+    </div>
+  } @else {
+    <!-- Tabs -->
+    <div class="border-b border-dark-700 mb-6 overflow-x-auto">
+      <nav class="flex space-x-1 min-w-max">
+        @for (tab of tabs; track tab.id) {
+          <button 
+            (click)="setActiveTab(tab.id)"
+            class="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+            [class.border-primary-500]="activeTab === tab.id"
+            [class.text-primary-400]="activeTab === tab.id"
+            [class.border-transparent]="activeTab !== tab.id"
+            [class.text-gray-400]="activeTab !== tab.id"
+            [class.hover:text-gray-200]="activeTab !== tab.id">
+            {{ tab.label }}
+            @if (tab.count > 0) {
+              <span class="ml-2 px-2 py-0.5 text-xs rounded-full"
+                    [class.bg-primary-600]="activeTab === tab.id"
+                    [class.bg-dark-700]="activeTab !== tab.id">
+                {{ tab.count }}
+              </span>
+            }
+          </button>
+        }
+      </nav>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="flex items-center justify-center h-64">
+        <div class="text-center">
+          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-400">Loading wanted content...</p>
+        </div>
+      </div>
+    } @else {
+      <!-- Missing Movies Tab -->
+      @if (activeTab === 'missing-movies') {
+        @if (!radarrConfigured) {
+          <div class="card p-6 text-center text-gray-400">
+            Radarr not configured. <a routerLink="/settings" class="text-primary-400 hover:underline">Configure in Settings</a>
+          </div>
+        } @else if (missingMovies.length === 0) {
+          <div class="card p-6 text-center text-gray-400">No missing movies found.</div>
+        } @else {
+          <div class="card overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-dark-800 border-b border-dark-700">
+                <tr>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400">Movie</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Year</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Quality Profile</th>
+                  <th class="text-center p-4 text-sm font-medium text-gray-400 hidden sm:table-cell">Monitored</th>
+                  <th class="text-right p-4 text-sm font-medium text-gray-400">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (movie of missingMovies; track movie.id) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="p-4">
+                      <div class="flex items-center gap-3">
+                        @if (movie.posterUrl) {
+                          <img [src]="movie.posterUrl" [alt]="movie.title" class="w-10 h-14 object-cover rounded">
+                        } @else {
+                          <div class="w-10 h-14 bg-dark-700 rounded flex items-center justify-center">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                            </svg>
+                          </div>
+                        }
+                        <div>
+                          <p class="font-medium text-gray-200">{{ movie.title }}</p>
+                          <p class="text-sm text-gray-500 md:hidden">{{ movie.year }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="p-4 text-gray-300 hidden md:table-cell">{{ movie.year }}</td>
+                    <td class="p-4 text-gray-300 hidden lg:table-cell">{{ movie.qualityProfile }}</td>
+                    <td class="p-4 text-center hidden sm:table-cell">
+                      @if (movie.monitored) {
+                        <span class="text-green-400">●</span>
+                      } @else {
+                        <span class="text-gray-600">●</span>
+                      }
+                    </td>
+                    <td class="p-4 text-right">
+                      <button 
+                        (click)="triggerMovieSearch(movie)"
+                        [disabled]="searchingId === movie.id"
+                        class="btn-primary text-sm px-3 py-1.5">
+                        @if (searchingId === movie.id) {
+                          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        } @else {
+                          Search
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Missing Episodes Tab -->
+      @if (activeTab === 'missing-episodes') {
+        @if (!sonarrConfigured) {
+          <div class="card p-6 text-center text-gray-400">
+            Sonarr not configured. <a routerLink="/settings" class="text-primary-400 hover:underline">Configure in Settings</a>
+          </div>
+        } @else if (missingEpisodes.length === 0) {
+          <div class="card p-6 text-center text-gray-400">No missing episodes found.</div>
+        } @else {
+          <div class="card overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-dark-800 border-b border-dark-700">
+                <tr>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400">Episode</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Title</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Air Date</th>
+                  <th class="text-center p-4 text-sm font-medium text-gray-400 hidden sm:table-cell">Monitored</th>
+                  <th class="text-right p-4 text-sm font-medium text-gray-400">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (episode of missingEpisodes; track episode.id) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="p-4">
+                      <div>
+                        <p class="font-medium text-gray-200">{{ episode.seriesTitle }}</p>
+                        <p class="text-sm text-gray-400">{{ formatEpisodeNumber(episode.seasonNumber, episode.episodeNumber) }}</p>
+                      </div>
+                    </td>
+                    <td class="p-4 text-gray-300 hidden lg:table-cell">{{ episode.title }}</td>
+                    <td class="p-4 text-gray-300 hidden md:table-cell">{{ formatDate(episode.airDate) }}</td>
+                    <td class="p-4 text-center hidden sm:table-cell">
+                      @if (episode.monitored) {
+                        <span class="text-green-400">●</span>
+                      } @else {
+                        <span class="text-gray-600">●</span>
+                      }
+                    </td>
+                    <td class="p-4 text-right">
+                      <button 
+                        (click)="triggerEpisodeSearch(episode)"
+                        [disabled]="searchingId === episode.id"
+                        class="btn-primary text-sm px-3 py-1.5">
+                        @if (searchingId === episode.id) {
+                          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        } @else {
+                          Search
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Movie Upgrades Tab -->
+      @if (activeTab === 'movie-upgrades') {
+        @if (!radarrConfigured) {
+          <div class="card p-6 text-center text-gray-400">
+            Radarr not configured. <a routerLink="/settings" class="text-primary-400 hover:underline">Configure in Settings</a>
+          </div>
+        } @else if (movieUpgrades.length === 0) {
+          <div class="card p-6 text-center text-gray-400">No movie upgrade candidates found.</div>
+        } @else {
+          <div class="card overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-dark-800 border-b border-dark-700">
+                <tr>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400">Movie</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Current</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Target</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Size</th>
+                  <th class="text-right p-4 text-sm font-medium text-gray-400">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (movie of movieUpgrades; track movie.id) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="p-4">
+                      <div class="flex items-center gap-3">
+                        @if (movie.posterUrl) {
+                          <img [src]="movie.posterUrl" [alt]="movie.title" class="w-10 h-14 object-cover rounded">
+                        } @else {
+                          <div class="w-10 h-14 bg-dark-700 rounded flex items-center justify-center">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                            </svg>
+                          </div>
+                        }
+                        <div>
+                          <p class="font-medium text-gray-200">{{ movie.title }}</p>
+                          <p class="text-sm text-gray-500">{{ movie.year }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-yellow">{{ movie.currentQuality }}</span>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-green">{{ movie.targetQuality }}</span>
+                    </td>
+                    <td class="p-4 text-gray-300 hidden lg:table-cell">{{ formatFileSize(movie.fileSize) }}</td>
+                    <td class="p-4 text-right">
+                      <button 
+                        (click)="triggerMovieSearch(movie)"
+                        [disabled]="searchingId === movie.id"
+                        class="btn-primary text-sm px-3 py-1.5">
+                        @if (searchingId === movie.id) {
+                          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        } @else {
+                          Search
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Episode Upgrades Tab -->
+      @if (activeTab === 'episode-upgrades') {
+        @if (!sonarrConfigured) {
+          <div class="card p-6 text-center text-gray-400">
+            Sonarr not configured. <a routerLink="/settings" class="text-primary-400 hover:underline">Configure in Settings</a>
+          </div>
+        } @else if (episodeUpgrades.length === 0) {
+          <div class="card p-6 text-center text-gray-400">No episode upgrade candidates found.</div>
+        } @else {
+          <div class="card overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-dark-800 border-b border-dark-700">
+                <tr>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400">Episode</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Current</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Target</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Size</th>
+                  <th class="text-right p-4 text-sm font-medium text-gray-400">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (episode of episodeUpgrades; track episode.id) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="p-4">
+                      <div>
+                        <p class="font-medium text-gray-200">{{ episode.seriesTitle }}</p>
+                        <p class="text-sm text-gray-400">{{ formatEpisodeNumber(episode.seasonNumber, episode.episodeNumber) }} - {{ episode.title }}</p>
+                      </div>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-yellow">{{ episode.currentQuality }}</span>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-green">{{ episode.targetQuality }}</span>
+                    </td>
+                    <td class="p-4 text-gray-300 hidden lg:table-cell">{{ formatFileSize(episode.fileSize) }}</td>
+                    <td class="p-4 text-right">
+                      <button 
+                        (click)="triggerEpisodeSearch(episode)"
+                        [disabled]="searchingId === episode.id"
+                        class="btn-primary text-sm px-3 py-1.5">
+                        @if (searchingId === episode.id) {
+                          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        } @else {
+                          Search
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Movie Downgrades Tab -->
+      @if (activeTab === 'movie-downgrades') {
+        @if (!radarrConfigured) {
+          <div class="card p-6 text-center text-gray-400">
+            Radarr not configured. <a routerLink="/settings" class="text-primary-400 hover:underline">Configure in Settings</a>
+          </div>
+        } @else if (movieDowngrades.length === 0) {
+          <div class="card p-6 text-center text-gray-400">No movie downgrade candidates found.</div>
+        } @else {
+          <!-- Summary -->
+          <div class="card p-4 mb-4 bg-blue-900/20 border-blue-700">
+            <p class="text-blue-300">
+              <span class="font-semibold">{{ movieDowngrades.length }}</span> movies above quality cutoff. 
+              Potential space savings: <span class="font-semibold">{{ formatFileSize(movieDowngradesSavings) }}</span>
+            </p>
+          </div>
+          
+          <div class="card overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-dark-800 border-b border-dark-700">
+                <tr>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400">Movie</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Current</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Target</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Size</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Est. Savings</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (movie of movieDowngrades; track movie.id) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="p-4">
+                      <div class="flex items-center gap-3">
+                        @if (movie.posterUrl) {
+                          <img [src]="movie.posterUrl" [alt]="movie.title" class="w-10 h-14 object-cover rounded">
+                        } @else {
+                          <div class="w-10 h-14 bg-dark-700 rounded flex items-center justify-center">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                            </svg>
+                          </div>
+                        }
+                        <div>
+                          <p class="font-medium text-gray-200">{{ movie.title }}</p>
+                          <p class="text-sm text-gray-500">{{ movie.year }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-teal">{{ movie.currentQuality }}</span>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-gray">{{ movie.targetQuality }}</span>
+                    </td>
+                    <td class="p-4 text-gray-300 hidden lg:table-cell">{{ formatFileSize(movie.fileSize) }}</td>
+                    <td class="p-4 text-green-400 hidden lg:table-cell">~{{ formatFileSize(movie.estimatedSavings) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Episode Downgrades Tab -->
+      @if (activeTab === 'episode-downgrades') {
+        @if (!sonarrConfigured) {
+          <div class="card p-6 text-center text-gray-400">
+            Sonarr not configured. <a routerLink="/settings" class="text-primary-400 hover:underline">Configure in Settings</a>
+          </div>
+        } @else if (episodeDowngrades.length === 0) {
+          <div class="card p-6 text-center text-gray-400">No episode downgrade candidates found.</div>
+        } @else {
+          <!-- Summary -->
+          <div class="card p-4 mb-4 bg-blue-900/20 border-blue-700">
+            <p class="text-blue-300">
+              <span class="font-semibold">{{ episodeDowngrades.length }}</span> episodes above quality cutoff. 
+              Potential space savings: <span class="font-semibold">{{ formatFileSize(episodeDowngradesSavings) }}</span>
+            </p>
+          </div>
+          
+          <div class="card overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-dark-800 border-b border-dark-700">
+                <tr>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400">Episode</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Current</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden md:table-cell">Target</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Size</th>
+                  <th class="text-left p-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Est. Savings</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (episode of episodeDowngrades; track episode.id) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="p-4">
+                      <div>
+                        <p class="font-medium text-gray-200">{{ episode.seriesTitle }}</p>
+                        <p class="text-sm text-gray-400">{{ formatEpisodeNumber(episode.seasonNumber, episode.episodeNumber) }} - {{ episode.title }}</p>
+                      </div>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-teal">{{ episode.currentQuality }}</span>
+                    </td>
+                    <td class="p-4 hidden md:table-cell">
+                      <span class="badge badge-gray">{{ episode.targetQuality }}</span>
+                    </td>
+                    <td class="p-4 text-gray-300 hidden lg:table-cell">{{ formatFileSize(episode.fileSize) }}</td>
+                    <td class="p-4 text-green-400 hidden lg:table-cell">~{{ formatFileSize(episode.estimatedSavings) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    }
+  }
+</div>

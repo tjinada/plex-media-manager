@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData, Chart } from 'chart.js';
-import { PlexService, StatsService } from '@core/services';
-import { PlexServer, StatsOverview, TopMovie, TopEpisode } from '@core/models';
+import { PlexService, StatsService, RadarrService, SonarrService } from '@core/services';
+import { PlexServer, StatsOverview, TopMovie, TopEpisode, RadarrStats, SonarrStats } from '@core/models';
 import { ChartCardComponent } from '@shared/components/chart-card/chart-card.component';
 import { forkJoin } from 'rxjs';
 
@@ -31,6 +31,10 @@ export class DashboardComponent implements OnInit {
 
   topMovies: TopMovie[] = [];
   topEpisodes: TopEpisode[] = [];
+
+  // Radarr/Sonarr stats
+  radarrStats: RadarrStats = { missing: 0, upgrades: 0, downgrades: 0, configured: false };
+  sonarrStats: SonarrStats = { missing: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: false };
 
   // Chart configurations
   doughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
@@ -105,7 +109,9 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private plexService: PlexService,
-    private statsService: StatsService
+    private statsService: StatsService,
+    private radarrService: RadarrService,
+    private sonarrService: SonarrService
   ) {}
 
   ngOnInit(): void {
@@ -128,6 +134,29 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
+      }
+    });
+
+    // Load Radarr/Sonarr stats independently
+    this.loadArrStats();
+  }
+
+  loadArrStats(): void {
+    this.radarrService.getStats().subscribe({
+      next: (stats: RadarrStats) => {
+        this.radarrStats = stats;
+      },
+      error: () => {
+        this.radarrStats = { missing: 0, upgrades: 0, downgrades: 0, configured: false };
+      }
+    });
+
+    this.sonarrService.getStats().subscribe({
+      next: (stats: SonarrStats) => {
+        this.sonarrStats = stats;
+      },
+      error: () => {
+        this.sonarrStats = { missing: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: false };
       }
     });
   }
@@ -245,5 +274,22 @@ export class DashboardComponent implements OnInit {
       case 'episodes': return this.containerEpisodes;
       default: return this.containerData;
     }
+  }
+
+  // Computed properties for wanted stats
+  get totalMissing(): number {
+    return this.radarrStats.missing + this.sonarrStats.missing;
+  }
+
+  get totalUpgrades(): number {
+    return this.radarrStats.upgrades + this.sonarrStats.upgrades;
+  }
+
+  get totalDowngrades(): number {
+    return this.radarrStats.downgrades + this.sonarrStats.downgrades;
+  }
+
+  get hasArrConfigured(): boolean {
+    return this.radarrStats.configured || this.sonarrStats.configured;
   }
 }

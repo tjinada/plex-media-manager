@@ -20,6 +20,7 @@ export class SidebarComponent {
     { path: '/movies', label: 'Movies', icon: 'movie' },
     { path: '/shows', label: 'TV Shows', icon: 'tv' },
     { path: '/storage', label: 'Storage', icon: 'storage' },
+    { path: '/wanted', label: 'Wanted', icon: 'wanted' },
     { path: '/settings', label: 'Settings', icon: 'settings' }
   ];
 

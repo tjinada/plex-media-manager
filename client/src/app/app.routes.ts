@@ -42,6 +42,11 @@ export const routes: Routes = [
           .then(m => m.StorageComponent)
       },
       {
+        path: 'wanted',
+        loadComponent: () => import('./features/wanted/wanted.component')
+          .then(m => m.WantedComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings.component')
           .then(m => m.SettingsComponent)

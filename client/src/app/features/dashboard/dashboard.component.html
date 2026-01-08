@@ -104,6 +104,71 @@
         </a>
       </div>
 
+      <!-- Wanted Stats Cards (if Radarr/Sonarr configured) -->
+      @if (hasArrConfigured) {
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Missing Movies -->
+          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-red-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ radarrStats.missing }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Missing Movies</p>
+              </div>
+            </div>
+          </a>
+
+          <!-- Missing Episodes -->
+          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-orange-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ sonarrStats.missing }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Missing Episodes</p>
+              </div>
+            </div>
+          </a>
+
+          <!-- Upgrade Candidates -->
+          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-yellow-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ totalUpgrades }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Upgrades Available</p>
+              </div>
+            </div>
+          </a>
+
+          <!-- Downgrade Candidates -->
+          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-teal-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ totalDowngrades }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Downgrade Candidates</p>
+              </div>
+            </div>
+          </a>
+        </div>
+      }
+
       <!-- Charts Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Resolution Distribution -->

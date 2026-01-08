@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="mb-8">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Settings</h1>
-    <p class="text-gray-400 mt-1">Configure your Plex server connection</p>
+    <p class="text-gray-400 mt-1">Configure your media server connections</p>
   </div>
 
   @if (isLoading) {
@@ -169,6 +169,220 @@
                   Connecting...
                 } @else {
                   Connect Server
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Radarr Connection -->
+      <section class="card p-6">
+        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+          Radarr (Movies)
+        </h2>
+
+        @if (radarrConfig && radarrConfig.isConnected) {
+          <!-- Connected Radarr Info -->
+          <div class="bg-dark-800 rounded-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-orange-600/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-100">Radarr</h3>
+                  <p class="text-sm text-gray-400">{{ radarrConfig!.host }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Version: {{ radarrConfig!.version || 'Unknown' }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span class="text-sm text-green-400">Connected</span>
+              </div>
+            </div>
+          </div>
+          <button 
+            (click)="disconnectRadarr()"
+            class="btn-danger flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Disconnect
+          </button>
+        } @else {
+          <!-- Radarr Connection Form -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Radarr URL</label>
+              <input 
+                type="text"
+                [(ngModel)]="radarrHost"
+                placeholder="http://192.168.1.100:7878"
+                class="input-field">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
+              <input 
+                type="password"
+                [(ngModel)]="radarrApiKey"
+                placeholder="Your Radarr API key"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">Found in Radarr → Settings → General → API Key</p>
+            </div>
+
+            @if (radarrError) {
+              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
+                {{ radarrError }}
+              </div>
+            }
+
+            @if (radarrTestResult?.success) {
+              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
+                ✓ Connected to Radarr (v{{ radarrTestResult?.version }})
+              </div>
+            }
+
+            <div class="flex gap-3">
+              <button 
+                (click)="testRadarrConnection()"
+                [disabled]="radarrTesting || !radarrHost || !radarrApiKey"
+                class="btn-secondary flex items-center gap-2">
+                @if (radarrTesting) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Testing...
+                } @else {
+                  Test Connection
+                }
+              </button>
+              <button 
+                (click)="connectRadarr()"
+                [disabled]="radarrConnecting || !radarrHost || !radarrApiKey"
+                class="btn-primary flex items-center gap-2">
+                @if (radarrConnecting) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Connecting...
+                } @else {
+                  Connect
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Sonarr Connection -->
+      <section class="card p-6">
+        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Sonarr (TV Shows)
+        </h2>
+
+        @if (sonarrConfig && sonarrConfig.isConnected) {
+          <!-- Connected Sonarr Info -->
+          <div class="bg-dark-800 rounded-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-100">Sonarr</h3>
+                  <p class="text-sm text-gray-400">{{ sonarrConfig!.host }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Version: {{ sonarrConfig!.version || 'Unknown' }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span class="text-sm text-green-400">Connected</span>
+              </div>
+            </div>
+          </div>
+          <button 
+            (click)="disconnectSonarr()"
+            class="btn-danger flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Disconnect
+          </button>
+        } @else {
+          <!-- Sonarr Connection Form -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Sonarr URL</label>
+              <input 
+                type="text"
+                [(ngModel)]="sonarrHost"
+                placeholder="http://192.168.1.100:8989"
+                class="input-field">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
+              <input 
+                type="password"
+                [(ngModel)]="sonarrApiKey"
+                placeholder="Your Sonarr API key"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">Found in Sonarr → Settings → General → API Key</p>
+            </div>
+
+            @if (sonarrError) {
+              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
+                {{ sonarrError }}
+              </div>
+            }
+
+            @if (sonarrTestResult?.success) {
+              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
+                ✓ Connected to Sonarr (v{{ sonarrTestResult?.version }})
+              </div>
+            }
+
+            <div class="flex gap-3">
+              <button 
+                (click)="testSonarrConnection()"
+                [disabled]="sonarrTesting || !sonarrHost || !sonarrApiKey"
+                class="btn-secondary flex items-center gap-2">
+                @if (sonarrTesting) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Testing...
+                } @else {
+                  Test Connection
+                }
+              </button>
+              <button 
+                (click)="connectSonarr()"
+                [disabled]="sonarrConnecting || !sonarrHost || !sonarrApiKey"
+                class="btn-primary flex items-center gap-2">
+                @if (sonarrConnecting) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Connecting...
+                } @else {
+                  Connect
                 }
               </button>
             </div>

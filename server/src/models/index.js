@@ -4,6 +4,8 @@ const TVShow = require('./TVShow');
 const Season = require('./Season');
 const Episode = require('./Episode');
 const SyncJob = require('./SyncJob');
+const RadarrConfig = require('./RadarrConfig');
+const SonarrConfig = require('./SonarrConfig');
 
 module.exports = {
   PlexServer,
@@ -11,5 +13,7 @@ module.exports = {
   TVShow,
   Season,
   Episode,
-  SyncJob
+  SyncJob,
+  RadarrConfig,
+  SonarrConfig
 };

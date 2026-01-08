@@ -127,6 +127,54 @@ class PlexService {
   }
 
   /**
+   * Get watch history for all users (admin only)
+   * Returns aggregated watch data per ratingKey
+   */
+  async getWatchHistory() {
+    try {
+      const data = await this.request('/status/sessions/history/all', {
+        params: {
+          sort: 'viewedAt:desc'
+        }
+      });
+      
+      const history = data.MediaContainer?.Metadata || [];
+      
+      // Aggregate watch data by ratingKey
+      // Track the most recent view and total count per item
+      const aggregated = {};
+      
+      for (const entry of history) {
+        const key = entry.ratingKey;
+        if (!key) continue;
+        
+        const viewedAt = entry.viewedAt ? new Date(entry.viewedAt * 1000) : null;
+        
+        if (!aggregated[key]) {
+          aggregated[key] = {
+            ratingKey: key,
+            viewCount: 0,
+            lastViewedAt: viewedAt
+          };
+        }
+        
+        aggregated[key].viewCount++;
+        
+        // Keep the most recent view date
+        if (viewedAt && (!aggregated[key].lastViewedAt || viewedAt > aggregated[key].lastViewedAt)) {
+          aggregated[key].lastViewedAt = viewedAt;
+        }
+      }
+      
+      return aggregated;
+    } catch (error) {
+      console.error('Error fetching watch history:', error.message);
+      // Return empty object if endpoint not available (older Plex versions)
+      return {};
+    }
+  }
+
+  /**
    * Parse media info from Plex metadata
    */
   parseMediaInfo(metadata) {
@@ -144,14 +192,18 @@ class PlexService {
     // Find primary audio stream
     const audioStream = streams.find(s => s.streamType === 2);
     
-    // Get all audio tracks
+    // Get all audio tracks with detailed info
     const audioTracks = streams
       .filter(s => s.streamType === 2)
       .map(s => ({
         codec: s.codec,
         channels: s.channels,
         language: s.language || s.languageCode,
-        title: s.displayTitle || s.title
+        title: s.displayTitle || s.title,
+        bitrate: s.bitrate,
+        profile: s.profile,
+        // Audio format features (for Atmos, DTS:X detection)
+        extendedDisplayTitle: s.extendedDisplayTitle
       }));
 
     // Get all subtitles
@@ -163,6 +215,28 @@ class PlexService {
         forced: s.forced === 1 || s.forced === true,
         title: s.displayTitle || s.title
       }));
+
+    // Extract HDR/Dolby Vision info from video stream
+    const hdrInfo = videoStream ? {
+      // Dolby Vision
+      doviPresent: videoStream.DOVIPresent === true || videoStream.DOVIPresent === 1,
+      doviProfile: videoStream.DOVIProfile,
+      doviLevel: videoStream.DOVILevel,
+      doviVersion: videoStream.DOVIVersion,
+      doviBLPresent: videoStream.DOVIBLPresent === true || videoStream.DOVIBLPresent === 1,
+      doviELPresent: videoStream.DOVIELPresent === true || videoStream.DOVIELPresent === 1,
+      doviRPUPresent: videoStream.DOVIRPUPresent === true || videoStream.DOVIRPUPresent === 1,
+      doviBLCompatID: videoStream.DOVIBLCompatID,
+      // HDR10/HDR10+
+      colorPrimaries: videoStream.colorPrimaries,
+      colorTransfer: videoStream.colorTransfer,
+      colorSpace: videoStream.colorSpace,
+      // Bit depth
+      bitDepth: videoStream.bitDepth,
+      // Display title often contains HDR info
+      displayTitle: videoStream.displayTitle,
+      extendedDisplayTitle: videoStream.extendedDisplayTitle
+    } : null;
 
     return {
       videoCodec: media.videoCodec,
@@ -187,7 +261,23 @@ class PlexService {
       bitrate: media.bitrate,
       
       audioTracks,
-      subtitles
+      subtitles,
+      
+      // HDR/Dolby Vision info
+      hdr: hdrInfo
+    };
+  }
+
+  /**
+   * Parse watch info from Plex metadata
+   * This extracts viewCount and lastViewedAt from the item's metadata
+   */
+  parseWatchInfo(metadata) {
+    return {
+      viewCount: metadata.viewCount || 0,
+      lastViewedAt: metadata.lastViewedAt 
+        ? new Date(metadata.lastViewedAt * 1000) 
+        : null
     };
   }
 

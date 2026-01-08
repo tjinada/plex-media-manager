@@ -47,6 +47,16 @@ export const routes: Routes = [
           .then(m => m.WantedComponent)
       },
       {
+        path: 'watch-history',
+        loadComponent: () => import('./features/watch-history/watch-history.component')
+          .then(m => m.WatchHistoryComponent)
+      },
+      {
+        path: 'compatibility',
+        loadComponent: () => import('./features/compatibility/compatibility.component')
+          .then(m => m.CompatibilityComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings.component')
           .then(m => m.SettingsComponent)

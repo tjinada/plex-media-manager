@@ -4,7 +4,10 @@ const audioTrackSchema = new mongoose.Schema({
   codec: String,
   channels: Number,
   language: String,
-  title: String
+  title: String,
+  bitrate: Number,
+  profile: String,
+  extendedDisplayTitle: String
 }, { _id: false });
 
 const subtitleSchema = new mongoose.Schema({
@@ -12,6 +15,27 @@ const subtitleSchema = new mongoose.Schema({
   codec: String,
   forced: Boolean,
   title: String
+}, { _id: false });
+
+const hdrSchema = new mongoose.Schema({
+  // Dolby Vision
+  doviPresent: { type: Boolean, default: false },
+  doviProfile: Number,
+  doviLevel: Number,
+  doviVersion: String,
+  doviBLPresent: { type: Boolean, default: false },
+  doviELPresent: { type: Boolean, default: false },
+  doviRPUPresent: { type: Boolean, default: false },
+  doviBLCompatID: Number,
+  // HDR10/HDR10+
+  colorPrimaries: String,
+  colorTransfer: String,
+  colorSpace: String,
+  // Bit depth
+  bitDepth: Number,
+  // Display titles
+  displayTitle: String,
+  extendedDisplayTitle: String
 }, { _id: false });
 
 const mediaSchema = new mongoose.Schema({
@@ -43,7 +67,10 @@ const mediaSchema = new mongoose.Schema({
   
   // Additional tracks
   audioTracks: [audioTrackSchema],
-  subtitles: [subtitleSchema]
+  subtitles: [subtitleSchema],
+  
+  // HDR/Dolby Vision info
+  hdr: hdrSchema
 }, { _id: false });
 
 const episodeSchema = new mongoose.Schema({
@@ -98,6 +125,16 @@ const episodeSchema = new mongoose.Schema({
   libraryId: String,
   libraryName: String,
   
+  // Watch History (aggregated across all users)
+  viewCount: {
+    type: Number,
+    default: 0
+  },
+  lastViewedAt: {
+    type: Date,
+    default: null
+  },
+  
   // Timestamps
   originallyAiredAt: Date,
   addedAt: Date,
@@ -117,5 +154,13 @@ episodeSchema.index({ showId: 1, seasonNumber: 1, episodeNumber: 1 });
 // Indexes for filtering
 episodeSchema.index({ 'media.resolution': 1 });
 episodeSchema.index({ 'media.videoCodec': 1 });
+
+// Indexes for watch history
+episodeSchema.index({ viewCount: 1 });
+episodeSchema.index({ lastViewedAt: 1 });
+
+// Indexes for compatibility checks
+episodeSchema.index({ 'media.hdr.doviPresent': 1 });
+episodeSchema.index({ 'media.hdr.doviProfile': 1 });
 
 module.exports = mongoose.model('Episode', episodeSchema);

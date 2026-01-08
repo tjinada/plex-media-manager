@@ -21,6 +21,8 @@ export class SidebarComponent {
     { path: '/shows', label: 'TV Shows', icon: 'tv' },
     { path: '/storage', label: 'Storage', icon: 'storage' },
     { path: '/wanted', label: 'Wanted', icon: 'wanted' },
+    { path: '/watch-history', label: 'Watch History', icon: 'watch-history' },
+    { path: '/compatibility', label: 'Compatibility', icon: 'compatibility' },
     { path: '/settings', label: 'Settings', icon: 'settings' }
   ];
 

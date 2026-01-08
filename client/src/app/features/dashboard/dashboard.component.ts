@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData, Chart } from 'chart.js';
 import { PlexService, StatsService, RadarrService, SonarrService } from '@core/services';
 import { PlexServer, StatsOverview, TopMovie, TopEpisode, RadarrStats, SonarrStats } from '@core/models';
 import { ChartCardComponent } from '@shared/components/chart-card/chart-card.component';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription, interval } from 'rxjs';
 
 // Set Chart.js defaults for dark theme
 Chart.defaults.color = '#f3f4f6';
@@ -14,10 +15,10 @@ Chart.defaults.color = '#f3f4f6';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgChartsModule, ChartCardComponent],
+  imports: [CommonModule, RouterLink, FormsModule, NgChartsModule, ChartCardComponent],
   templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   server: PlexServer | null = null;
   isLoading = true;
   isServerConnected = false;
@@ -33,8 +34,24 @@ export class DashboardComponent implements OnInit {
   topEpisodes: TopEpisode[] = [];
 
   // Radarr/Sonarr stats
-  radarrStats: RadarrStats = { missing: 0, upgrades: 0, downgrades: 0, configured: false };
-  sonarrStats: SonarrStats = { missing: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: false };
+  radarrStats: RadarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, configured: false };
+  sonarrStats: SonarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, totalEstimatedSavings: 0, configured: false };
+
+  // Auto-refresh configuration
+  autoRefreshEnabled = true;
+  autoRefreshInterval = 300; // 5 minutes in seconds
+  autoRefreshOptions = [
+    { label: 'Off', value: 0 },
+    { label: '1 min', value: 60 },
+    { label: '5 min', value: 300 },
+    { label: '10 min', value: 600 },
+    { label: '15 min', value: 900 }
+  ];
+  lastUpdated: Date | null = null;
+  secondsSinceUpdate = 0;
+  private refreshSubscription?: Subscription;
+  private countdownSubscription?: Subscription;
+  isRefreshing = false;
 
   // Chart configurations
   doughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
@@ -116,6 +133,82 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.startAutoRefresh();
+    this.startCountdown();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+    this.stopCountdown();
+  }
+
+  startAutoRefresh(): void {
+    this.stopAutoRefresh();
+    if (this.autoRefreshInterval > 0) {
+      this.refreshSubscription = interval(this.autoRefreshInterval * 1000)
+        .subscribe(() => {
+          if (!this.isLoading && this.isServerConnected) {
+            this.refreshData();
+          }
+        });
+    }
+  }
+
+  stopAutoRefresh(): void {
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+      this.refreshSubscription = undefined;
+    }
+  }
+
+  startCountdown(): void {
+    this.stopCountdown();
+    this.countdownSubscription = interval(1000).subscribe(() => {
+      if (this.lastUpdated) {
+        this.secondsSinceUpdate = Math.floor((Date.now() - this.lastUpdated.getTime()) / 1000);
+      }
+    });
+  }
+
+  stopCountdown(): void {
+    if (this.countdownSubscription) {
+      this.countdownSubscription.unsubscribe();
+      this.countdownSubscription = undefined;
+    }
+  }
+
+  onAutoRefreshChange(): void {
+    this.startAutoRefresh();
+  }
+
+  refreshData(): void {
+    if (this.isRefreshing) return;
+    this.isRefreshing = true;
+    
+    if (this.isServerConnected) {
+      this.loadStats();
+      this.loadArrStats();
+    }
+  }
+
+  manualRefresh(): void {
+    this.refreshData();
+  }
+
+  formatTimeSinceUpdate(): string {
+    if (!this.lastUpdated) return 'Never';
+    
+    const seconds = this.secondsSinceUpdate;
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    return `${Math.floor(seconds / 3600)}h ago`;
+  }
+
+  getNextRefreshIn(): string {
+    if (this.autoRefreshInterval === 0) return '';
+    const remaining = this.autoRefreshInterval - (this.secondsSinceUpdate % this.autoRefreshInterval);
+    if (remaining < 60) return `${remaining}s`;
+    return `${Math.floor(remaining / 60)}m ${remaining % 60}s`;
   }
 
   loadData(): void {
@@ -147,7 +240,7 @@ export class DashboardComponent implements OnInit {
         this.radarrStats = stats;
       },
       error: () => {
-        this.radarrStats = { missing: 0, upgrades: 0, downgrades: 0, configured: false };
+        this.radarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, configured: false };
       }
     });
 
@@ -156,7 +249,7 @@ export class DashboardComponent implements OnInit {
         this.sonarrStats = stats;
       },
       error: () => {
-        this.sonarrStats = { missing: 0, upgrades: 0, downgrades: 0, totalEstimatedSavings: 0, configured: false };
+        this.sonarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, totalEstimatedSavings: 0, configured: false };
       }
     });
   }
@@ -201,9 +294,13 @@ export class DashboardComponent implements OnInit {
         this.containerEpisodes = this.createChartData(containers.episodes);
         
         this.isLoading = false;
+        this.isRefreshing = false;
+        this.lastUpdated = new Date();
+        this.secondsSinceUpdate = 0;
       },
       error: () => {
         this.isLoading = false;
+        this.isRefreshing = false;
       }
     });
   }

@@ -11,6 +11,7 @@ class SyncService {
     this.plexService = null;
     this.server = null;
     this.job = null;
+    this.watchHistory = {}; // Aggregated watch history
   }
 
   /**
@@ -95,6 +96,11 @@ class SyncService {
    */
   async runSync(type) {
     try {
+      // Fetch aggregated watch history first
+      console.log('Fetching watch history...');
+      this.watchHistory = await this.plexService.getWatchHistory();
+      console.log(`Loaded watch history for ${Object.keys(this.watchHistory).length} items`);
+
       if (type === 'full' || type === 'movies') {
         await this.syncMovies();
       }
@@ -118,6 +124,23 @@ class SyncService {
   }
 
   /**
+   * Get watch data for an item from aggregated history or item metadata
+   */
+  getWatchData(ratingKey, itemMetadata = {}) {
+    // First check aggregated history (more accurate for all users)
+    const historyData = this.watchHistory[ratingKey];
+    if (historyData) {
+      return {
+        viewCount: historyData.viewCount,
+        lastViewedAt: historyData.lastViewedAt
+      };
+    }
+    
+    // Fallback to item's own metadata (single user)
+    return this.plexService.parseWatchInfo(itemMetadata);
+  }
+
+  /**
    * Sync movies from Plex
    */
   async syncMovies() {
@@ -134,6 +157,7 @@ class SyncService {
         
         const mediaInfo = this.plexService.parseMediaInfo(details);
         const guids = this.plexService.parseGuids(details);
+        const watchData = this.getWatchData(plexMovie.ratingKey, details);
 
         // Build movie document
         const movieData = {
@@ -177,6 +201,10 @@ class SyncService {
           
           libraryId: plexMovie.libraryId,
           libraryName: plexMovie.libraryName,
+          
+          // Watch history data
+          viewCount: watchData.viewCount,
+          lastViewedAt: watchData.lastViewedAt,
           
           addedAt: plexMovie.addedAt ? new Date(plexMovie.addedAt * 1000) : null,
           updatedAt: plexMovie.updatedAt ? new Date(plexMovie.updatedAt * 1000) : null,
@@ -384,6 +412,7 @@ class SyncService {
         const details = await this.plexService.getMetadata(plexEpisode.ratingKey);
         const mediaInfo = this.plexService.parseMediaInfo(details);
         const guids = this.plexService.parseGuids(details);
+        const watchData = this.getWatchData(plexEpisode.ratingKey, details);
 
         const episodeData = {
           plexId: plexEpisode.ratingKey,
@@ -418,6 +447,10 @@ class SyncService {
           
           libraryId: show.libraryId,
           libraryName: show.libraryName,
+          
+          // Watch history data
+          viewCount: watchData.viewCount,
+          lastViewedAt: watchData.lastViewedAt,
           
           originallyAiredAt: plexEpisode.originallyAvailableAt 
             ? new Date(plexEpisode.originallyAvailableAt) 

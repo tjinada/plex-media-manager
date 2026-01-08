@@ -6,3 +6,5 @@ export * from './shows.service';
 export * from './stats.service';
 export * from './radarr.service';
 export * from './sonarr.service';
+export * from './watch-history.service';
+export * from './compatibility.service';

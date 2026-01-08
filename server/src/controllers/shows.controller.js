@@ -123,9 +123,12 @@ exports.getShow = async (req, res, next) => {
         posterUrl: 1
       });
 
+    const showObj = show.toObject();
+
     res.json({
       show: {
-        ...show.toObject(),
+        id: showObj._id,
+        ...showObj,
         seasons: seasons.map(s => ({
           id: s._id,
           seasonNumber: s.seasonNumber,

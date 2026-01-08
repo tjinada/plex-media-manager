@@ -19,6 +19,7 @@ export class BottomNavComponent {
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/movies', label: 'Movies', icon: 'movie' },
     { path: '/shows', label: 'Shows', icon: 'tv' },
+    { path: '/storage', label: 'Storage', icon: 'storage' },
     { path: '/settings', label: 'Settings', icon: 'settings' }
   ];
 }

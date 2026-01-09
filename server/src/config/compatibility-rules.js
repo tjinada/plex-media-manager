@@ -14,18 +14,27 @@ const compatibilityRules = [
     category: 'hdr',
     enabled: true,
     check: (mediaInfo) => {
-      const videoTrack = mediaInfo.videoTracks?.[0];
-      if (!videoTrack) return null;
+      const hdr = mediaInfo.hdr;
+      if (!hdr || !hdr.doviPresent) return null;
       
-      // Check for Dolby Vision Profile 5
-      const hdrFormat = videoTrack.hdrFormat || '';
-      const hdrFormatProfile = videoTrack.hdrFormatProfile || '';
+      const doviProfile = hdr.doviProfile;
+      const blCompatId = hdr.doviBLCompatID;
       
-      if (hdrFormat.toLowerCase().includes('dolby vision') && 
-          (hdrFormatProfile.includes('5') || hdrFormatProfile.includes('dvhe.05'))) {
+      // Profile 5 always lacks HDR10 fallback - flag it
+      if (doviProfile === 5 || doviProfile === '5') {
         return {
           detected: true,
-          details: `Dolby Vision Profile 5 detected (${hdrFormatProfile})`
+          details: `Dolby Vision Profile 5 detected (no HDR10 fallback)`
+        };
+      }
+      
+      // Profile 8 with BL Compat ID 0 or undefined also lacks proper fallback
+      // BL Compat ID 1 = HDR10 compatible, 2 = SDR compatible, 4 = both
+      if ((doviProfile === 8 || doviProfile === '8') && 
+          (blCompatId === 0 || blCompatId === '0' || blCompatId === undefined || blCompatId === null)) {
+        return {
+          detected: true,
+          details: `Dolby Vision Profile 8 without HDR10 fallback (BL Compat ID: ${blCompatId ?? 'none'})`
         };
       }
       
@@ -40,17 +49,15 @@ const compatibilityRules = [
     category: 'hdr',
     enabled: true,
     check: (mediaInfo) => {
-      const videoTrack = mediaInfo.videoTracks?.[0];
-      if (!videoTrack) return null;
+      const hdr = mediaInfo.hdr;
+      if (!hdr || !hdr.doviPresent) return null;
       
-      const hdrFormat = videoTrack.hdrFormat || '';
-      const hdrFormatProfile = videoTrack.hdrFormatProfile || '';
+      const doviProfile = hdr.doviProfile;
       
-      if (hdrFormat.toLowerCase().includes('dolby vision') && 
-          (hdrFormatProfile.includes('4') || hdrFormatProfile.includes('dvhe.04'))) {
+      if (doviProfile === 4 || doviProfile === '4') {
         return {
           detected: true,
-          details: `Dolby Vision Profile 4 detected (${hdrFormatProfile})`
+          details: `Dolby Vision Profile 4 detected`
         };
       }
       

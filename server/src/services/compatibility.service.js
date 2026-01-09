@@ -113,7 +113,13 @@ class CompatibilityService {
               fileSize: movie.media?.fileSize || 0,
               filePath: movie.media?.filePath,
               resolution: movie.media?.resolution,
-              videoCodec: movie.media?.videoCodec
+              videoCodec: movie.media?.videoCodec,
+              // Include HDR debug info
+              hdrInfo: movie.media?.hdr ? {
+                doviPresent: movie.media.hdr.doviPresent,
+                doviProfile: movie.media.hdr.doviProfile,
+                doviBLCompatID: movie.media.hdr.doviBLCompatID
+              } : null
             });
           }
         } catch (error) {
@@ -187,7 +193,12 @@ class CompatibilityService {
               fileSize: episode.media?.fileSize || 0,
               filePath: episode.media?.filePath,
               resolution: episode.media?.resolution,
-              videoCodec: episode.media?.videoCodec
+              videoCodec: episode.media?.videoCodec,
+              hdrInfo: episode.media?.hdr ? {
+                doviPresent: episode.media.hdr.doviPresent,
+                doviProfile: episode.media.hdr.doviProfile,
+                doviBLCompatID: episode.media.hdr.doviBLCompatID
+              } : null
             });
           }
         } catch (error) {
@@ -283,23 +294,18 @@ class CompatibilityService {
    * Transform our media schema to match what rules expect
    */
   transformMediaForRules(media) {
-    if (!media) return null;
+    if (!media) return { videoTracks: [], audioTracks: [], hdr: null };
 
     return {
+      // Pass HDR data directly - rules now check this
+      hdr: media.hdr || null,
+      
       videoTracks: [{
         codec: media.videoCodec,
         width: media.width,
         height: media.height,
         bitDepth: media.hdr?.bitDepth,
         bitrate: media.videoBitrate,
-        // HDR info
-        hdrFormat: media.hdr?.doviPresent ? 'Dolby Vision' : 
-                   (media.hdr?.colorTransfer?.includes('smpte2084') ? 'HDR10' : null),
-        hdrFormatProfile: media.hdr?.doviPresent ? 
-                          `dvhe.0${media.hdr?.doviProfile || '?'}` : null,
-        colorPrimaries: media.hdr?.colorPrimaries,
-        colorTransfer: media.hdr?.colorTransfer,
-        displayTitle: media.hdr?.displayTitle,
         format: media.videoCodec
       }],
       audioTracks: (media.audioTracks || []).map(track => ({

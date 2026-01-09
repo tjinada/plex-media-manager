@@ -11,4 +11,10 @@ router.get('/analysis', compatibilityController.getAnalysis);
 // GET /api/compatibility/issues - Get list of issues with filtering/pagination
 router.get('/issues', compatibilityController.getIssues);
 
+// GET /api/compatibility/debug - Debug HDR info for a movie (shows all matching records)
+router.get('/debug', compatibilityController.debugMovieHdr);
+
+// GET /api/compatibility/cleanup - Find and optionally delete orphaned movies
+router.get('/cleanup', compatibilityController.cleanupOrphans);
+
 module.exports = router;

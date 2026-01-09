@@ -12,6 +12,11 @@ class SyncService {
     this.server = null;
     this.job = null;
     this.watchHistory = {}; // Aggregated watch history
+    // Track plexIds seen during sync for orphan cleanup
+    this.seenMovieIds = new Set();
+    this.seenShowIds = new Set();
+    this.seenSeasonIds = new Set();
+    this.seenEpisodeIds = new Set();
   }
 
   /**
@@ -77,7 +82,10 @@ class SyncService {
       serverId: this.server._id,
       type,
       status: 'running',
-      startedAt: new Date()
+      startedAt: new Date(),
+      moviesRemoved: 0,
+      showsRemoved: 0,
+      episodesRemoved: 0
     });
 
     currentSyncJob = this.job._id;
@@ -96,6 +104,12 @@ class SyncService {
    */
   async runSync(type) {
     try {
+      // Reset tracking sets
+      this.seenMovieIds = new Set();
+      this.seenShowIds = new Set();
+      this.seenSeasonIds = new Set();
+      this.seenEpisodeIds = new Set();
+
       // Fetch aggregated watch history first
       console.log('Fetching watch history...');
       this.watchHistory = await this.plexService.getWatchHistory();
@@ -103,10 +117,12 @@ class SyncService {
 
       if (type === 'full' || type === 'movies') {
         await this.syncMovies();
+        await this.cleanupOrphanedMovies();
       }
 
       if (type === 'full' || type === 'shows') {
         await this.syncShows();
+        await this.cleanupOrphanedShows();
       }
 
       // Complete the job
@@ -152,6 +168,9 @@ class SyncService {
 
     for (const plexMovie of plexMovies) {
       try {
+        // Track this plexId as seen
+        this.seenMovieIds.add(plexMovie.ratingKey);
+
         // Get detailed metadata
         const details = await this.plexService.getMetadata(plexMovie.ratingKey);
         
@@ -251,6 +270,34 @@ class SyncService {
   }
 
   /**
+   * Clean up orphaned movies (exist in DB but not in Plex)
+   */
+  async cleanupOrphanedMovies() {
+    console.log('Cleaning up orphaned movies...');
+    
+    // Find all movies in DB for this server
+    const dbMovies = await Movie.find({ serverId: this.server._id }, { plexId: 1, title: 1 }).lean();
+    
+    // Find orphans (in DB but not seen in Plex)
+    const orphanIds = [];
+    for (const movie of dbMovies) {
+      if (!this.seenMovieIds.has(movie.plexId)) {
+        orphanIds.push(movie._id);
+        console.log(`  Removing orphaned movie: ${movie.title} (plexId: ${movie.plexId})`);
+      }
+    }
+    
+    if (orphanIds.length > 0) {
+      await Movie.deleteMany({ _id: { $in: orphanIds } });
+      this.job.moviesRemoved = orphanIds.length;
+      await this.updateJob({ moviesRemoved: orphanIds.length });
+      console.log(`Removed ${orphanIds.length} orphaned movies`);
+    } else {
+      console.log('No orphaned movies found');
+    }
+  }
+
+  /**
    * Sync TV shows from Plex
    */
   async syncShows() {
@@ -262,6 +309,9 @@ class SyncService {
 
     for (const plexShow of plexShows) {
       try {
+        // Track this plexId as seen
+        this.seenShowIds.add(plexShow.ratingKey);
+
         // Get detailed show metadata
         const details = await this.plexService.getMetadata(plexShow.ratingKey);
         const guids = this.plexService.parseGuids(details);
@@ -358,6 +408,60 @@ class SyncService {
   }
 
   /**
+   * Clean up orphaned shows, seasons, and episodes
+   */
+  async cleanupOrphanedShows() {
+    console.log('Cleaning up orphaned TV content...');
+    
+    // Clean up orphaned episodes
+    const dbEpisodes = await Episode.find({ serverId: this.server._id }, { plexId: 1, title: 1 }).lean();
+    const orphanEpisodeIds = [];
+    for (const episode of dbEpisodes) {
+      if (!this.seenEpisodeIds.has(episode.plexId)) {
+        orphanEpisodeIds.push(episode._id);
+      }
+    }
+    if (orphanEpisodeIds.length > 0) {
+      await Episode.deleteMany({ _id: { $in: orphanEpisodeIds } });
+      this.job.episodesRemoved = orphanEpisodeIds.length;
+      console.log(`  Removed ${orphanEpisodeIds.length} orphaned episodes`);
+    }
+
+    // Clean up orphaned seasons
+    const dbSeasons = await Season.find({ serverId: this.server._id }, { plexId: 1, title: 1 }).lean();
+    const orphanSeasonIds = [];
+    for (const season of dbSeasons) {
+      if (!this.seenSeasonIds.has(season.plexId)) {
+        orphanSeasonIds.push(season._id);
+      }
+    }
+    if (orphanSeasonIds.length > 0) {
+      await Season.deleteMany({ _id: { $in: orphanSeasonIds } });
+      console.log(`  Removed ${orphanSeasonIds.length} orphaned seasons`);
+    }
+
+    // Clean up orphaned shows
+    const dbShows = await TVShow.find({ serverId: this.server._id }, { plexId: 1, title: 1 }).lean();
+    const orphanShowIds = [];
+    for (const show of dbShows) {
+      if (!this.seenShowIds.has(show.plexId)) {
+        orphanShowIds.push(show._id);
+        console.log(`  Removing orphaned show: ${show.title} (plexId: ${show.plexId})`);
+      }
+    }
+    if (orphanShowIds.length > 0) {
+      await TVShow.deleteMany({ _id: { $in: orphanShowIds } });
+      this.job.showsRemoved = orphanShowIds.length;
+      console.log(`  Removed ${orphanShowIds.length} orphaned shows`);
+    }
+
+    await this.updateJob({ 
+      episodesRemoved: this.job.episodesRemoved || 0,
+      showsRemoved: this.job.showsRemoved || 0
+    });
+  }
+
+  /**
    * Sync seasons for a show
    */
   async syncSeasons(show, showRatingKey) {
@@ -366,6 +470,9 @@ class SyncService {
     for (const plexSeason of plexSeasons) {
       // Skip "All episodes" pseudo-season
       if (plexSeason.index === undefined || plexSeason.index === null) continue;
+
+      // Track this plexId as seen
+      this.seenSeasonIds.add(plexSeason.ratingKey);
 
       const seasonData = {
         plexId: plexSeason.ratingKey,
@@ -408,6 +515,9 @@ class SyncService {
 
     for (const plexEpisode of plexEpisodes) {
       try {
+        // Track this plexId as seen
+        this.seenEpisodeIds.add(plexEpisode.ratingKey);
+
         // Get detailed metadata for media info
         const details = await this.plexService.getMetadata(plexEpisode.ratingKey);
         const mediaInfo = this.plexService.parseMediaInfo(details);
@@ -578,10 +688,13 @@ class SyncService {
           processedItems: this.job.processedItems,
           moviesAdded: this.job.moviesAdded,
           moviesUpdated: this.job.moviesUpdated,
+          moviesRemoved: this.job.moviesRemoved || 0,
           showsAdded: this.job.showsAdded,
           showsUpdated: this.job.showsUpdated,
+          showsRemoved: this.job.showsRemoved || 0,
           episodesAdded: this.job.episodesAdded,
-          episodesUpdated: this.job.episodesUpdated
+          episodesUpdated: this.job.episodesUpdated,
+          episodesRemoved: this.job.episodesRemoved || 0
         }
       }
     );

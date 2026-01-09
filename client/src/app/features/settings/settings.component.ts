@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlexService, SyncService, RadarrService, SonarrService } from '@core/services';
-import { PlexServer, RadarrConfig, SonarrConfig } from '@core/models';
+import { PlexServer, RadarrConfig, SonarrConfig, AutoSyncSettings } from '@core/models';
 
 export interface SyncJob {
   id: string;
@@ -41,6 +41,25 @@ export class SettingsComponent implements OnInit {
   syncStatus: SyncJob | null = null;
   lastSyncJobs: SyncJob[] = [];
 
+  // Auto-sync state
+  autoSyncSettings: AutoSyncSettings | null = null;
+  autoSyncEnabled = false;
+  autoSyncInterval = 15;
+  savingAutoSync = false;
+  autoSyncError = '';
+
+  // Interval options for dropdown
+  intervalOptions = [
+    { value: 5, label: '5 minutes' },
+    { value: 15, label: '15 minutes' },
+    { value: 30, label: '30 minutes' },
+    { value: 60, label: '1 hour' },
+    { value: 120, label: '2 hours' },
+    { value: 360, label: '6 hours' },
+    { value: 720, label: '12 hours' },
+    { value: 1440, label: '24 hours' }
+  ];
+
   // Radarr state
   radarrConfig: RadarrConfig | null = null;
   radarrHost = '';
@@ -75,6 +94,7 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     this.loadServer();
     this.loadSyncStatus();
+    this.loadAutoSyncSettings();
     this.loadRadarrConfig();
     this.loadSonarrConfig();
   }
@@ -190,6 +210,59 @@ export class SettingsComponent implements OnInit {
         alert(error.error?.message || 'Failed to start sync');
       }
     });
+  }
+
+  // ===== Auto-Sync Methods =====
+  loadAutoSyncSettings(): void {
+    this.syncService.getAutoSyncSettings().subscribe({
+      next: (settings: AutoSyncSettings) => {
+        this.autoSyncSettings = settings;
+        this.autoSyncEnabled = settings.enabled;
+        this.autoSyncInterval = settings.intervalMinutes;
+      }
+    });
+  }
+
+  saveAutoSyncSettings(): void {
+    this.savingAutoSync = true;
+    this.autoSyncError = '';
+
+    this.syncService.updateAutoSyncSettings(this.autoSyncEnabled, this.autoSyncInterval).subscribe({
+      next: (settings: AutoSyncSettings) => {
+        this.autoSyncSettings = settings;
+        this.savingAutoSync = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.autoSyncError = error.error?.message || 'Failed to update auto-sync settings';
+        this.savingAutoSync = false;
+      }
+    });
+  }
+
+  toggleAutoSync(): void {
+    this.autoSyncEnabled = !this.autoSyncEnabled;
+    this.saveAutoSyncSettings();
+  }
+
+  formatNextRunTime(dateString: string | null): string {
+    if (!dateString) return 'Not scheduled';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = date.getTime() - now.getTime();
+    
+    if (diffMs < 0) return 'Running soon...';
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) {
+      return `in ${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+    }
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) {
+      return `in ${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+    }
+    
+    return date.toLocaleString();
   }
 
   // ===== Radarr Methods =====

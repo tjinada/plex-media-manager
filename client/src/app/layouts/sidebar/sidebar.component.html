@@ -100,8 +100,45 @@
     </ul>
   </nav>
   
+  <!-- Sync Button -->
+  @if (hasServer) {
+    <div class="px-2 pt-2 border-t border-dark-700">
+      <button 
+        (click)="startSync()"
+        [disabled]="isSyncing"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+        [class.justify-center]="isCollapsed"
+        [class.bg-primary-600]="!isSyncing"
+        [class.hover:bg-primary-700]="!isSyncing"
+        [class.text-white]="!isSyncing"
+        [class.bg-dark-700]="isSyncing"
+        [class.text-gray-400]="isSyncing"
+        [class.cursor-not-allowed]="isSyncing"
+        [title]="isCollapsed ? (isSyncing ? 'Syncing...' : 'Sync Now - Last: ' + formatLastSync()) : ''">
+        @if (isSyncing) {
+          <svg class="w-5 h-5 flex-shrink-0 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        } @else {
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        }
+        <span 
+          class="whitespace-nowrap transition-opacity duration-300 flex flex-col items-start"
+          [class.opacity-0]="isCollapsed"
+          [class.hidden]="isCollapsed">
+          <span class="text-sm font-medium">{{ isSyncing ? 'Syncing...' : 'Sync Now' }}</span>
+          @if (!isSyncing && lastSyncAt) {
+            <span class="text-xs opacity-75">Last: {{ formatLastSync() }}</span>
+          }
+        </span>
+      </button>
+    </div>
+  }
+
   <!-- Collapse Toggle -->
-  <div class="p-2 border-t border-dark-700">
+  <div class="p-2" [class.border-t]="!hasServer" [class.border-dark-700]="!hasServer">
     <button 
       (click)="toggleCollapsed()"
       class="w-full flex items-center justify-center p-2 rounded-lg text-gray-400 hover:bg-dark-800 hover:text-gray-200 transition-colors"

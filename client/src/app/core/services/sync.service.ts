@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { AutoSyncSettings } from '@core/models';
 
 export interface SyncJob {
   id: string;
@@ -53,5 +54,19 @@ export class SyncService {
    */
   getHistory(limit = 10): Observable<SyncHistoryResponse> {
     return this.api.get<SyncHistoryResponse>('/sync/history', { limit });
+  }
+
+  /**
+   * Get auto-sync settings
+   */
+  getAutoSyncSettings(): Observable<AutoSyncSettings> {
+    return this.api.get<AutoSyncSettings>('/sync/auto-sync');
+  }
+
+  /**
+   * Update auto-sync settings
+   */
+  updateAutoSyncSettings(enabled: boolean, intervalMinutes: number): Observable<AutoSyncSettings> {
+    return this.api.put<AutoSyncSettings>('/sync/auto-sync', { enabled, intervalMinutes });
   }
 }

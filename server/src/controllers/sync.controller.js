@@ -1,4 +1,5 @@
 const SyncService = require('../services/sync.service');
+const autoSyncService = require('../services/auto-sync.service');
 const { ApiError } = require('../middleware/errorHandler');
 
 /**
@@ -48,6 +49,40 @@ exports.getSyncHistory = async (req, res, next) => {
 
     res.json({ jobs });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get auto-sync settings
+ */
+exports.getAutoSyncSettings = async (req, res, next) => {
+  try {
+    const settings = await autoSyncService.getSettings();
+    res.json(settings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update auto-sync settings
+ */
+exports.updateAutoSyncSettings = async (req, res, next) => {
+  try {
+    const { enabled, intervalMinutes } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      throw new ApiError(400, 'enabled must be a boolean', 'VALIDATION_ERROR');
+    }
+
+    if (typeof intervalMinutes !== 'number' || intervalMinutes < 5 || intervalMinutes > 1440) {
+      throw new ApiError(400, 'intervalMinutes must be a number between 5 and 1440', 'VALIDATION_ERROR');
+    }
+
+    const settings = await autoSyncService.updateSettings(enabled, intervalMinutes);
+    res.json(settings);
   } catch (error) {
     next(error);
   }

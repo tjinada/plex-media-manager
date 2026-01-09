@@ -60,9 +60,13 @@ export interface StaleShow {
   year: number;
   posterUrl: string;
   totalEpisodes: number;
+  neverWatched: number;
   staleEpisodes: number;
+  activeEpisodes: number;
   totalSize: number;
   staleSize: number;
+  unwatchedCount: number;
+  activePercentage: number;
   stalePercentage: number;
 }
 

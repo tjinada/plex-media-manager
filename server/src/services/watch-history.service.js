@@ -15,10 +15,7 @@ class WatchHistoryService {
     const sixMonthsAgo = new Date(now.getTime() - (180 * 24 * 60 * 60 * 1000));
     const minAgeDate = new Date(now.getTime() - (minAgeToConsiderDays * 24 * 60 * 60 * 1000));
 
-    // Get movie stats
     const movieStats = await this.getMovieStats(staleDate, sixMonthsAgo, minAgeDate);
-    
-    // Get episode stats
     const episodeStats = await this.getEpisodeStats(staleDate, sixMonthsAgo, minAgeDate);
 
     return {
@@ -66,7 +63,6 @@ class WatchHistoryService {
         continue;
       }
 
-      // Use lastViewedAt as the primary indicator of whether something was watched
       if (!lastViewedAt) {
         neverWatched++;
         staleSize += fileSize;
@@ -113,13 +109,11 @@ class WatchHistoryService {
       const addedAt = episode.addedAt ? new Date(episode.addedAt) : null;
       const lastViewedAt = episode.lastViewedAt ? new Date(episode.lastViewedAt) : null;
 
-      // Skip items added recently (within minAgeToConsiderDays)
       if (addedAt && addedAt > minAgeDate) {
         active++;
         continue;
       }
 
-      // Use lastViewedAt as the primary indicator of whether something was watched
       if (!lastViewedAt) {
         neverWatched++;
         staleSize += fileSize;
@@ -147,14 +141,14 @@ class WatchHistoryService {
   }
 
   /**
-   * Get stale movies list
+   * Get movies list with watch status filtering
    */
-  async getStaleMovies(options = {}) {
+  async getMovies(options = {}) {
     const {
       staleThresholdDays = 365,
       minAgeToConsiderDays = 30,
-      filter = 'all', // 'all', 'never', 'stale'
-      sortBy = 'fileSize', // 'fileSize', 'addedAt', 'lastViewedAt'
+      filter = 'all', // 'all', 'never', 'stale', 'active'
+      sortBy = 'fileSize',
       sortOrder = 'desc',
       page = 1,
       limit = 50
@@ -164,45 +158,41 @@ class WatchHistoryService {
     const staleDate = new Date(now.getTime() - (staleThresholdDays * 24 * 60 * 60 * 1000));
     const minAgeDate = new Date(now.getTime() - (minAgeToConsiderDays * 24 * 60 * 60 * 1000));
 
-    // Build query
-    const query = {
-      addedAt: { $lt: minAgeDate }
-    };
+    // Build query based on filter
+    let query = {};
 
     if (filter === 'never') {
-      // Never watched = no lastViewedAt
-      query.$or = [
-        { lastViewedAt: null },
-        { lastViewedAt: { $exists: false } }
-      ];
+      query = {
+        addedAt: { $lt: minAgeDate },
+        $or: [
+          { lastViewedAt: null },
+          { lastViewedAt: { $exists: false } }
+        ]
+      };
     } else if (filter === 'stale') {
-      // Stale = has lastViewedAt but it's older than threshold
-      query.lastViewedAt = { $ne: null, $lt: staleDate };
-    } else {
-      // 'all' - both never watched and stale
-      query.$or = [
-        { lastViewedAt: null },
-        { lastViewedAt: { $exists: false } },
-        { lastViewedAt: { $lt: staleDate } }
-      ];
+      query = {
+        addedAt: { $lt: minAgeDate },
+        lastViewedAt: { $ne: null, $lt: staleDate }
+      };
+    } else if (filter === 'active') {
+      query = {
+        $or: [
+          { addedAt: { $gte: minAgeDate } },
+          { lastViewedAt: { $gte: staleDate } }
+        ]
+      };
     }
+    // 'all' = no filter, show everything
 
-    // Build sort
     const sortField = sortBy === 'fileSize' ? 'media.fileSize' : sortBy;
     const sort = { [sortField]: sortOrder === 'asc' ? 1 : -1 };
-
     const skip = (page - 1) * limit;
 
     const [movies, total] = await Promise.all([
-      Movie.find(query)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+      Movie.find(query).sort(sort).skip(skip).limit(limit).lean(),
       Movie.countDocuments(query)
     ]);
 
-    // Transform for response
     const items = movies.map(movie => ({
       id: movie._id,
       plexId: movie.plexId,
@@ -216,24 +206,19 @@ class WatchHistoryService {
       videoCodec: movie.media?.videoCodec,
       filePath: movie.media?.filePath,
       posterUrl: movie.posterUrl,
-      status: this.getWatchStatus(movie, staleDate)
+      status: this.getWatchStatus(movie, staleDate, minAgeDate)
     }));
 
     return {
       items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
 
   /**
-   * Get stale episodes list
+   * Get episodes list with watch status filtering
    */
-  async getStaleEpisodes(options = {}) {
+  async getEpisodes(options = {}) {
     const {
       staleThresholdDays = 365,
       minAgeToConsiderDays = 30,
@@ -248,41 +233,36 @@ class WatchHistoryService {
     const staleDate = new Date(now.getTime() - (staleThresholdDays * 24 * 60 * 60 * 1000));
     const minAgeDate = new Date(now.getTime() - (minAgeToConsiderDays * 24 * 60 * 60 * 1000));
 
-    // Build query
-    const query = {
-      addedAt: { $lt: minAgeDate }
-    };
+    let query = {};
 
     if (filter === 'never') {
-      // Never watched = no lastViewedAt
-      query.$or = [
-        { lastViewedAt: null },
-        { lastViewedAt: { $exists: false } }
-      ];
+      query = {
+        addedAt: { $lt: minAgeDate },
+        $or: [
+          { lastViewedAt: null },
+          { lastViewedAt: { $exists: false } }
+        ]
+      };
     } else if (filter === 'stale') {
-      // Stale = has lastViewedAt but it's older than threshold
-      query.lastViewedAt = { $ne: null, $lt: staleDate };
-    } else {
-      // 'all' - both never watched and stale
-      query.$or = [
-        { lastViewedAt: null },
-        { lastViewedAt: { $exists: false } },
-        { lastViewedAt: { $lt: staleDate } }
-      ];
+      query = {
+        addedAt: { $lt: minAgeDate },
+        lastViewedAt: { $ne: null, $lt: staleDate }
+      };
+    } else if (filter === 'active') {
+      query = {
+        $or: [
+          { addedAt: { $gte: minAgeDate } },
+          { lastViewedAt: { $gte: staleDate } }
+        ]
+      };
     }
 
     const sortField = sortBy === 'fileSize' ? 'media.fileSize' : sortBy;
     const sort = { [sortField]: sortOrder === 'asc' ? 1 : -1 };
-
     const skip = (page - 1) * limit;
 
     const [episodes, total] = await Promise.all([
-      Episode.find(query)
-        .populate('showId', 'title')
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+      Episode.find(query).populate('showId', 'title').sort(sort).skip(skip).limit(limit).lean(),
       Episode.countDocuments(query)
     ]);
 
@@ -301,27 +281,23 @@ class WatchHistoryService {
       videoCodec: episode.media?.videoCodec,
       filePath: episode.media?.filePath,
       thumbUrl: episode.thumbUrl,
-      status: this.getWatchStatus(episode, staleDate)
+      status: this.getWatchStatus(episode, staleDate, minAgeDate)
     }));
 
     return {
       items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
 
   /**
-   * Get stale TV shows (aggregate by show)
+   * Get TV shows with watch status aggregation
    */
-  async getStaleShows(options = {}) {
+  async getShows(options = {}) {
     const {
       staleThresholdDays = 365,
       minAgeToConsiderDays = 30,
+      filter = 'all', // 'all', 'never', 'stale', 'active'
       sortBy = 'staleEpisodes',
       sortOrder = 'desc',
       page = 1,
@@ -332,20 +308,28 @@ class WatchHistoryService {
     const staleDate = new Date(now.getTime() - (staleThresholdDays * 24 * 60 * 60 * 1000));
     const minAgeDate = new Date(now.getTime() - (minAgeToConsiderDays * 24 * 60 * 60 * 1000));
 
-    // Aggregate episodes by show
     const aggregation = await Episode.aggregate([
       {
-        $match: {
-          addedAt: { $lt: minAgeDate }
-        }
-      },
-      {
         $addFields: {
-          isStale: {
-            $or: [
-              { $eq: ['$lastViewedAt', null] },
-              { $lt: ['$lastViewedAt', staleDate] }
-            ]
+          isRecent: { $gte: ['$addedAt', minAgeDate] },
+          watchStatus: {
+            $cond: {
+              if: { $gte: ['$addedAt', minAgeDate] },
+              then: 'active',
+              else: {
+                $cond: {
+                  if: { $eq: ['$lastViewedAt', null] },
+                  then: 'never',
+                  else: {
+                    $cond: {
+                      if: { $lt: ['$lastViewedAt', staleDate] },
+                      then: 'stale',
+                      else: 'active'
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -353,14 +337,11 @@ class WatchHistoryService {
         $group: {
           _id: '$showId',
           totalEpisodes: { $sum: 1 },
-          staleEpisodes: { $sum: { $cond: ['$isStale', 1, 0] } },
+          neverWatched: { $sum: { $cond: [{ $eq: ['$watchStatus', 'never'] }, 1, 0] } },
+          staleEpisodes: { $sum: { $cond: [{ $eq: ['$watchStatus', 'stale'] }, 1, 0] } },
+          activeEpisodes: { $sum: { $cond: [{ $eq: ['$watchStatus', 'active'] }, 1, 0] } },
           totalSize: { $sum: '$media.fileSize' },
-          staleSize: { $sum: { $cond: ['$isStale', '$media.fileSize', 0] } }
-        }
-      },
-      {
-        $match: {
-          staleEpisodes: { $gt: 0 }
+          staleSize: { $sum: { $cond: [{ $in: ['$watchStatus', ['never', 'stale']] }, '$media.fileSize', 0] } }
         }
       },
       {
@@ -371,9 +352,7 @@ class WatchHistoryService {
           as: 'show'
         }
       },
-      {
-        $unwind: '$show'
-      },
+      { $unwind: '$show' },
       {
         $project: {
           showId: '$_id',
@@ -381,29 +360,29 @@ class WatchHistoryService {
           year: '$show.year',
           posterUrl: '$show.posterUrl',
           totalEpisodes: 1,
+          neverWatched: 1,
           staleEpisodes: 1,
+          activeEpisodes: 1,
           totalSize: 1,
           staleSize: 1,
+          unwatchedCount: { $add: ['$neverWatched', '$staleEpisodes'] },
+          activePercentage: {
+            $multiply: [{ $divide: ['$activeEpisodes', '$totalEpisodes'] }, 100]
+          },
           stalePercentage: {
-            $multiply: [
-              { $divide: ['$staleEpisodes', '$totalEpisodes'] },
-              100
-            ]
+            $multiply: [{ $divide: [{ $add: ['$neverWatched', '$staleEpisodes'] }, '$totalEpisodes'] }, 100]
           }
         }
       },
-      {
-        $sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 }
-      },
+      // Filter based on status
+      ...(filter === 'active' ? [{ $match: { activePercentage: { $gte: 50 } } }] : []),
+      ...(filter === 'stale' ? [{ $match: { staleEpisodes: { $gt: 0 } } }] : []),
+      ...(filter === 'never' ? [{ $match: { neverWatched: { $gt: 0 } } }] : []),
+      { $sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 } },
       {
         $facet: {
-          items: [
-            { $skip: (page - 1) * limit },
-            { $limit: limit }
-          ],
-          total: [
-            { $count: 'count' }
-          ]
+          items: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          total: [{ $count: 'count' }]
         }
       }
     ]);
@@ -413,31 +392,28 @@ class WatchHistoryService {
 
     return {
       items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
 
   /**
    * Get watch status for an item
    */
-  getWatchStatus(item, staleDate) {
-    const viewCount = item.viewCount || 0;
+  getWatchStatus(item, staleDate, minAgeDate) {
     const lastViewedAt = item.lastViewedAt ? new Date(item.lastViewedAt) : null;
+    const addedAt = item.addedAt ? new Date(item.addedAt) : null;
 
-    // If lastViewedAt exists, the item was watched (regardless of viewCount)
-    if (!lastViewedAt && viewCount === 0) {
-      return 'never';
-    } else if (lastViewedAt && lastViewedAt < staleDate) {
-      return 'stale';
-    } else if (lastViewedAt) {
+    // Recently added items are considered active
+    if (addedAt && minAgeDate && addedAt >= minAgeDate) {
       return 'active';
     }
-    return 'never';
+
+    if (!lastViewedAt) {
+      return 'never';
+    } else if (lastViewedAt < staleDate) {
+      return 'stale';
+    }
+    return 'active';
   }
 }
 

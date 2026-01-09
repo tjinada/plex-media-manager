@@ -5,13 +5,13 @@ const watchHistoryController = require('../controllers/watch-history.controller'
 // GET /api/watch-history/analysis - Get watch history analysis summary
 router.get('/analysis', watchHistoryController.getAnalysis);
 
-// GET /api/watch-history/movies - Get stale movies
-router.get('/movies', watchHistoryController.getStaleMovies);
+// GET /api/watch-history/movies - Get movies with watch status
+router.get('/movies', watchHistoryController.getMovies);
 
-// GET /api/watch-history/episodes - Get stale episodes
-router.get('/episodes', watchHistoryController.getStaleEpisodes);
+// GET /api/watch-history/episodes - Get episodes with watch status
+router.get('/episodes', watchHistoryController.getEpisodes);
 
-// GET /api/watch-history/shows - Get stale shows (aggregated)
-router.get('/shows', watchHistoryController.getStaleShows);
+// GET /api/watch-history/shows - Get TV shows with watch status aggregation
+router.get('/shows', watchHistoryController.getShows);
 
 module.exports = router;

@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WatchHistoryService } from '@core/services';
-import { 
-  WatchHistoryAnalysis, 
-  StaleMovie, 
+import {
+  WatchHistoryAnalysis,
+  StaleMovie,
   StaleEpisode,
   StaleShow,
-  Pagination 
+  Pagination
 } from '@core/models';
 
 @Component({
@@ -17,36 +17,40 @@ import {
   templateUrl: './watch-history.component.html'
 })
 export class WatchHistoryComponent implements OnInit {
-  Math = Math; // For template access
+  Math = Math;
   isLoading = true;
   analysis: WatchHistoryAnalysis | null = null;
   
-  // Tab state
-  activeTab: 'movies' | 'episodes' | 'shows' = 'movies';
+  // Tab state: 'movies' or 'shows'
+  activeTab: 'movies' | 'shows' = 'movies';
   
-  // Filter state
-  staleThresholdDays = 365;
+  // Threshold options
+  staleThreshold = 730; // 2 years default
   thresholdOptions = [
     { label: '6 months', value: 180 },
     { label: '1 year', value: 365 },
     { label: '2 years', value: 730 },
     { label: '3 years', value: 1095 }
   ];
-  filter: 'all' | 'never' | 'stale' = 'all';
+  
+  // Filter: all, never, stale, active
+  statusFilter: 'all' | 'never' | 'stale' | 'active' = 'all';
+  
+  // Sort
   sortBy = 'fileSize';
   sortOrder: 'asc' | 'desc' = 'desc';
   
-  // Movies state
+  // Movies data
   movies: StaleMovie[] = [];
   moviesPagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   moviesLoading = false;
   
-  // Episodes state
+  // Episodes data
   episodes: StaleEpisode[] = [];
   episodesPagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   episodesLoading = false;
   
-  // Shows state
+  // Shows data
   shows: StaleShow[] = [];
   showsPagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   showsLoading = false;
@@ -55,14 +59,22 @@ export class WatchHistoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAnalysis();
-    this.loadMovies();
   }
 
   loadAnalysis(): void {
-    this.watchHistoryService.getAnalysis({ staleThresholdDays: this.staleThresholdDays }).subscribe({
+    this.isLoading = true;
+    this.watchHistoryService.getAnalysis({
+      staleThresholdDays: this.staleThreshold
+    }).subscribe({
       next: (analysis) => {
         this.analysis = analysis;
         this.isLoading = false;
+        // Load initial data based on active tab
+        if (this.activeTab === 'movies') {
+          this.loadMovies();
+        } else {
+          this.loadShows();
+        }
       },
       error: () => {
         this.isLoading = false;
@@ -70,45 +82,11 @@ export class WatchHistoryComponent implements OnInit {
     });
   }
 
-  onThresholdChange(): void {
-    this.loadAnalysis();
-    this.resetAndLoad();
-  }
-
-  onFilterChange(): void {
-    this.resetAndLoad();
-  }
-
-  resetAndLoad(): void {
-    this.moviesPagination.page = 1;
-    this.episodesPagination.page = 1;
-    this.showsPagination.page = 1;
-    
-    if (this.activeTab === 'movies') {
-      this.loadMovies();
-    } else if (this.activeTab === 'episodes') {
-      this.loadEpisodes();
-    } else {
-      this.loadShows();
-    }
-  }
-
-  setActiveTab(tab: 'movies' | 'episodes' | 'shows'): void {
-    this.activeTab = tab;
-    if (tab === 'movies' && this.movies.length === 0) {
-      this.loadMovies();
-    } else if (tab === 'episodes' && this.episodes.length === 0) {
-      this.loadEpisodes();
-    } else if (tab === 'shows' && this.shows.length === 0) {
-      this.loadShows();
-    }
-  }
-
   loadMovies(): void {
     this.moviesLoading = true;
-    this.watchHistoryService.getStaleMovies({
-      staleThresholdDays: this.staleThresholdDays,
-      filter: this.filter,
+    this.watchHistoryService.getMovies({
+      staleThresholdDays: this.staleThreshold,
+      filter: this.statusFilter,
       sortBy: this.sortBy as any,
       sortOrder: this.sortOrder,
       page: this.moviesPagination.page,
@@ -125,32 +103,15 @@ export class WatchHistoryComponent implements OnInit {
     });
   }
 
-  loadEpisodes(): void {
-    this.episodesLoading = true;
-    this.watchHistoryService.getStaleEpisodes({
-      staleThresholdDays: this.staleThresholdDays,
-      filter: this.filter,
-      sortBy: this.sortBy as any,
-      sortOrder: this.sortOrder,
-      page: this.episodesPagination.page,
-      limit: this.episodesPagination.limit
-    }).subscribe({
-      next: (response) => {
-        this.episodes = response.items;
-        this.episodesPagination = response.pagination;
-        this.episodesLoading = false;
-      },
-      error: () => {
-        this.episodesLoading = false;
-      }
-    });
-  }
-
   loadShows(): void {
     this.showsLoading = true;
-    this.watchHistoryService.getStaleShows({
-      staleThresholdDays: this.staleThresholdDays,
-      sortBy: 'staleEpisodes',
+    const showSortBy = this.sortBy === 'fileSize' ? 'staleSize' : 
+                       this.sortBy === 'title' ? 'title' : 'staleEpisodes';
+    
+    this.watchHistoryService.getShows({
+      staleThresholdDays: this.staleThreshold,
+      filter: this.statusFilter,
+      sortBy: showSortBy as any,
       sortOrder: this.sortOrder,
       page: this.showsPagination.page,
       limit: this.showsPagination.limit
@@ -166,13 +127,38 @@ export class WatchHistoryComponent implements OnInit {
     });
   }
 
+  onTabChange(tab: 'movies' | 'shows'): void {
+    this.activeTab = tab;
+    this.statusFilter = 'all';
+    this.sortBy = 'fileSize';
+    
+    if (tab === 'movies') {
+      this.moviesPagination.page = 1;
+      this.loadMovies();
+    } else {
+      this.showsPagination.page = 1;
+      this.loadShows();
+    }
+  }
+
+  onThresholdChange(): void {
+    this.loadAnalysis();
+  }
+
+  onFilterChange(): void {
+    if (this.activeTab === 'movies') {
+      this.moviesPagination.page = 1;
+      this.loadMovies();
+    } else {
+      this.showsPagination.page = 1;
+      this.loadShows();
+    }
+  }
+
   goToPage(page: number): void {
     if (this.activeTab === 'movies') {
       this.moviesPagination.page = page;
       this.loadMovies();
-    } else if (this.activeTab === 'episodes') {
-      this.episodesPagination.page = page;
-      this.loadEpisodes();
     } else {
       this.showsPagination.page = page;
       this.loadShows();
@@ -180,9 +166,11 @@ export class WatchHistoryComponent implements OnInit {
   }
 
   getCurrentPagination(): Pagination {
-    if (this.activeTab === 'movies') return this.moviesPagination;
-    if (this.activeTab === 'episodes') return this.episodesPagination;
-    return this.showsPagination;
+    return this.activeTab === 'movies' ? this.moviesPagination : this.showsPagination;
+  }
+
+  isTabLoading(): boolean {
+    return this.activeTab === 'movies' ? this.moviesLoading : this.showsLoading;
   }
 
   formatBytes(bytes: number): string {
@@ -196,39 +184,55 @@ export class WatchHistoryComponent implements OnInit {
   formatDate(dateString: string | null): string {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   }
 
   formatEpisodeCode(seasonNumber: number, episodeNumber: number): string {
     return `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`;
   }
 
-  getStatusColor(status: string): string {
+  getStatusBadge(status: string): { class: string; label: string } {
     switch (status) {
-      case 'never': return 'text-red-400';
-      case 'stale': return 'text-orange-400';
-      default: return 'text-green-400';
-    }
-  }
-
-  getStatusBadge(status: string): string {
-    switch (status) {
-      case 'never': return 'bg-red-600/20 text-red-400';
-      case 'stale': return 'bg-orange-600/20 text-orange-400';
-      default: return 'bg-green-600/20 text-green-400';
-    }
-  }
-
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'never': return 'Never Watched';
-      case 'stale': return 'Stale';
-      default: return 'Active';
+      case 'active':
+        return { class: 'bg-green-600/20 text-green-400', label: 'Active' };
+      case 'stale':
+        return { class: 'bg-orange-600/20 text-orange-400', label: 'Stale' };
+      case 'never':
+        return { class: 'bg-red-600/20 text-red-400', label: 'Never Watched' };
+      default:
+        return { class: 'bg-gray-600/20 text-gray-400', label: status };
     }
   }
 
   getPercentage(value: number, total: number): number {
     if (total === 0) return 0;
     return Math.round((value / total) * 100);
+  }
+
+  // For summary cards - calculate based on selected threshold
+  getMoviesSummary() {
+    if (!this.analysis) return { active: 0, stale: 0, never: 0, total: 0 };
+    const m = this.analysis.summary.movies;
+    return {
+      active: m.active,
+      stale: m.staleOneYear,
+      never: m.neverWatched,
+      total: m.totalItems
+    };
+  }
+
+  getEpisodesSummary() {
+    if (!this.analysis) return { active: 0, stale: 0, never: 0, total: 0 };
+    const e = this.analysis.summary.episodes;
+    return {
+      active: e.active,
+      stale: e.staleOneYear,
+      never: e.neverWatched,
+      total: e.totalItems
+    };
   }
 }

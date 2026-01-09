@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { 
-  WatchHistoryAnalysis, 
-  StaleMoviesResponse, 
+import {
+  WatchHistoryAnalysis,
+  StaleMoviesResponse,
   StaleEpisodesResponse,
-  StaleShowsResponse 
+  StaleShowsResponse
 } from '../models/watch-history.model';
 
 @Injectable({
@@ -16,7 +16,10 @@ export class WatchHistoryService {
 
   constructor(private http: HttpClient) {}
 
-  getAnalysis(options: { staleThresholdDays?: number; minAgeToConsiderDays?: number } = {}): Observable<WatchHistoryAnalysis> {
+  getAnalysis(options: {
+    staleThresholdDays?: number;
+    minAgeToConsiderDays?: number;
+  } = {}): Observable<WatchHistoryAnalysis> {
     let params = new HttpParams();
     if (options.staleThresholdDays) {
       params = params.set('staleThresholdDays', options.staleThresholdDays.toString());
@@ -27,11 +30,11 @@ export class WatchHistoryService {
     return this.http.get<WatchHistoryAnalysis>(`${this.apiUrl}/analysis`, { params });
   }
 
-  getStaleMovies(options: {
+  getMovies(options: {
     staleThresholdDays?: number;
     minAgeToConsiderDays?: number;
-    filter?: 'all' | 'never' | 'stale';
-    sortBy?: 'fileSize' | 'addedAt' | 'lastViewedAt';
+    filter?: 'all' | 'never' | 'stale' | 'active';
+    sortBy?: 'fileSize' | 'addedAt' | 'lastViewedAt' | 'title';
     sortOrder?: 'asc' | 'desc';
     page?: number;
     limit?: number;
@@ -45,11 +48,11 @@ export class WatchHistoryService {
     return this.http.get<StaleMoviesResponse>(`${this.apiUrl}/movies`, { params });
   }
 
-  getStaleEpisodes(options: {
+  getEpisodes(options: {
     staleThresholdDays?: number;
     minAgeToConsiderDays?: number;
-    filter?: 'all' | 'never' | 'stale';
-    sortBy?: 'fileSize' | 'addedAt' | 'lastViewedAt';
+    filter?: 'all' | 'never' | 'stale' | 'active';
+    sortBy?: 'fileSize' | 'addedAt' | 'lastViewedAt' | 'title';
     sortOrder?: 'asc' | 'desc';
     page?: number;
     limit?: number;
@@ -63,10 +66,11 @@ export class WatchHistoryService {
     return this.http.get<StaleEpisodesResponse>(`${this.apiUrl}/episodes`, { params });
   }
 
-  getStaleShows(options: {
+  getShows(options: {
     staleThresholdDays?: number;
     minAgeToConsiderDays?: number;
-    sortBy?: 'staleEpisodes' | 'staleSize' | 'stalePercentage';
+    filter?: 'all' | 'never' | 'stale' | 'active';
+    sortBy?: 'staleEpisodes' | 'activeEpisodes' | 'totalEpisodes' | 'staleSize' | 'title';
     sortOrder?: 'asc' | 'desc';
     page?: number;
     limit?: number;

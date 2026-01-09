@@ -59,7 +59,6 @@ class WatchHistoryService {
 
       const addedAt = movie.addedAt ? new Date(movie.addedAt) : null;
       const lastViewedAt = movie.lastViewedAt ? new Date(movie.lastViewedAt) : null;
-      const viewCount = movie.viewCount || 0;
 
       // Skip items added recently (within minAgeToConsiderDays)
       if (addedAt && addedAt > minAgeDate) {
@@ -67,7 +66,8 @@ class WatchHistoryService {
         continue;
       }
 
-      if (viewCount === 0 || !lastViewedAt) {
+      // Use lastViewedAt as the primary indicator of whether something was watched
+      if (!lastViewedAt) {
         neverWatched++;
         staleSize += fileSize;
       } else if (lastViewedAt < staleDate) {
@@ -112,7 +112,6 @@ class WatchHistoryService {
 
       const addedAt = episode.addedAt ? new Date(episode.addedAt) : null;
       const lastViewedAt = episode.lastViewedAt ? new Date(episode.lastViewedAt) : null;
-      const viewCount = episode.viewCount || 0;
 
       // Skip items added recently (within minAgeToConsiderDays)
       if (addedAt && addedAt > minAgeDate) {
@@ -120,7 +119,8 @@ class WatchHistoryService {
         continue;
       }
 
-      if (viewCount === 0 || !lastViewedAt) {
+      // Use lastViewedAt as the primary indicator of whether something was watched
+      if (!lastViewedAt) {
         neverWatched++;
         staleSize += fileSize;
       } else if (lastViewedAt < staleDate) {
@@ -170,20 +170,17 @@ class WatchHistoryService {
     };
 
     if (filter === 'never') {
+      // Never watched = no lastViewedAt
       query.$or = [
-        { viewCount: 0 },
-        { viewCount: { $exists: false } },
         { lastViewedAt: null },
         { lastViewedAt: { $exists: false } }
       ];
     } else if (filter === 'stale') {
-      query.viewCount = { $gt: 0 };
-      query.lastViewedAt = { $lt: staleDate };
+      // Stale = has lastViewedAt but it's older than threshold
+      query.lastViewedAt = { $ne: null, $lt: staleDate };
     } else {
       // 'all' - both never watched and stale
       query.$or = [
-        { viewCount: 0 },
-        { viewCount: { $exists: false } },
         { lastViewedAt: null },
         { lastViewedAt: { $exists: false } },
         { lastViewedAt: { $lt: staleDate } }
@@ -257,19 +254,17 @@ class WatchHistoryService {
     };
 
     if (filter === 'never') {
+      // Never watched = no lastViewedAt
       query.$or = [
-        { viewCount: 0 },
-        { viewCount: { $exists: false } },
         { lastViewedAt: null },
         { lastViewedAt: { $exists: false } }
       ];
     } else if (filter === 'stale') {
-      query.viewCount = { $gt: 0 };
-      query.lastViewedAt = { $lt: staleDate };
+      // Stale = has lastViewedAt but it's older than threshold
+      query.lastViewedAt = { $ne: null, $lt: staleDate };
     } else {
+      // 'all' - both never watched and stale
       query.$or = [
-        { viewCount: 0 },
-        { viewCount: { $exists: false } },
         { lastViewedAt: null },
         { lastViewedAt: { $exists: false } },
         { lastViewedAt: { $lt: staleDate } }
@@ -348,8 +343,6 @@ class WatchHistoryService {
         $addFields: {
           isStale: {
             $or: [
-              { $eq: ['$viewCount', 0] },
-              { $eq: ['$viewCount', null] },
               { $eq: ['$lastViewedAt', null] },
               { $lt: ['$lastViewedAt', staleDate] }
             ]
@@ -436,12 +429,15 @@ class WatchHistoryService {
     const viewCount = item.viewCount || 0;
     const lastViewedAt = item.lastViewedAt ? new Date(item.lastViewedAt) : null;
 
-    if (viewCount === 0 || !lastViewedAt) {
+    // If lastViewedAt exists, the item was watched (regardless of viewCount)
+    if (!lastViewedAt && viewCount === 0) {
       return 'never';
-    } else if (lastViewedAt < staleDate) {
+    } else if (lastViewedAt && lastViewedAt < staleDate) {
       return 'stale';
+    } else if (lastViewedAt) {
+      return 'active';
     }
-    return 'active';
+    return 'never';
   }
 }
 

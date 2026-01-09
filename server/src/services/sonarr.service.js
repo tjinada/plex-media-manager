@@ -114,6 +114,52 @@ class SonarrService {
     return response.data;
   }
 
+  async lookupByTvdbId(tvdbId) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Sonarr not configured');
+
+    const allSeries = await this.getAllSeries();
+    const series = allSeries.find(s => s.tvdbId === parseInt(tvdbId));
+    
+    if (!series) return null;
+
+    return {
+      id: series.id,
+      title: series.title,
+      year: series.year,
+      tvdbId: series.tvdbId,
+      imdbId: series.imdbId,
+      monitored: series.monitored
+    };
+  }
+
+  async lookupEpisode(seriesId, seasonNumber, episodeNumber) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Sonarr not configured');
+
+    const episodes = await this.getEpisodes(seriesId);
+    const episode = episodes.find(e => 
+      e.seasonNumber === parseInt(seasonNumber) && 
+      e.episodeNumber === parseInt(episodeNumber)
+    );
+    
+    if (!episode) return null;
+
+    return {
+      id: episode.id,
+      seriesId: episode.seriesId,
+      seasonNumber: episode.seasonNumber,
+      episodeNumber: episode.episodeNumber,
+      title: episode.title,
+      hasFile: episode.hasFile,
+      monitored: episode.monitored
+    };
+  }
+
+  getWebUrl() {
+    return this.config?.host || null;
+  }
+
   async getEpisodes(seriesId) {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Sonarr not configured');
@@ -453,15 +499,11 @@ class SonarrService {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Sonarr not configured');
 
-    // Trigger the search first
-    await this.client.post('/command', {
-      name: 'EpisodeSearch',
-      episodeIds: [parseInt(episodeId)]
-    });
-
-    // Get releases for the episode
+    // Get releases for the episode - this endpoint performs the search
+    // Use longer timeout since indexer searches can take a while
     const response = await this.client.get('/release', {
-      params: { episodeId: parseInt(episodeId) }
+      params: { episodeId: parseInt(episodeId) },
+      timeout: 120000 // 2 minutes for indexer searches
     });
 
     return response.data.map(release => ({

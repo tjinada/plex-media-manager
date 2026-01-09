@@ -4,7 +4,10 @@ import { Observable } from 'rxjs';
 import {
   CompatibilityAnalysis,
   CompatibilityIssuesResponse,
-  CompatibilityRulesResponse
+  CompatibilityRulesResponse,
+  SearchResult,
+  MovieSearchResponse,
+  EpisodeSearchResponse
 } from '../models/compatibility.model';
 
 @Injectable({
@@ -39,5 +42,23 @@ export class CompatibilityService {
       }
     });
     return this.http.get<CompatibilityIssuesResponse>(`${this.apiUrl}/issues`, { params });
+  }
+
+  searchMovie(movieId: string): Observable<MovieSearchResponse> {
+    // Note: This can take up to 2 minutes while indexers are searched
+    return this.http.get<MovieSearchResponse>(`${this.apiUrl}/search/movie/${movieId}`);
+  }
+
+  searchEpisode(episodeId: string): Observable<EpisodeSearchResponse> {
+    // Note: This can take up to 2 minutes while indexers are searched
+    return this.http.get<EpisodeSearchResponse>(`${this.apiUrl}/search/episode/${episodeId}`);
+  }
+
+  downloadMovieRelease(guid: string, indexerId: number): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/download/movie`, { guid, indexerId });
+  }
+
+  downloadEpisodeRelease(guid: string, indexerId: number): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/download/episode`, { guid, indexerId });
   }
 }

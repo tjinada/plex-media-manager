@@ -202,6 +202,19 @@
                       {{ issue.resolution }} · {{ issue.videoCodec }} · {{ formatBytes(issue.fileSize) }}
                     </p>
                   </div>
+
+                  <!-- Search Button -->
+                  <div class="flex-shrink-0">
+                    <button 
+                      (click)="openSearch(issue)"
+                      class="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                      title="Interactive Search">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <span class="hidden sm:inline">Search</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             } @empty {
@@ -248,3 +261,149 @@
     </div>
   }
 </div>
+
+<!-- Search Modal -->
+@if (showSearchModal) {
+  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeSearch()">
+    <div class="bg-dark-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-100">Interactive Search</h2>
+          <p class="text-sm text-gray-400">{{ getSearchTitle() }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          @if (searchExternalUrl) {
+            <button 
+              (click)="openExternalUrl()"
+              class="flex items-center gap-2 px-3 py-1.5 text-sm bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-lg transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Open in {{ searchItem?.itemType === 'movie' ? 'Radarr' : 'Sonarr' }}
+            </button>
+          }
+          <button 
+            (click)="closeSearch()"
+            class="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-dark-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
+        @if (searchLoading) {
+          <div class="flex items-center justify-center h-64">
+            <div class="text-center">
+              <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="text-gray-400">Searching indexers for releases...</p>
+              <p class="text-xs text-gray-500 mt-1">This may take up to 2 minutes</p>
+            </div>
+          </div>
+        } @else if (searchError) {
+          <div class="p-8 text-center">
+            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-400 font-medium">{{ searchError }}</p>
+            <p class="text-sm text-gray-500 mt-2">Make sure the item is added to {{ searchItem?.itemType === 'movie' ? 'Radarr' : 'Sonarr' }}</p>
+          </div>
+        } @else if (searchResults.length === 0) {
+          <div class="p-8 text-center text-gray-500">
+            <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No releases found</p>
+            <p class="text-sm mt-1">Try again later or check your indexers</p>
+          </div>
+        } @else {
+          <!-- Results Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-dark-800 text-gray-400 text-left sticky top-0">
+                <tr>
+                  <th class="px-4 py-3 font-medium w-10">Action</th>
+                  <th class="px-4 py-3 font-medium">Release</th>
+                  <th class="px-4 py-3 font-medium">Quality</th>
+                  <th class="px-4 py-3 font-medium">Size</th>
+                  <th class="px-4 py-3 font-medium">Age</th>
+                  <th class="px-4 py-3 font-medium">Indexer</th>
+                  <th class="px-4 py-3 font-medium text-center">Peers</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (result of searchResults; track result.guid) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="px-4 py-3">
+                      @if (isDownloaded(result.guid)) {
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      } @else {
+                        <button 
+                          (click)="downloadRelease(result)"
+                          [disabled]="downloadingGuid === result.guid"
+                          [ngClass]="{
+                            'p-1.5 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed': true,
+                            'bg-orange-600 hover:bg-orange-700': result.rejected,
+                            'bg-primary-600 hover:bg-primary-700': !result.rejected
+                          }"
+                          [title]="result.rejected ? 'Force download (rejected by profile)' : 'Download'">
+                          @if (downloadingGuid === result.guid) {
+                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          } @else {
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          }
+                        </button>
+                      }
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="max-w-md">
+                        <p class="text-gray-200 text-xs truncate" [title]="result.title">{{ result.title }}</p>
+                        @if (result.rejected && result.rejections.length > 0) {
+                          <p class="text-xs text-red-400 mt-1">{{ result.rejections[0] }}</p>
+                        }
+                        @if (result.customFormatScore !== 0) {
+                          <span class="text-xs px-1.5 py-0.5 rounded mt-1 inline-block"
+                            [class]="result.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">
+                            CF: {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}
+                          </span>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs px-2 py-1 rounded bg-blue-600/20 text-blue-400">{{ result.quality }}</span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-300">{{ formatBytes(result.size) }}</td>
+                    <td class="px-4 py-3 text-gray-400">{{ formatAge(result.age) }}</td>
+                    <td class="px-4 py-3 text-gray-400">{{ result.indexer }}</td>
+                    <td class="px-4 py-3 text-center">
+                      @if (result.protocol === 'torrent') {
+                        <span class="text-green-400">{{ result.seeders }}</span>
+                        <span class="text-gray-600">/</span>
+                        <span class="text-red-400">{{ result.leechers }}</span>
+                      } @else {
+                        <span class="text-gray-500">-</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

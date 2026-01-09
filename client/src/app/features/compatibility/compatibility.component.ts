@@ -6,7 +6,10 @@ import {
   CompatibilityAnalysis,
   CompatibilityIssue,
   CompatibilityRule,
-  Pagination
+  Pagination,
+  SearchResult,
+  MovieSearchResponse,
+  EpisodeSearchResponse
 } from '@core/models';
 
 @Component({
@@ -16,7 +19,7 @@ import {
   templateUrl: './compatibility.component.html'
 })
 export class CompatibilityComponent implements OnInit {
-  Math = Math; // For template access
+  Math = Math;
   isLoading = true;
   analysis: CompatibilityAnalysis | null = null;
   rules: CompatibilityRule[] = [];
@@ -33,6 +36,16 @@ export class CompatibilityComponent implements OnInit {
   pagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   issuesLoading = false;
 
+  // Search modal state
+  showSearchModal = false;
+  searchLoading = false;
+  searchError: string | null = null;
+  searchResults: SearchResult[] = [];
+  searchItem: CompatibilityIssue | null = null;
+  searchExternalUrl: string | null = null;
+  downloadingGuid: string | null = null;
+  downloadedGuids: Set<string> = new Set();
+
   constructor(private compatibilityService: CompatibilityService) {}
 
   ngOnInit(): void {
@@ -42,14 +55,12 @@ export class CompatibilityComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
     
-    // Load rules
     this.compatibilityService.getRules().subscribe({
       next: (response) => {
         this.rules = response.rules;
       }
     });
     
-    // Load analysis
     this.compatibilityService.getAnalysis().subscribe({
       next: (analysis) => {
         this.analysis = analysis;
@@ -94,6 +105,87 @@ export class CompatibilityComponent implements OnInit {
     this.loadIssues();
   }
 
+  // Search modal methods
+  openSearch(issue: CompatibilityIssue): void {
+    this.searchItem = issue;
+    this.searchResults = [];
+    this.searchError = null;
+    this.showSearchModal = true;
+    this.searchLoading = true;
+
+    if (issue.itemType === 'movie') {
+      this.compatibilityService.searchMovie(issue.itemId).subscribe({
+        next: (response: MovieSearchResponse) => {
+          this.searchResults = response.results;
+          this.searchExternalUrl = response.radarrUrl;
+          this.searchLoading = false;
+        },
+        error: (err) => {
+          this.searchError = err.error?.error || err.error?.suggestion || 'Failed to search';
+          this.searchLoading = false;
+        }
+      });
+    } else {
+      this.compatibilityService.searchEpisode(issue.itemId).subscribe({
+        next: (response: EpisodeSearchResponse) => {
+          this.searchResults = response.results;
+          this.searchExternalUrl = response.sonarrUrl;
+          this.searchLoading = false;
+        },
+        error: (err) => {
+          this.searchError = err.error?.error || err.error?.suggestion || 'Failed to search';
+          this.searchLoading = false;
+        }
+      });
+    }
+  }
+
+  closeSearch(): void {
+    this.showSearchModal = false;
+    this.searchItem = null;
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.downloadedGuids.clear();
+  }
+
+  downloadRelease(result: SearchResult): void {
+    if (!this.searchItem) return;
+    
+    this.downloadingGuid = result.guid;
+    
+    const download$ = this.searchItem.itemType === 'movie'
+      ? this.compatibilityService.downloadMovieRelease(result.guid, result.indexerId)
+      : this.compatibilityService.downloadEpisodeRelease(result.guid, result.indexerId);
+
+    download$.subscribe({
+      next: () => {
+        this.downloadingGuid = null;
+        this.downloadedGuids.add(result.guid);
+      },
+      error: (err) => {
+        this.downloadingGuid = null;
+        alert(err.error?.error || 'Failed to download');
+      }
+    });
+  }
+
+  openExternalUrl(): void {
+    if (this.searchExternalUrl) {
+      window.open(this.searchExternalUrl, '_blank');
+    }
+  }
+
+  getSearchTitle(): string {
+    if (!this.searchItem) return '';
+    
+    if (this.searchItem.itemType === 'movie') {
+      return `${this.searchItem.title} (${this.searchItem.year})`;
+    } else {
+      return `${this.searchItem.showTitle} - ${this.formatEpisodeCode(this.searchItem.seasonNumber!, this.searchItem.episodeNumber!)}`;
+    }
+  }
+
   formatBytes(bytes: number): string {
     if (!bytes || bytes === 0 || isNaN(bytes)) return '0 B';
     const k = 1024;
@@ -104,6 +196,18 @@ export class CompatibilityComponent implements OnInit {
 
   formatEpisodeCode(seasonNumber: number, episodeNumber: number): string {
     return `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`;
+  }
+
+  isDownloaded(guid: string): boolean {
+    return this.downloadedGuids.has(guid);
+  }
+
+  formatAge(age: number): string {
+    if (age === 0) return 'Today';
+    if (age === 1) return '1 day';
+    if (age < 30) return `${age} days`;
+    if (age < 365) return `${Math.floor(age / 30)} months`;
+    return `${Math.floor(age / 365)} years`;
   }
 
   getSeverityColor(severity: string): string {

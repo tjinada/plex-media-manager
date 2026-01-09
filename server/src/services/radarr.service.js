@@ -114,6 +114,50 @@ class RadarrService {
     return response.data;
   }
 
+  async lookupByTmdbId(tmdbId) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Radarr not configured');
+
+    const movies = await this.getAllMovies();
+    const movie = movies.find(m => m.tmdbId === parseInt(tmdbId));
+    
+    if (!movie) return null;
+
+    return {
+      id: movie.id,
+      title: movie.title,
+      year: movie.year,
+      tmdbId: movie.tmdbId,
+      imdbId: movie.imdbId,
+      monitored: movie.monitored,
+      hasFile: movie.hasFile
+    };
+  }
+
+  async lookupByImdbId(imdbId) {
+    if (!this.client) await this.initialize();
+    if (!this.client) throw new Error('Radarr not configured');
+
+    const movies = await this.getAllMovies();
+    const movie = movies.find(m => m.imdbId === imdbId);
+    
+    if (!movie) return null;
+
+    return {
+      id: movie.id,
+      title: movie.title,
+      year: movie.year,
+      tmdbId: movie.tmdbId,
+      imdbId: movie.imdbId,
+      monitored: movie.monitored,
+      hasFile: movie.hasFile
+    };
+  }
+
+  getWebUrl() {
+    return this.config?.host || null;
+  }
+
   async getMissing(page = 1, pageSize = 50) {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Radarr not configured');
@@ -410,15 +454,11 @@ class RadarrService {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Radarr not configured');
 
-    // Trigger the search first
-    await this.client.post('/command', {
-      name: 'MoviesSearch',
-      movieIds: [parseInt(movieId)]
-    });
-
-    // Get releases for the movie
+    // Get releases for the movie - this endpoint performs the search
+    // Use longer timeout since indexer searches can take a while
     const response = await this.client.get('/release', {
-      params: { movieId: parseInt(movieId) }
+      params: { movieId: parseInt(movieId) },
+      timeout: 120000 // 2 minutes for indexer searches
     });
 
     return response.data.map(release => ({

@@ -59,3 +59,52 @@ export interface CompatibilityIssuesResponse {
 export interface CompatibilityRulesResponse {
   rules: CompatibilityRule[];
 }
+
+export interface SearchResult {
+  guid: string;
+  title: string;
+  indexer: string;
+  indexerId: number;
+  size: number;
+  age: number;
+  ageHours: number;
+  quality: string;
+  qualityWeight: number;
+  seeders: number;
+  leechers: number;
+  protocol: string;
+  approved: boolean;
+  rejected: boolean;
+  rejections: string[];
+  downloadUrl: string;
+  infoUrl: string;
+  languages: string[];
+  customFormatScore: number;
+  // Sonarr specific
+  seasonNumber?: number;
+  episodeNumbers?: number[];
+  fullSeason?: boolean;
+}
+
+export interface MovieSearchResponse {
+  movie: {
+    title: string;
+    year: number;
+    radarrId: number;
+  };
+  radarrUrl: string;
+  results: SearchResult[];
+}
+
+export interface EpisodeSearchResponse {
+  episode: {
+    showTitle: string;
+    seasonNumber: number;
+    episodeNumber: number;
+    title: string;
+    sonarrSeriesId: number;
+    sonarrEpisodeId: number;
+  };
+  sonarrUrl: string;
+  results: SearchResult[];
+}

@@ -1,6 +1,8 @@
 const compatibilityService = require('../services/compatibility.service');
-const { Movie, PlexServer } = require('../models');
+const { Movie, Episode, TVShow, PlexServer } = require('../models');
 const PlexService = require('../services/plex.service');
+const radarrService = require('../services/radarr.service');
+const sonarrService = require('../services/sonarr.service');
 
 /**
  * Get all compatibility rules
@@ -58,8 +60,173 @@ exports.getIssues = async (req, res, next) => {
 };
 
 /**
+ * Interactive search for a movie via Radarr
+ */
+exports.searchMovie = async (req, res, next) => {
+  try {
+    const { movieId } = req.params;
+    
+    // Get movie from our database
+    const movie = await Movie.findById(movieId).lean();
+    if (!movie) {
+      return res.status(404).json({ error: 'Movie not found' });
+    }
+
+    // Initialize Radarr
+    await radarrService.initialize();
+    const radarrConfig = await radarrService.getConfig();
+    
+    if (!radarrConfig || !radarrConfig.enabled) {
+      return res.status(400).json({ error: 'Radarr not configured' });
+    }
+
+    // Find movie in Radarr by TMDB ID or IMDB ID
+    let radarrMovie = null;
+    
+    if (movie.tmdbId) {
+      radarrMovie = await radarrService.lookupByTmdbId(movie.tmdbId);
+    }
+    
+    if (!radarrMovie && movie.imdbId) {
+      radarrMovie = await radarrService.lookupByImdbId(movie.imdbId);
+    }
+
+    if (!radarrMovie) {
+      return res.status(404).json({ 
+        error: 'Movie not found in Radarr',
+        suggestion: 'Add this movie to Radarr first'
+      });
+    }
+
+    // Get interactive search results
+    const results = await radarrService.getInteractiveSearchResults(radarrMovie.id);
+
+    res.json({
+      movie: {
+        title: movie.title,
+        year: movie.year,
+        radarrId: radarrMovie.id
+      },
+      radarrUrl: `${radarrConfig.host}/movie/${radarrMovie.id}`,
+      results // Return all results, let frontend handle display
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Interactive search for an episode via Sonarr
+ */
+exports.searchEpisode = async (req, res, next) => {
+  try {
+    const { episodeId } = req.params;
+    
+    // Get episode from our database
+    const episode = await Episode.findById(episodeId).populate('showId').lean();
+    if (!episode) {
+      return res.status(404).json({ error: 'Episode not found' });
+    }
+
+    // Initialize Sonarr
+    await sonarrService.initialize();
+    const sonarrConfig = await sonarrService.getConfig();
+    
+    if (!sonarrConfig || !sonarrConfig.enabled) {
+      return res.status(400).json({ error: 'Sonarr not configured' });
+    }
+
+    // Find series in Sonarr by TVDB ID
+    let sonarrSeries = null;
+    const show = episode.showId;
+    
+    if (show?.tvdbId) {
+      sonarrSeries = await sonarrService.lookupByTvdbId(show.tvdbId);
+    }
+
+    if (!sonarrSeries) {
+      return res.status(404).json({ 
+        error: 'Series not found in Sonarr',
+        suggestion: 'Add this series to Sonarr first'
+      });
+    }
+
+    // Find the specific episode in Sonarr
+    const sonarrEpisode = await sonarrService.lookupEpisode(
+      sonarrSeries.id,
+      episode.seasonNumber,
+      episode.episodeNumber
+    );
+
+    if (!sonarrEpisode) {
+      return res.status(404).json({ 
+        error: 'Episode not found in Sonarr',
+        suggestion: 'The episode may not be monitored in Sonarr'
+      });
+    }
+
+    // Get interactive search results
+    const results = await sonarrService.getInteractiveSearchResults(sonarrEpisode.id);
+
+    res.json({
+      episode: {
+        showTitle: show?.title,
+        seasonNumber: episode.seasonNumber,
+        episodeNumber: episode.episodeNumber,
+        title: episode.title,
+        sonarrSeriesId: sonarrSeries.id,
+        sonarrEpisodeId: sonarrEpisode.id
+      },
+      sonarrUrl: `${sonarrConfig.host}/series/${sonarrSeries.id}`,
+      results // Return all results, let frontend handle display
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Download a release from Radarr
+ */
+exports.downloadMovieRelease = async (req, res, next) => {
+  try {
+    const { guid, indexerId } = req.body;
+    
+    if (!guid || indexerId === undefined) {
+      return res.status(400).json({ error: 'guid and indexerId are required' });
+    }
+
+    await radarrService.initialize();
+    const result = await radarrService.downloadRelease(guid, indexerId);
+    
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Download a release from Sonarr
+ */
+exports.downloadEpisodeRelease = async (req, res, next) => {
+  try {
+    const { guid, indexerId } = req.body;
+    
+    if (!guid || indexerId === undefined) {
+      return res.status(400).json({ error: 'guid and indexerId are required' });
+    }
+
+    await sonarrService.initialize();
+    const result = await sonarrService.downloadRelease(guid, indexerId);
+    
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Debug: Get HDR info for a specific movie by title
- * Compares database vs live Plex API data
  */
 exports.debugMovieHdr = async (req, res, next) => {
   try {
@@ -69,7 +236,6 @@ exports.debugMovieHdr = async (req, res, next) => {
       return res.status(400).json({ error: 'Title query parameter required' });
     }
     
-    // Get ALL movies matching title from database (to catch duplicates)
     const movies = await Movie.find({ 
       title: { $regex: title, $options: 'i' } 
     }).lean();
@@ -81,7 +247,6 @@ exports.debugMovieHdr = async (req, res, next) => {
     const server = await PlexServer.getServer();
     const plexService = server ? new PlexService(server.host, server.token) : null;
     
-    // Check each movie found
     const results = await Promise.all(movies.map(async (movie) => {
       let plexLiveData = null;
       let plexStatus = 'unknown';
@@ -131,7 +296,7 @@ exports.debugMovieHdr = async (req, res, next) => {
 };
 
 /**
- * Cleanup: Remove orphaned movies (plexId no longer exists in Plex)
+ * Cleanup: Remove orphaned movies
  */
 exports.cleanupOrphans = async (req, res, next) => {
   try {
@@ -160,7 +325,6 @@ exports.cleanupOrphans = async (req, res, next) => {
       }
     }
     
-    // If confirmed, delete orphans
     if (req.query.confirm === 'true' && orphans.length > 0) {
       const ids = orphans.map(o => o.id);
       await Movie.deleteMany({ _id: { $in: ids } });

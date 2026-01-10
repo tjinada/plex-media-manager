@@ -6,6 +6,7 @@ const { connectDB } = require('./src/config/db');
 const { errorHandler } = require('./src/middleware/errorHandler');
 const routes = require('./src/routes');
 const environment = require('./src/config/environment');
+const autoSyncService = require('./src/services/auto-sync.service');
 
 const app = express();
 
@@ -40,6 +41,9 @@ const startServer = async () => {
   try {
     await connectDB();
     
+    // Initialize auto-sync scheduler
+    await autoSyncService.initialize();
+    
     app.listen(environment.port, () => {
       console.log(`Server running on port ${environment.port} in ${environment.nodeEnv} mode`);
     });
@@ -48,5 +52,18 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down...');
+  autoSyncService.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down...');
+  autoSyncService.stop();
+  process.exit(0);
+});
 
 startServer();

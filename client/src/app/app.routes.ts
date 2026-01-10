@@ -22,9 +22,39 @@ export const routes: Routes = [
           .then(m => m.MoviesComponent)
       },
       {
+        path: 'movies/:id',
+        loadComponent: () => import('./features/movies/movie-detail/movie-detail.component')
+          .then(m => m.MovieDetailComponent)
+      },
+      {
         path: 'shows',
         loadComponent: () => import('./features/shows/shows.component')
           .then(m => m.ShowsComponent)
+      },
+      {
+        path: 'shows/:id',
+        loadComponent: () => import('./features/shows/show-detail/show-detail.component')
+          .then(m => m.ShowDetailComponent)
+      },
+      {
+        path: 'storage',
+        loadComponent: () => import('./features/storage/storage.component')
+          .then(m => m.StorageComponent)
+      },
+      {
+        path: 'wanted',
+        loadComponent: () => import('./features/wanted/wanted.component')
+          .then(m => m.WantedComponent)
+      },
+      {
+        path: 'watch-history',
+        loadComponent: () => import('./features/watch-history/watch-history.component')
+          .then(m => m.WatchHistoryComponent)
+      },
+      {
+        path: 'compatibility',
+        loadComponent: () => import('./features/compatibility/compatibility.component')
+          .then(m => m.CompatibilityComponent)
       },
       {
         path: 'settings',

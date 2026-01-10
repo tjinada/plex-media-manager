@@ -37,6 +37,18 @@ const plexServerSchema = new mongoose.Schema({
   lastSyncAt: {
     type: Date,
     default: null
+  },
+  autoSync: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    intervalMinutes: {
+      type: Number,
+      default: 15,
+      min: 5,
+      max: 1440
+    }
   }
 }, {
   timestamps: true,

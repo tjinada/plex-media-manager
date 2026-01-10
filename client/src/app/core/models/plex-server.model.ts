@@ -23,3 +23,10 @@ export interface TestConnectionResponse {
   version?: string;
   error?: string;
 }
+
+export interface AutoSyncSettings {
+  enabled: boolean;
+  intervalMinutes: number;
+  nextRunAt: string | null;
+  serverConfigured: boolean;
+}

@@ -1,0 +1,54 @@
+const mongoose = require('mongoose');
+
+const sonarrConfigSchema = new mongoose.Schema({
+  host: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  apiKey: {
+    type: String,
+    required: true
+  },
+  enabled: {
+    type: Boolean,
+    default: true
+  },
+  isConnected: {
+    type: Boolean,
+    default: false
+  },
+  version: {
+    type: String,
+    default: null
+  },
+  lastCheckedAt: {
+    type: Date,
+    default: null
+  },
+  maxEpisodeSize: {
+    type: Number,
+    default: 5368709120 // 5 GB in bytes
+  }
+}, {
+  timestamps: true
+});
+
+// Ensure only one config exists
+sonarrConfigSchema.statics.getConfig = async function() {
+  let config = await this.findOne();
+  return config;
+};
+
+sonarrConfigSchema.statics.saveConfig = async function(data) {
+  let config = await this.findOne();
+  if (config) {
+    Object.assign(config, data);
+    await config.save();
+  } else {
+    config = await this.create(data);
+  }
+  return config;
+};
+
+module.exports = mongoose.model('SonarrConfig', sonarrConfigSchema);

@@ -95,10 +95,10 @@ Make library data useful with comprehensive browsing, filtering, and search capa
 
 ---
 
-## Phase 3: Visual Dashboard
+## Phase 3: Visual Dashboard & Storage Insights
 
 ### Objective
-Provide at-a-glance visual understanding of library composition through charts and statistics.
+Provide at-a-glance visual understanding of library composition through charts, statistics, and actionable storage insights.
 
 ### Scope
 
@@ -108,16 +108,31 @@ Provide at-a-glance visual understanding of library composition through charts a
 - Codec distribution data
 - File size statistics
 - Storage breakdown
+- Top largest files endpoints (movies, episodes)
+- Storage by show aggregation
 
 **Frontend:**
-- Dashboard page as home/landing page
+
+#### Dashboard Page (`/dashboard` - landing page)
 - Summary cards (total movies, shows, episodes, storage used)
-- Resolution distribution chart (pie/donut)
-- Video codec distribution chart (pie/donut)
-- Audio codec distribution chart
-- File size distribution (histogram or bar chart)
-- Container format breakdown
+- Distribution charts (2x2 grid):
+  - Resolution distribution (pie/donut)
+  - Video codec distribution (pie/donut)
+  - Audio codec distribution (pie/donut)
+  - Container format breakdown (pie/donut)
+- Quick Storage Insights section:
+  - Top 5 Largest Movies (with "View All" link)
+  - Top 5 Largest Episodes (with "View All" link)
 - Responsive chart layouts
+
+#### Storage Insights Page (`/storage`)
+- Top 20 Largest Movies (sortable table)
+- Top 20 Largest Episodes (sortable table)
+- Storage by Show breakdown (ranked list with size)
+- File size distribution histogram (buckets: 0-5GB, 5-15GB, 15-50GB, 50GB+)
+- Average file size by resolution
+- Average file size by codec
+- Potential insights/recommendations (e.g., "234 movies in 1080p could be upgraded")
 
 ### Deliverables
 - [ ] Dashboard is the landing page
@@ -125,8 +140,14 @@ Provide at-a-glance visual understanding of library composition through charts a
 - [ ] Resolution distribution chart
 - [ ] Video codec distribution chart
 - [ ] Audio codec distribution chart
-- [ ] File size distribution visualization
+- [ ] Container format distribution chart
+- [ ] Top 5 largest movies quick view
+- [ ] Top 5 largest episodes quick view
+- [ ] Storage page with full top 20 lists
+- [ ] Storage by show breakdown
+- [ ] File size distribution histogram
 - [ ] Charts render properly on mobile
+- [ ] Navigation updated with Storage link
 
 ### Chart Library
 - Recommend: ngx-charts or Chart.js with ng2-charts

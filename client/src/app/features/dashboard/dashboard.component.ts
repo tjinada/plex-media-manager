@@ -1,31 +1,214 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { PlexService, SyncService, MoviesService, ShowsService } from '@core/services';
-import { PlexServer } from '@core/models';
+import { FormsModule } from '@angular/forms';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartConfiguration, ChartData, Chart } from 'chart.js';
+import { PlexService, StatsService, RadarrService, SonarrService } from '@core/services';
+import { PlexServer, StatsOverview, TopMovie, TopEpisode, RadarrStats, SonarrStats } from '@core/models';
+import { ChartCardComponent } from '@shared/components/chart-card/chart-card.component';
+import { forkJoin, Subscription, interval } from 'rxjs';
+
+// Set Chart.js defaults for dark theme
+Chart.defaults.color = '#f3f4f6';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule, NgChartsModule, ChartCardComponent],
   templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   server: PlexServer | null = null;
   isLoading = true;
-  movieCount = 0;
-  showCount = 0;
   isServerConnected = false;
+  
+  overview: StatsOverview = {
+    totalMovies: 0,
+    totalShows: 0,
+    totalEpisodes: 0,
+    totalStorage: 0
+  };
+
+  topMovies: TopMovie[] = [];
+  topEpisodes: TopEpisode[] = [];
+
+  // Radarr/Sonarr stats
+  radarrStats: RadarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, configured: false };
+  sonarrStats: SonarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, totalEstimatedSavings: 0, configured: false };
+
+  // Auto-refresh configuration
+  autoRefreshEnabled = true;
+  autoRefreshInterval = 300; // 5 minutes in seconds
+  autoRefreshOptions = [
+    { label: 'Off', value: 0 },
+    { label: '1 min', value: 60 },
+    { label: '5 min', value: 300 },
+    { label: '10 min', value: 600 },
+    { label: '15 min', value: 900 }
+  ];
+  lastUpdated: Date | null = null;
+  secondsSinceUpdate = 0;
+  private refreshSubscription?: Subscription;
+  private countdownSubscription?: Subscription;
+  isRefreshing = false;
+
+  // Chart configurations
+  doughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          color: '#f3f4f6',
+          padding: 12,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: {
+            size: 14,
+            weight: 'bold'
+          },
+          boxWidth: 12,
+          boxHeight: 12
+        }
+      },
+      tooltip: {
+        titleFont: {
+          size: 14
+        },
+        bodyFont: {
+          size: 14
+        },
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed;
+            const total = context.dataset.data.reduce((sum: number, val: number) => sum + val, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+            return `${percentage}%`;
+          }
+        }
+      }
+    }
+  };
+
+  resolutionData: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  videoCodecData: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  audioCodecData: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  containerData: ChartData<'doughnut'> = { labels: [], datasets: [] };
+
+  // Separate data for movies and episodes
+  resolutionMovies: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  resolutionEpisodes: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  videoCodecMovies: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  videoCodecEpisodes: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  audioCodecMovies: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  audioCodecEpisodes: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  containerMovies: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  containerEpisodes: ChartData<'doughnut'> = { labels: [], datasets: [] };
+
+  // Tab states
+  resolutionTab: 'all' | 'movies' | 'episodes' = 'all';
+  videoCodecTab: 'all' | 'movies' | 'episodes' = 'all';
+  audioCodecTab: 'all' | 'movies' | 'episodes' = 'all';
+  containerTab: 'all' | 'movies' | 'episodes' = 'all';
+
+  private chartColors = [
+    '#14b8a6', // teal
+    '#3b82f6', // blue
+    '#8b5cf6', // purple
+    '#f59e0b', // amber
+    '#ef4444', // red
+    '#22c55e', // green
+    '#ec4899', // pink
+    '#6366f1'  // indigo
+  ];
 
   constructor(
     private plexService: PlexService,
-    private syncService: SyncService,
-    private moviesService: MoviesService,
-    private showsService: ShowsService
+    private statsService: StatsService,
+    private radarrService: RadarrService,
+    private sonarrService: SonarrService
   ) {}
 
   ngOnInit(): void {
     this.loadData();
+    this.startAutoRefresh();
+    this.startCountdown();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+    this.stopCountdown();
+  }
+
+  startAutoRefresh(): void {
+    this.stopAutoRefresh();
+    if (this.autoRefreshInterval > 0) {
+      this.refreshSubscription = interval(this.autoRefreshInterval * 1000)
+        .subscribe(() => {
+          if (!this.isLoading && this.isServerConnected) {
+            this.refreshData();
+          }
+        });
+    }
+  }
+
+  stopAutoRefresh(): void {
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+      this.refreshSubscription = undefined;
+    }
+  }
+
+  startCountdown(): void {
+    this.stopCountdown();
+    this.countdownSubscription = interval(1000).subscribe(() => {
+      if (this.lastUpdated) {
+        this.secondsSinceUpdate = Math.floor((Date.now() - this.lastUpdated.getTime()) / 1000);
+      }
+    });
+  }
+
+  stopCountdown(): void {
+    if (this.countdownSubscription) {
+      this.countdownSubscription.unsubscribe();
+      this.countdownSubscription = undefined;
+    }
+  }
+
+  onAutoRefreshChange(): void {
+    this.startAutoRefresh();
+  }
+
+  refreshData(): void {
+    if (this.isRefreshing) return;
+    this.isRefreshing = true;
+    
+    if (this.isServerConnected) {
+      this.loadStats();
+      this.loadArrStats();
+    }
+  }
+
+  manualRefresh(): void {
+    this.refreshData();
+  }
+
+  formatTimeSinceUpdate(): string {
+    if (!this.lastUpdated) return 'Never';
+    
+    const seconds = this.secondsSinceUpdate;
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    return `${Math.floor(seconds / 3600)}h ago`;
+  }
+
+  getNextRefreshIn(): string {
+    if (this.autoRefreshInterval === 0) return '';
+    const remaining = this.autoRefreshInterval - (this.secondsSinceUpdate % this.autoRefreshInterval);
+    if (remaining < 60) return `${remaining}s`;
+    return `${Math.floor(remaining / 60)}m ${remaining % 60}s`;
   }
 
   loadData(): void {
@@ -37,7 +220,7 @@ export class DashboardComponent implements OnInit {
         this.isServerConnected = !!response.server?.isConnected;
         
         if (this.isServerConnected) {
-          this.loadLibraryStats();
+          this.loadStats();
         } else {
           this.isLoading = false;
         }
@@ -46,23 +229,164 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+
+    // Load Radarr/Sonarr stats independently
+    this.loadArrStats();
   }
 
-  loadLibraryStats(): void {
-    this.moviesService.getMovies({ limit: 1 }).subscribe({
-      next: (response) => {
-        this.movieCount = response.pagination.total;
+  loadArrStats(): void {
+    this.radarrService.getStats().subscribe({
+      next: (stats: RadarrStats) => {
+        this.radarrStats = stats;
+      },
+      error: () => {
+        this.radarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, configured: false };
       }
     });
 
-    this.showsService.getShows({ limit: 1 }).subscribe({
-      next: (response) => {
-        this.showCount = response.pagination.total;
+    this.sonarrService.getStats().subscribe({
+      next: (stats: SonarrStats) => {
+        this.sonarrStats = stats;
+      },
+      error: () => {
+        this.sonarrStats = { missing: 0, upgrades: 0, downgrades: 0, upcoming: 0, totalEstimatedSavings: 0, configured: false };
+      }
+    });
+  }
+
+  loadStats(): void {
+    forkJoin({
+      overview: this.statsService.getOverview(),
+      resolution: this.statsService.getResolutionDistribution(),
+      codecs: this.statsService.getCodecDistribution(),
+      containers: this.statsService.getContainerDistribution(),
+      storage: this.statsService.getStorageStats()
+    }).subscribe({
+      next: ({ overview, resolution, codecs, containers, storage }) => {
+        this.overview = overview;
+        this.topMovies = storage.topMovies.slice(0, 5);
+        this.topEpisodes = storage.topEpisodes.slice(0, 5);
+        
+        // Combined data (All)
+        this.resolutionData = this.createChartData(
+          this.mergeDistributions(resolution.movies, resolution.episodes)
+        );
+        this.videoCodecData = this.createChartData(
+          this.mergeDistributions(codecs.video.movies, codecs.video.episodes)
+        );
+        this.audioCodecData = this.createChartData(
+          this.mergeDistributions(codecs.audio.movies, codecs.audio.episodes)
+        );
+        this.containerData = this.createChartData(
+          this.mergeDistributions(containers.movies, containers.episodes)
+        );
+
+        // Movies only
+        this.resolutionMovies = this.createChartData(resolution.movies);
+        this.videoCodecMovies = this.createChartData(codecs.video.movies);
+        this.audioCodecMovies = this.createChartData(codecs.audio.movies);
+        this.containerMovies = this.createChartData(containers.movies);
+
+        // Episodes only
+        this.resolutionEpisodes = this.createChartData(resolution.episodes);
+        this.videoCodecEpisodes = this.createChartData(codecs.video.episodes);
+        this.audioCodecEpisodes = this.createChartData(codecs.audio.episodes);
+        this.containerEpisodes = this.createChartData(containers.episodes);
+        
         this.isLoading = false;
+        this.isRefreshing = false;
+        this.lastUpdated = new Date();
+        this.secondsSinceUpdate = 0;
       },
       error: () => {
         this.isLoading = false;
+        this.isRefreshing = false;
       }
     });
+  }
+
+  private mergeDistributions(a: Record<string, number>, b: Record<string, number>): Record<string, number> {
+    const merged: Record<string, number> = { ...a };
+    for (const [key, value] of Object.entries(b)) {
+      merged[key] = (merged[key] || 0) + value;
+    }
+    return merged;
+  }
+
+  private createChartData(data: Record<string, number>): ChartData<'doughnut'> {
+    const sorted = Object.entries(data)
+      .filter(([key]) => key && key !== 'Unknown')
+      .sort((a, b) => b[1] - a[1]);
+    
+    return {
+      labels: sorted.map(([key, value]) => `${key}: ${value.toLocaleString()}`),
+      datasets: [{
+        data: sorted.map(([, value]) => value),
+        backgroundColor: this.chartColors.slice(0, sorted.length),
+        borderWidth: 0
+      }]
+    };
+  }
+
+  formatBytes(bytes: number): string {
+    if (!bytes || bytes === 0 || isNaN(bytes)) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  formatEpisodeCode(seasonNumber: number, episodeNumber: number): string {
+    return `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`;
+  }
+
+  // Get chart data based on selected tab
+  getResolutionData(): ChartData<'doughnut'> {
+    switch (this.resolutionTab) {
+      case 'movies': return this.resolutionMovies;
+      case 'episodes': return this.resolutionEpisodes;
+      default: return this.resolutionData;
+    }
+  }
+
+  getVideoCodecData(): ChartData<'doughnut'> {
+    switch (this.videoCodecTab) {
+      case 'movies': return this.videoCodecMovies;
+      case 'episodes': return this.videoCodecEpisodes;
+      default: return this.videoCodecData;
+    }
+  }
+
+  getAudioCodecData(): ChartData<'doughnut'> {
+    switch (this.audioCodecTab) {
+      case 'movies': return this.audioCodecMovies;
+      case 'episodes': return this.audioCodecEpisodes;
+      default: return this.audioCodecData;
+    }
+  }
+
+  getContainerData(): ChartData<'doughnut'> {
+    switch (this.containerTab) {
+      case 'movies': return this.containerMovies;
+      case 'episodes': return this.containerEpisodes;
+      default: return this.containerData;
+    }
+  }
+
+  // Computed properties for wanted stats
+  get totalMissing(): number {
+    return this.radarrStats.missing + this.sonarrStats.missing;
+  }
+
+  get totalUpgrades(): number {
+    return this.radarrStats.upgrades + this.sonarrStats.upgrades;
+  }
+
+  get totalDowngrades(): number {
+    return this.radarrStats.downgrades + this.sonarrStats.downgrades;
+  }
+
+  get hasArrConfigured(): boolean {
+    return this.radarrStats.configured || this.sonarrStats.configured;
   }
 }

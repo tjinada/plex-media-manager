@@ -13,7 +13,10 @@ exports.getShows = async (req, res, next) => {
       order = 'asc',
       search,
       resolution,
-      videoCodec
+      videoCodec,
+      audioCodec,
+      minSize,
+      maxSize
     } = req.query;
 
     // Build filter
@@ -31,7 +34,17 @@ exports.getShows = async (req, res, next) => {
     }
 
     if (videoCodec) {
-      filter.dominantVideoCodec = videoCodec;
+      filter.dominantVideoCodec = { $regex: new RegExp(`^${videoCodec}$`, 'i') };
+    }
+
+    if (audioCodec) {
+      filter.dominantAudioCodec = { $regex: new RegExp(`^${audioCodec}$`, 'i') };
+    }
+
+    if (minSize || maxSize) {
+      filter.totalFileSize = {};
+      if (minSize) filter.totalFileSize.$gte = parseInt(minSize, 10);
+      if (maxSize) filter.totalFileSize.$lte = parseInt(maxSize, 10);
     }
 
     // Build sort
@@ -110,9 +123,12 @@ exports.getShow = async (req, res, next) => {
         posterUrl: 1
       });
 
+    const showObj = show.toObject();
+
     res.json({
       show: {
-        ...show.toObject(),
+        id: showObj._id,
+        ...showObj,
         seasons: seasons.map(s => ({
           id: s._id,
           seasonNumber: s.seasonNumber,
@@ -153,6 +169,7 @@ exports.getSeason = async (req, res, next) => {
         title: 1,
         'media.resolution': 1,
         'media.videoCodec': 1,
+        'media.audioCodec': 1,
         'media.fileSize': 1,
         'media.duration': 1
       });
@@ -168,6 +185,7 @@ exports.getSeason = async (req, res, next) => {
           title: e.title,
           resolution: e.media?.resolution,
           videoCodec: e.media?.videoCodec,
+          audioCodec: e.media?.audioCodec,
           fileSize: e.media?.fileSize,
           duration: e.media?.duration
         }))

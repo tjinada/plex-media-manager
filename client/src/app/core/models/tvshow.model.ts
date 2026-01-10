@@ -33,6 +33,8 @@ export interface TVShow {
   
   libraryName?: string;
   addedAt?: string;
+  
+  seasons?: SeasonListItem[];
 }
 
 export interface TVShowListItem {
@@ -63,6 +65,21 @@ export interface Season {
   totalFileSize?: number;
 }
 
+export interface SeasonListItem {
+  id: string;
+  seasonNumber: number;
+  title: string;
+  episodeCount?: number;
+  posterUrl?: string;
+}
+
+export interface SeasonWithEpisodes {
+  id: string;
+  seasonNumber: number;
+  title: string;
+  episodes: EpisodeListItem[];
+}
+
 export interface Episode {
   id: string;
   plexId: string;
@@ -87,7 +104,45 @@ export interface Episode {
   addedAt?: string;
 }
 
+export interface EpisodeListItem {
+  id: string;
+  episodeNumber: number;
+  title: string;
+  resolution?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  fileSize?: number;
+  duration?: number;
+}
+
+export interface EpisodeWithShow {
+  id: string;
+  showId: string;
+  showTitle: string;
+  seasonNumber: number;
+  episodeNumber: number;
+  title: string;
+  resolution?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  fileSize?: number;
+  duration?: number;
+}
+
 export interface ShowsResponse {
   shows: TVShowListItem[];
   pagination: Pagination;
+}
+
+export interface EpisodesResponse {
+  episodes: EpisodeWithShow[];
+  pagination: Pagination;
+}
+
+export interface ShowDetailResponse {
+  show: TVShow;
+}
+
+export interface SeasonResponse {
+  season: SeasonWithEpisodes;
 }

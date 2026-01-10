@@ -1,0 +1,415 @@
+<div class="h-full flex flex-col">
+  <!-- Fixed Header Section -->
+  <div class="flex-shrink-0 p-4 md:p-6 lg:p-8 pb-0">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Media Compatibility</h1>
+      <p class="text-gray-400 mt-1">Detect media files with potential playback issues</p>
+    </div>
+
+    @if (!isLoading && analysis) {
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Total Issues -->
+        <div class="card p-4 md:p-6">
+          <div class="flex items-center gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ analysis.summary.totalIssues }}</p>
+              <p class="text-xs md:text-sm text-gray-400">Total Issues</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- High Severity -->
+        <div class="card p-4 md:p-6">
+          <div class="flex items-center gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-red-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ analysis.summary.highSeverity }}</p>
+              <p class="text-xs md:text-sm text-gray-400">High Severity</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Medium Severity -->
+        <div class="card p-4 md:p-6">
+          <div class="flex items-center gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-orange-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ analysis.summary.mediumSeverity }}</p>
+              <p class="text-xs md:text-sm text-gray-400">Medium Severity</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Affected Storage -->
+        <div class="card p-4 md:p-6">
+          <div class="flex items-center gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-amber-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ formatBytes(analysis.summary.affectedSize) }}</p>
+              <p class="text-xs md:text-sm text-gray-400">Affected Content</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issues by Rule -->
+      @if (getRuleIssues().length > 0) {
+        <div class="card p-4 md:p-6 mb-6">
+          <h3 class="text-sm font-medium text-gray-400 mb-4">Issues by Type</h3>
+          <div class="space-y-3">
+            @for (rule of getRuleIssues(); track rule.id) {
+              <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs px-2 py-0.5 rounded-full" [class]="getSeverityBadge(rule.severity)">
+                    {{ rule.severity }}
+                  </span>
+                  <span class="text-sm text-gray-200">{{ rule.name }}</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-sm font-medium text-gray-300">{{ rule.count }}</span>
+                  <span class="text-xs text-gray-500 ml-2">({{ formatBytes(rule.size) }})</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Scrollable Content Section -->
+  <div class="flex-1 overflow-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+    @if (isLoading) {
+      <div class="flex items-center justify-center h-64">
+        <div class="text-center">
+          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-400">Analyzing media files...</p>
+        </div>
+      </div>
+    } @else if (analysis) {
+      <!-- Filters & Issues List -->
+      <div class="card">
+        <div class="border-b border-dark-700 p-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Type Filter -->
+            <select 
+              [(ngModel)]="typeFilter"
+              (ngModelChange)="onFilterChange()"
+              class="bg-dark-800 border border-dark-600 text-gray-300 text-sm rounded-lg px-3 py-2">
+              <option value="all">All Types</option>
+              <option value="movies">Movies</option>
+              <option value="episodes">Episodes</option>
+            </select>
+
+            <!-- Severity Filter -->
+            <select 
+              [(ngModel)]="severityFilter"
+              (ngModelChange)="onFilterChange()"
+              class="bg-dark-800 border border-dark-600 text-gray-300 text-sm rounded-lg px-3 py-2">
+              <option value="all">All Severities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+
+            <!-- Rule Filter -->
+            <select 
+              [(ngModel)]="ruleFilter"
+              (ngModelChange)="onFilterChange()"
+              class="bg-dark-800 border border-dark-600 text-gray-300 text-sm rounded-lg px-3 py-2">
+              <option [ngValue]="null">All Rules</option>
+              @for (rule of rules; track rule.id) {
+                <option [value]="rule.id">{{ rule.name }}</option>
+              }
+            </select>
+
+            <!-- Sort -->
+            <select 
+              [(ngModel)]="sortBy"
+              (ngModelChange)="onFilterChange()"
+              class="bg-dark-800 border border-dark-600 text-gray-300 text-sm rounded-lg px-3 py-2">
+              <option value="severity">Sort by Severity</option>
+              <option value="fileSize">Sort by Size</option>
+              <option value="title">Sort by Title</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Issues List -->
+        @if (issuesLoading) {
+          <div class="flex items-center justify-center h-48">
+            <svg class="animate-spin h-6 w-6 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        } @else {
+          <div class="divide-y divide-dark-700">
+            @for (issue of issues; track issue.itemId + issue.ruleId) {
+              <div class="p-4 hover:bg-dark-800/50 transition-colors">
+                <div class="flex items-start gap-4">
+                  <!-- Severity Icon -->
+                  <div class="flex-shrink-0 mt-1">
+                    <svg class="w-5 h-5" [class]="getSeverityColor(issue.severity)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getSeverityIcon(issue.severity)" />
+                    </svg>
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <!-- Title -->
+                      @if (issue.itemType === 'movie') {
+                        <h4 class="text-sm font-medium text-gray-200">{{ issue.title }}</h4>
+                        @if (issue.year) {
+                          <span class="text-xs text-gray-500">({{ issue.year }})</span>
+                        }
+                      } @else {
+                        <h4 class="text-sm font-medium text-gray-200">{{ issue.showTitle }}</h4>
+                        <span class="text-xs text-gray-500">{{ formatEpisodeCode(issue.seasonNumber!, issue.episodeNumber!) }}</span>
+                      }
+                      
+                      <!-- Badges -->
+                      <span class="text-xs px-2 py-0.5 rounded-full" [class]="getSeverityBadge(issue.severity)">
+                        {{ issue.severity }}
+                      </span>
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-dark-700 text-gray-400">
+                        {{ issue.itemType }}
+                      </span>
+                    </div>
+                    
+                    <!-- Issue Details -->
+                    <p class="text-sm text-primary-400 mt-1">{{ issue.ruleName }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ issue.details }}</p>
+                    
+                    <!-- File Info -->
+                    <p class="text-xs text-gray-600 mt-2">
+                      {{ issue.resolution }} · {{ issue.videoCodec }} · {{ formatBytes(issue.fileSize) }}
+                    </p>
+                  </div>
+
+                  <!-- Search Button -->
+                  <div class="flex-shrink-0">
+                    <button 
+                      (click)="openSearch(issue)"
+                      class="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                      title="Interactive Search">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <span class="hidden sm:inline">Search</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <div class="p-8 text-center text-gray-500">
+                @if (analysis.summary.totalIssues === 0) {
+                  <svg class="w-12 h-12 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p class="text-green-400">No compatibility issues found!</p>
+                  <p class="text-sm mt-1">Your media library looks good.</p>
+                } @else {
+                  No issues match the current filters
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Pagination -->
+        @if (pagination.totalPages > 1) {
+          <div class="p-4 border-t border-dark-700 flex items-center justify-between">
+            <p class="text-sm text-gray-500">
+              Showing {{ (pagination.page - 1) * pagination.limit + 1 }} - 
+              {{ Math.min(pagination.page * pagination.limit, pagination.total) }} 
+              of {{ pagination.total }}
+            </p>
+            <div class="flex items-center gap-2">
+              <button 
+                (click)="goToPage(pagination.page - 1)"
+                [disabled]="pagination.page === 1"
+                class="px-3 py-1.5 text-sm bg-dark-800 text-gray-400 rounded hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Previous
+              </button>
+              <button 
+                (click)="goToPage(pagination.page + 1)"
+                [disabled]="pagination.page >= pagination.totalPages"
+                class="px-3 py-1.5 text-sm bg-dark-800 text-gray-400 rounded hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Next
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Search Modal -->
+@if (showSearchModal) {
+  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeSearch()">
+    <div class="bg-dark-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-100">Interactive Search</h2>
+          <p class="text-sm text-gray-400">{{ getSearchTitle() }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          @if (searchExternalUrl) {
+            <button 
+              (click)="openExternalUrl()"
+              class="flex items-center gap-2 px-3 py-1.5 text-sm bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-lg transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Open in {{ searchItem?.itemType === 'movie' ? 'Radarr' : 'Sonarr' }}
+            </button>
+          }
+          <button 
+            (click)="closeSearch()"
+            class="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-dark-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
+        @if (searchLoading) {
+          <div class="flex items-center justify-center h-64">
+            <div class="text-center">
+              <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="text-gray-400">Searching indexers for releases...</p>
+              <p class="text-xs text-gray-500 mt-1">This may take up to 2 minutes</p>
+            </div>
+          </div>
+        } @else if (searchError) {
+          <div class="p-8 text-center">
+            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-400 font-medium">{{ searchError }}</p>
+            <p class="text-sm text-gray-500 mt-2">Make sure the item is added to {{ searchItem?.itemType === 'movie' ? 'Radarr' : 'Sonarr' }}</p>
+          </div>
+        } @else if (searchResults.length === 0) {
+          <div class="p-8 text-center text-gray-500">
+            <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No releases found</p>
+            <p class="text-sm mt-1">Try again later or check your indexers</p>
+          </div>
+        } @else {
+          <!-- Results Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-dark-800 text-gray-400 text-left sticky top-0">
+                <tr>
+                  <th class="px-4 py-3 font-medium w-10">Action</th>
+                  <th class="px-4 py-3 font-medium">Release</th>
+                  <th class="px-4 py-3 font-medium">Quality</th>
+                  <th class="px-4 py-3 font-medium">Size</th>
+                  <th class="px-4 py-3 font-medium">Age</th>
+                  <th class="px-4 py-3 font-medium">Indexer</th>
+                  <th class="px-4 py-3 font-medium text-center">Peers</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (result of searchResults; track result.guid) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="px-4 py-3">
+                      @if (isDownloaded(result.guid)) {
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      } @else {
+                        <button 
+                          (click)="downloadRelease(result)"
+                          [disabled]="downloadingGuid === result.guid"
+                          [ngClass]="{
+                            'p-1.5 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed': true,
+                            'bg-orange-600 hover:bg-orange-700': result.rejected,
+                            'bg-primary-600 hover:bg-primary-700': !result.rejected
+                          }"
+                          [title]="result.rejected ? 'Force download (rejected by profile)' : 'Download'">
+                          @if (downloadingGuid === result.guid) {
+                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          } @else {
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          }
+                        </button>
+                      }
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="max-w-md">
+                        <p class="text-gray-200 text-xs truncate" [title]="result.title">{{ result.title }}</p>
+                        @if (result.rejected && result.rejections.length > 0) {
+                          <p class="text-xs text-red-400 mt-1">{{ result.rejections[0] }}</p>
+                        }
+                        @if (result.customFormatScore !== 0) {
+                          <span class="text-xs px-1.5 py-0.5 rounded mt-1 inline-block"
+                            [class]="result.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">
+                            CF: {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}
+                          </span>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs px-2 py-1 rounded bg-blue-600/20 text-blue-400">{{ result.quality }}</span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-300">{{ formatBytes(result.size) }}</td>
+                    <td class="px-4 py-3 text-gray-400">{{ formatAge(result.age) }}</td>
+                    <td class="px-4 py-3 text-gray-400">{{ result.indexer }}</td>
+                    <td class="px-4 py-3 text-center">
+                      @if (result.protocol === 'torrent') {
+                        <span class="text-green-400">{{ result.seeders }}</span>
+                        <span class="text-gray-600">/</span>
+                        <span class="text-red-400">{{ result.leechers }}</span>
+                      } @else {
+                        <span class="text-gray-500">-</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

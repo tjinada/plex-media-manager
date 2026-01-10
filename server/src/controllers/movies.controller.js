@@ -14,6 +14,7 @@ exports.getMovies = async (req, res, next) => {
       search,
       resolution,
       videoCodec,
+      audioCodec,
       container,
       minSize,
       maxSize
@@ -34,11 +35,15 @@ exports.getMovies = async (req, res, next) => {
     }
 
     if (videoCodec) {
-      filter['media.videoCodec'] = videoCodec;
+      filter['media.videoCodec'] = { $regex: new RegExp(`^${videoCodec}$`, 'i') };
+    }
+
+    if (audioCodec) {
+      filter['media.audioCodec'] = { $regex: new RegExp(`^${audioCodec}$`, 'i') };
     }
 
     if (container) {
-      filter['media.container'] = container.toUpperCase();
+      filter['media.container'] = { $regex: new RegExp(`^${container}$`, 'i') };
     }
 
     if (minSize || maxSize) {

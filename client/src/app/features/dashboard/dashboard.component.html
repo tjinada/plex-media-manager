@@ -1,404 +1,410 @@
-<div class="p-4 md:p-6 lg:p-8">
-  <!-- Header with Refresh Controls -->
-  <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Dashboard</h1>
-      <p class="text-gray-400 mt-1">Overview of your media library</p>
-    </div>
-    
-    @if (isServerConnected && !isLoading) {
-      <div class="flex items-center gap-3">
-        <!-- Last Updated Indicator -->
-        <div class="text-xs text-gray-500 flex items-center gap-1.5">
-          <span class="relative flex h-2 w-2">
-            @if (isRefreshing) {
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+<div class="h-full flex flex-col">
+  <!-- Fixed Header Section -->
+  <div class="flex-shrink-0 p-4 md:p-6 lg:p-8 pb-0">
+    <!-- Header with Refresh Controls -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Dashboard</h1>
+        <p class="text-gray-400 mt-1">Overview of your media library</p>
+      </div>
+      
+      @if (isServerConnected && !isLoading) {
+        <div class="flex items-center gap-3">
+          <!-- Last Updated Indicator -->
+          <div class="text-xs text-gray-500 flex items-center gap-1.5">
+            <span class="relative flex h-2 w-2">
+              @if (isRefreshing) {
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+              }
+              <span class="relative inline-flex rounded-full h-2 w-2" 
+                    [class]="isRefreshing ? 'bg-primary-500' : 'bg-green-500'"></span>
+            </span>
+            <span>{{ isRefreshing ? 'Refreshing...' : formatTimeSinceUpdate() }}</span>
+            @if (autoRefreshInterval > 0 && !isRefreshing) {
+              <span class="text-gray-600">· Next: {{ getNextRefreshIn() }}</span>
             }
-            <span class="relative inline-flex rounded-full h-2 w-2" 
-                  [class]="isRefreshing ? 'bg-primary-500' : 'bg-green-500'"></span>
-          </span>
-          <span>{{ isRefreshing ? 'Refreshing...' : formatTimeSinceUpdate() }}</span>
-          @if (autoRefreshInterval > 0 && !isRefreshing) {
-            <span class="text-gray-600">· Next: {{ getNextRefreshIn() }}</span>
-          }
+          </div>
+
+          <!-- Auto-Refresh Dropdown -->
+          <select 
+            [(ngModel)]="autoRefreshInterval"
+            (ngModelChange)="onAutoRefreshChange()"
+            class="bg-dark-800 border border-dark-600 text-gray-300 text-xs rounded-lg px-2 py-1.5 focus:ring-primary-500 focus:border-primary-500">
+            @for (option of autoRefreshOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+
+          <!-- Manual Refresh Button -->
+          <button 
+            (click)="manualRefresh()"
+            [disabled]="isRefreshing"
+            class="p-1.5 rounded-lg bg-dark-800 border border-dark-600 text-gray-400 hover:text-gray-200 hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="Refresh now">
+            <svg class="w-4 h-4" [class.animate-spin]="isRefreshing" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Scrollable Content Section -->
+  <div class="flex-1 overflow-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+    @if (isLoading) {
+      <!-- Loading State -->
+      <div class="flex items-center justify-center h-64">
+        <div class="text-center">
+          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    } @else if (!isServerConnected) {
+      <!-- No Server Connected -->
+      <div class="card p-8 text-center">
+        <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-100 mb-2">No Plex Server Connected</h2>
+        <p class="text-gray-400 mb-6">Connect your Plex server to start managing your media library.</p>
+        <a routerLink="/settings" class="btn-primary inline-flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Connect Plex Server
+        </a>
+      </div>
+    } @else {
+      <!-- Connected State -->
+      <div class="space-y-6">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Movies Card -->
+          <a routerLink="/movies" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ overview.totalMovies }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Movies</p>
+              </div>
+            </div>
+          </a>
+
+          <!-- TV Shows Card -->
+          <a routerLink="/shows" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ overview.totalShows }}</p>
+                <p class="text-xs md:text-sm text-gray-400">TV Shows</p>
+              </div>
+            </div>
+          </a>
+
+          <!-- Episodes Card -->
+          <div class="card p-4 md:p-6">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-green-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ overview.totalEpisodes }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Episodes</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Storage Card -->
+          <a routerLink="/storage" class="card-hover p-4 md:p-6 block">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 md:w-12 md:h-12 bg-amber-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ formatBytes(overview.totalStorage) }}</p>
+                <p class="text-xs md:text-sm text-gray-400">Storage Used</p>
+              </div>
+            </div>
+          </a>
         </div>
 
-        <!-- Auto-Refresh Dropdown -->
-        <select 
-          [(ngModel)]="autoRefreshInterval"
-          (ngModelChange)="onAutoRefreshChange()"
-          class="bg-dark-800 border border-dark-600 text-gray-300 text-xs rounded-lg px-2 py-1.5 focus:ring-primary-500 focus:border-primary-500">
-          @for (option of autoRefreshOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+        <!-- Wanted Stats Cards (if Radarr/Sonarr configured) -->
+        @if (hasArrConfigured) {
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Missing Movies -->
+            <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-red-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xl md:text-2xl font-bold text-gray-100">{{ radarrStats.missing }}</p>
+                  <p class="text-xs md:text-sm text-gray-400">Missing Movies</p>
+                </div>
+              </div>
+            </a>
 
-        <!-- Manual Refresh Button -->
-        <button 
-          (click)="manualRefresh()"
-          [disabled]="isRefreshing"
-          class="p-1.5 rounded-lg bg-dark-800 border border-dark-600 text-gray-400 hover:text-gray-200 hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          title="Refresh now">
-          <svg class="w-4 h-4" [class.animate-spin]="isRefreshing" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
+            <!-- Missing Episodes -->
+            <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-orange-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 md:w-6 md:h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xl md:text-2xl font-bold text-gray-100">{{ sonarrStats.missing }}</p>
+                  <p class="text-xs md:text-sm text-gray-400">Missing Episodes</p>
+                </div>
+              </div>
+            </a>
+
+            <!-- Upgrade Candidates -->
+            <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-yellow-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xl md:text-2xl font-bold text-gray-100">{{ totalUpgrades }}</p>
+                  <p class="text-xs md:text-sm text-gray-400">Upgrades Available</p>
+                </div>
+              </div>
+            </a>
+
+            <!-- Downgrade Candidates -->
+            <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-teal-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 md:w-6 md:h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xl md:text-2xl font-bold text-gray-100">{{ totalDowngrades }}</p>
+                  <p class="text-xs md:text-sm text-gray-400">Downgrade Candidates</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        }
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Resolution Distribution -->
+          <div class="card p-4 md:p-6 h-full">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-gray-400">Resolution Distribution</h3>
+              <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
+                <button 
+                  (click)="resolutionTab = 'all'" 
+                  [class]="resolutionTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  All
+                </button>
+                <button 
+                  (click)="resolutionTab = 'movies'" 
+                  [class]="resolutionTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  Movies
+                </button>
+                <button 
+                  (click)="resolutionTab = 'episodes'" 
+                  [class]="resolutionTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  TV
+                </button>
+              </div>
+            </div>
+            <div class="h-64 md:h-72">
+              @if (getResolutionData().labels && getResolutionData().labels!.length > 0) {
+                <canvas baseChart
+                  [data]="getResolutionData()"
+                  [options]="doughnutOptions"
+                  type="doughnut">
+                </canvas>
+              } @else {
+                <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
+              }
+            </div>
+          </div>
+
+          <!-- Video Codec Distribution -->
+          <div class="card p-4 md:p-6 h-full">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-gray-400">Video Codec Distribution</h3>
+              <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
+                <button 
+                  (click)="videoCodecTab = 'all'" 
+                  [class]="videoCodecTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  All
+                </button>
+                <button 
+                  (click)="videoCodecTab = 'movies'" 
+                  [class]="videoCodecTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  Movies
+                </button>
+                <button 
+                  (click)="videoCodecTab = 'episodes'" 
+                  [class]="videoCodecTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  TV
+                </button>
+              </div>
+            </div>
+            <div class="h-64 md:h-72">
+              @if (getVideoCodecData().labels && getVideoCodecData().labels!.length > 0) {
+                <canvas baseChart
+                  [data]="getVideoCodecData()"
+                  [options]="doughnutOptions"
+                  type="doughnut">
+                </canvas>
+              } @else {
+                <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
+              }
+            </div>
+          </div>
+
+          <!-- Audio Codec Distribution -->
+          <div class="card p-4 md:p-6 h-full">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-gray-400">Audio Codec Distribution</h3>
+              <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
+                <button 
+                  (click)="audioCodecTab = 'all'" 
+                  [class]="audioCodecTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  All
+                </button>
+                <button 
+                  (click)="audioCodecTab = 'movies'" 
+                  [class]="audioCodecTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  Movies
+                </button>
+                <button 
+                  (click)="audioCodecTab = 'episodes'" 
+                  [class]="audioCodecTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  TV
+                </button>
+              </div>
+            </div>
+            <div class="h-64 md:h-72">
+              @if (getAudioCodecData().labels && getAudioCodecData().labels!.length > 0) {
+                <canvas baseChart
+                  [data]="getAudioCodecData()"
+                  [options]="doughnutOptions"
+                  type="doughnut">
+                </canvas>
+              } @else {
+                <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
+              }
+            </div>
+          </div>
+
+          <!-- Container Format Distribution -->
+          <div class="card p-4 md:p-6 h-full">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-gray-400">Container Format Distribution</h3>
+              <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
+                <button 
+                  (click)="containerTab = 'all'" 
+                  [class]="containerTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  All
+                </button>
+                <button 
+                  (click)="containerTab = 'movies'" 
+                  [class]="containerTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  Movies
+                </button>
+                <button 
+                  (click)="containerTab = 'episodes'" 
+                  [class]="containerTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
+                  TV
+                </button>
+              </div>
+            </div>
+            <div class="h-64 md:h-72">
+              @if (getContainerData().labels && getContainerData().labels!.length > 0) {
+                <canvas baseChart
+                  [data]="getContainerData()"
+                  [options]="doughnutOptions"
+                  type="doughnut">
+                </canvas>
+              } @else {
+                <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Files Quick View -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Top 5 Largest Movies -->
+          <div class="card p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-gray-400">Largest Movies</h3>
+              <a routerLink="/storage" class="text-xs text-primary-400 hover:text-primary-300">View All</a>
+            </div>
+            <div class="space-y-3">
+              @for (movie of topMovies; track movie.id) {
+                <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                  <div class="min-w-0 flex-1 mr-3">
+                    <p class="text-sm text-gray-200 truncate">{{ movie.title }}</p>
+                    <p class="text-xs text-gray-500">{{ movie.year }} · {{ movie.resolution }} · {{ movie.videoCodec }}</p>
+                  </div>
+                  <span class="text-sm font-medium text-gray-400 whitespace-nowrap">{{ formatBytes(movie.fileSize) }}</span>
+                </div>
+              } @empty {
+                <p class="text-sm text-gray-500 text-center py-4">No movies found</p>
+              }
+            </div>
+          </div>
+
+          <!-- Top 5 Largest Episodes -->
+          <div class="card p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-gray-400">Largest Episodes</h3>
+              <a routerLink="/storage" class="text-xs text-primary-400 hover:text-primary-300">View All</a>
+            </div>
+            <div class="space-y-3">
+              @for (episode of topEpisodes; track episode.id) {
+                <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                  <div class="min-w-0 flex-1 mr-3">
+                    <p class="text-sm text-gray-200 truncate">{{ episode.showTitle }}</p>
+                    <p class="text-xs text-gray-500">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }} · {{ episode.resolution }} · {{ episode.videoCodec }}</p>
+                  </div>
+                  <span class="text-sm font-medium text-gray-400 whitespace-nowrap">{{ formatBytes(episode.fileSize) }}</span>
+                </div>
+              } @empty {
+                <p class="text-sm text-gray-500 text-center py-4">No episodes found</p>
+              }
+            </div>
+          </div>
+        </div>
       </div>
     }
   </div>
-
-  @if (isLoading) {
-    <!-- Loading State -->
-    <div class="flex items-center justify-center h-64">
-      <div class="text-center">
-        <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="text-gray-400">Loading...</p>
-      </div>
-    </div>
-  } @else if (!isServerConnected) {
-    <!-- No Server Connected -->
-    <div class="card p-8 text-center">
-      <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-        </svg>
-      </div>
-      <h2 class="text-xl font-semibold text-gray-100 mb-2">No Plex Server Connected</h2>
-      <p class="text-gray-400 mb-6">Connect your Plex server to start managing your media library.</p>
-      <a routerLink="/settings" class="btn-primary inline-flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        Connect Plex Server
-      </a>
-    </div>
-  } @else {
-    <!-- Connected State -->
-    <div class="space-y-6">
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Movies Card -->
-        <a routerLink="/movies" class="card-hover p-4 md:p-6 block">
-          <div class="flex items-center gap-3 md:gap-4">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 md:w-6 md:h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ overview.totalMovies }}</p>
-              <p class="text-xs md:text-sm text-gray-400">Movies</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- TV Shows Card -->
-        <a routerLink="/shows" class="card-hover p-4 md:p-6 block">
-          <div class="flex items-center gap-3 md:gap-4">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ overview.totalShows }}</p>
-              <p class="text-xs md:text-sm text-gray-400">TV Shows</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Episodes Card -->
-        <div class="card p-4 md:p-6">
-          <div class="flex items-center gap-3 md:gap-4">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-green-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 md:w-6 md:h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ overview.totalEpisodes }}</p>
-              <p class="text-xs md:text-sm text-gray-400">Episodes</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Storage Card -->
-        <a routerLink="/storage" class="card-hover p-4 md:p-6 block">
-          <div class="flex items-center gap-3 md:gap-4">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-amber-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 md:w-6 md:h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <p class="text-xl md:text-2xl font-bold text-gray-100">{{ formatBytes(overview.totalStorage) }}</p>
-              <p class="text-xs md:text-sm text-gray-400">Storage Used</p>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Wanted Stats Cards (if Radarr/Sonarr configured) -->
-      @if (hasArrConfigured) {
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Missing Movies -->
-          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
-            <div class="flex items-center gap-3 md:gap-4">
-              <div class="w-10 h-10 md:w-12 md:h-12 bg-red-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ radarrStats.missing }}</p>
-                <p class="text-xs md:text-sm text-gray-400">Missing Movies</p>
-              </div>
-            </div>
-          </a>
-
-          <!-- Missing Episodes -->
-          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
-            <div class="flex items-center gap-3 md:gap-4">
-              <div class="w-10 h-10 md:w-12 md:h-12 bg-orange-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 md:w-6 md:h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ sonarrStats.missing }}</p>
-                <p class="text-xs md:text-sm text-gray-400">Missing Episodes</p>
-              </div>
-            </div>
-          </a>
-
-          <!-- Upgrade Candidates -->
-          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
-            <div class="flex items-center gap-3 md:gap-4">
-              <div class="w-10 h-10 md:w-12 md:h-12 bg-yellow-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ totalUpgrades }}</p>
-                <p class="text-xs md:text-sm text-gray-400">Upgrades Available</p>
-              </div>
-            </div>
-          </a>
-
-          <!-- Downgrade Candidates -->
-          <a routerLink="/wanted" class="card-hover p-4 md:p-6 block">
-            <div class="flex items-center gap-3 md:gap-4">
-              <div class="w-10 h-10 md:w-12 md:h-12 bg-teal-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 md:w-6 md:h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <p class="text-xl md:text-2xl font-bold text-gray-100">{{ totalDowngrades }}</p>
-                <p class="text-xs md:text-sm text-gray-400">Downgrade Candidates</p>
-              </div>
-            </div>
-          </a>
-        </div>
-      }
-
-      <!-- Charts Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Resolution Distribution -->
-        <div class="card p-4 md:p-6 h-full">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-400">Resolution Distribution</h3>
-            <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
-              <button 
-                (click)="resolutionTab = 'all'" 
-                [class]="resolutionTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                All
-              </button>
-              <button 
-                (click)="resolutionTab = 'movies'" 
-                [class]="resolutionTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                Movies
-              </button>
-              <button 
-                (click)="resolutionTab = 'episodes'" 
-                [class]="resolutionTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                TV
-              </button>
-            </div>
-          </div>
-          <div class="h-64 md:h-72">
-            @if (getResolutionData().labels && getResolutionData().labels!.length > 0) {
-              <canvas baseChart
-                [data]="getResolutionData()"
-                [options]="doughnutOptions"
-                type="doughnut">
-              </canvas>
-            } @else {
-              <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
-            }
-          </div>
-        </div>
-
-        <!-- Video Codec Distribution -->
-        <div class="card p-4 md:p-6 h-full">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-400">Video Codec Distribution</h3>
-            <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
-              <button 
-                (click)="videoCodecTab = 'all'" 
-                [class]="videoCodecTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                All
-              </button>
-              <button 
-                (click)="videoCodecTab = 'movies'" 
-                [class]="videoCodecTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                Movies
-              </button>
-              <button 
-                (click)="videoCodecTab = 'episodes'" 
-                [class]="videoCodecTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                TV
-              </button>
-            </div>
-          </div>
-          <div class="h-64 md:h-72">
-            @if (getVideoCodecData().labels && getVideoCodecData().labels!.length > 0) {
-              <canvas baseChart
-                [data]="getVideoCodecData()"
-                [options]="doughnutOptions"
-                type="doughnut">
-              </canvas>
-            } @else {
-              <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
-            }
-          </div>
-        </div>
-
-        <!-- Audio Codec Distribution -->
-        <div class="card p-4 md:p-6 h-full">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-400">Audio Codec Distribution</h3>
-            <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
-              <button 
-                (click)="audioCodecTab = 'all'" 
-                [class]="audioCodecTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                All
-              </button>
-              <button 
-                (click)="audioCodecTab = 'movies'" 
-                [class]="audioCodecTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                Movies
-              </button>
-              <button 
-                (click)="audioCodecTab = 'episodes'" 
-                [class]="audioCodecTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                TV
-              </button>
-            </div>
-          </div>
-          <div class="h-64 md:h-72">
-            @if (getAudioCodecData().labels && getAudioCodecData().labels!.length > 0) {
-              <canvas baseChart
-                [data]="getAudioCodecData()"
-                [options]="doughnutOptions"
-                type="doughnut">
-              </canvas>
-            } @else {
-              <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
-            }
-          </div>
-        </div>
-
-        <!-- Container Format Distribution -->
-        <div class="card p-4 md:p-6 h-full">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-400">Container Format Distribution</h3>
-            <div class="flex gap-1 bg-dark-800 rounded-lg p-1">
-              <button 
-                (click)="containerTab = 'all'" 
-                [class]="containerTab === 'all' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                All
-              </button>
-              <button 
-                (click)="containerTab = 'movies'" 
-                [class]="containerTab === 'movies' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                Movies
-              </button>
-              <button 
-                (click)="containerTab = 'episodes'" 
-                [class]="containerTab === 'episodes' ? 'px-2 py-1 text-xs rounded bg-primary-600 text-white' : 'px-2 py-1 text-xs rounded text-gray-400 hover:text-gray-200'">
-                TV
-              </button>
-            </div>
-          </div>
-          <div class="h-64 md:h-72">
-            @if (getContainerData().labels && getContainerData().labels!.length > 0) {
-              <canvas baseChart
-                [data]="getContainerData()"
-                [options]="doughnutOptions"
-                type="doughnut">
-              </canvas>
-            } @else {
-              <div class="flex items-center justify-center h-full text-gray-500">No data available</div>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- Top Files Quick View -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <!-- Top 5 Largest Movies -->
-        <div class="card p-4 md:p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-400">Largest Movies</h3>
-            <a routerLink="/storage" class="text-xs text-primary-400 hover:text-primary-300">View All</a>
-          </div>
-          <div class="space-y-3">
-            @for (movie of topMovies; track movie.id) {
-              <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
-                <div class="min-w-0 flex-1 mr-3">
-                  <p class="text-sm text-gray-200 truncate">{{ movie.title }}</p>
-                  <p class="text-xs text-gray-500">{{ movie.year }} · {{ movie.resolution }} · {{ movie.videoCodec }}</p>
-                </div>
-                <span class="text-sm font-medium text-gray-400 whitespace-nowrap">{{ formatBytes(movie.fileSize) }}</span>
-              </div>
-            } @empty {
-              <p class="text-sm text-gray-500 text-center py-4">No movies found</p>
-            }
-          </div>
-        </div>
-
-        <!-- Top 5 Largest Episodes -->
-        <div class="card p-4 md:p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-400">Largest Episodes</h3>
-            <a routerLink="/storage" class="text-xs text-primary-400 hover:text-primary-300">View All</a>
-          </div>
-          <div class="space-y-3">
-            @for (episode of topEpisodes; track episode.id) {
-              <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
-                <div class="min-w-0 flex-1 mr-3">
-                  <p class="text-sm text-gray-200 truncate">{{ episode.showTitle }}</p>
-                  <p class="text-xs text-gray-500">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }} · {{ episode.resolution }} · {{ episode.videoCodec }}</p>
-                </div>
-                <span class="text-sm font-medium text-gray-400 whitespace-nowrap">{{ formatBytes(episode.fileSize) }}</span>
-              </div>
-            } @empty {
-              <p class="text-sm text-gray-500 text-center py-4">No episodes found</p>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-  }
 </div>

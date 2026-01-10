@@ -1,24 +1,15 @@
-<div class="p-4 md:p-6 lg:p-8">
-  <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Storage Insights</h1>
-    <p class="text-gray-400 mt-1">Analyze your media library storage usage</p>
-  </div>
-
-  @if (isLoading) {
-    <div class="flex items-center justify-center h-64">
-      <div class="text-center">
-        <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="text-gray-400">Loading storage data...</p>
-      </div>
+<div class="h-full flex flex-col">
+  <!-- Fixed Header Section -->
+  <div class="flex-shrink-0 p-4 md:p-6 lg:p-8 pb-0">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Storage Insights</h1>
+      <p class="text-gray-400 mt-1">Analyze your media library storage usage</p>
     </div>
-  } @else {
-    <div class="space-y-6">
+
+    @if (!isLoading) {
       <!-- Storage Summary Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div class="card p-4 md:p-6">
           <h3 class="text-sm font-medium text-gray-400 mb-4">Storage by Type</h3>
           <div class="space-y-4">
@@ -64,163 +55,180 @@
           </div>
         </div>
       </div>
+    }
+  </div>
 
-      <!-- Top 20 Largest Movies -->
-      <div class="card p-4 md:p-6">
-        <h3 class="text-lg font-semibold text-gray-100 mb-4">Top 20 Largest Movies</h3>
-        
-        <!-- Desktop Table -->
-        <div class="hidden md:block overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="text-left text-xs text-gray-500 uppercase border-b border-dark-700">
-                <th class="pb-3 pr-4 cursor-pointer hover:text-gray-300" (click)="sortMovies('title')">
-                  Title {{ getSortIcon('title', movieSortField, movieSortOrder) }}
-                </th>
-                <th class="pb-3 pr-4 w-20">Year</th>
-                <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortMovies('resolution')">
-                  Resolution {{ getSortIcon('resolution', movieSortField, movieSortOrder) }}
-                </th>
-                <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortMovies('videoCodec')">
-                  Codec {{ getSortIcon('videoCodec', movieSortField, movieSortOrder) }}
-                </th>
-                <th class="pb-3 w-28 text-right cursor-pointer hover:text-gray-300" (click)="sortMovies('fileSize')">
-                  Size {{ getSortIcon('fileSize', movieSortField, movieSortOrder) }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (movie of topMovies; track movie.id; let i = $index) {
-                <tr class="border-b border-dark-700 last:border-0 hover:bg-dark-800">
-                  <td class="py-3 pr-4">
-                    <div class="flex items-center gap-3">
-                      <span class="text-gray-500 text-sm w-5">{{ i + 1 }}</span>
-                      <span class="text-gray-200">{{ movie.title }}</span>
-                    </div>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">{{ movie.year }}</td>
-                  <td class="py-3 pr-4">
-                    <span class="badge" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'" [class.badge-yellow]="movie.resolution === '720p'">
-                      {{ movie.resolution }}
-                    </span>
-                  </td>
-                  <td class="py-3 pr-4">
-                    <span class="badge badge-purple">{{ movie.videoCodec }}</span>
-                  </td>
-                  <td class="py-3 text-right text-gray-100 font-medium">{{ formatBytes(movie.fileSize) }}</td>
+  <!-- Scrollable Content Section -->
+  <div class="flex-1 overflow-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+    @if (isLoading) {
+      <div class="flex items-center justify-center h-64">
+        <div class="text-center">
+          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-400">Loading storage data...</p>
+        </div>
+      </div>
+    } @else {
+      <div class="space-y-6">
+        <!-- Top 20 Largest Movies -->
+        <div class="card p-4 md:p-6">
+          <h3 class="text-lg font-semibold text-gray-100 mb-4">Top 20 Largest Movies</h3>
+          
+          <!-- Desktop Table -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="text-left text-xs text-gray-500 uppercase border-b border-dark-700">
+                  <th class="pb-3 pr-4 cursor-pointer hover:text-gray-300" (click)="sortMovies('title')">
+                    Title {{ getSortIcon('title', movieSortField, movieSortOrder) }}
+                  </th>
+                  <th class="pb-3 pr-4 w-20">Year</th>
+                  <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortMovies('resolution')">
+                    Resolution {{ getSortIcon('resolution', movieSortField, movieSortOrder) }}
+                  </th>
+                  <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortMovies('videoCodec')">
+                    Codec {{ getSortIcon('videoCodec', movieSortField, movieSortOrder) }}
+                  </th>
+                  <th class="pb-3 w-28 text-right cursor-pointer hover:text-gray-300" (click)="sortMovies('fileSize')">
+                    Size {{ getSortIcon('fileSize', movieSortField, movieSortOrder) }}
+                  </th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (movie of topMovies; track movie.id; let i = $index) {
+                  <tr class="border-b border-dark-700 last:border-0 hover:bg-dark-800">
+                    <td class="py-3 pr-4">
+                      <div class="flex items-center gap-3">
+                        <span class="text-gray-500 text-sm w-5">{{ i + 1 }}</span>
+                        <span class="text-gray-200">{{ movie.title }}</span>
+                      </div>
+                    </td>
+                    <td class="py-3 pr-4 text-gray-400">{{ movie.year }}</td>
+                    <td class="py-3 pr-4">
+                      <span class="badge" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'" [class.badge-yellow]="movie.resolution === '720p'">
+                        {{ movie.resolution }}
+                      </span>
+                    </td>
+                    <td class="py-3 pr-4">
+                      <span class="badge badge-purple">{{ movie.videoCodec }}</span>
+                    </td>
+                    <td class="py-3 text-right text-gray-100 font-medium">{{ formatBytes(movie.fileSize) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div class="md:hidden space-y-3">
+            @for (movie of topMovies; track movie.id; let i = $index) {
+              <div class="p-3 bg-dark-800 rounded-lg">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-gray-200 font-medium truncate">{{ i + 1 }}. {{ movie.title }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ movie.year }}</p>
+                    <div class="flex gap-2 mt-2">
+                      <span class="badge badge-sm" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'">{{ movie.resolution }}</span>
+                      <span class="badge badge-sm badge-purple">{{ movie.videoCodec }}</span>
+                    </div>
+                  </div>
+                  <span class="text-gray-100 font-medium whitespace-nowrap">{{ formatBytes(movie.fileSize) }}</span>
+                </div>
+              </div>
+            }
+          </div>
         </div>
 
-        <!-- Mobile Cards -->
-        <div class="md:hidden space-y-3">
-          @for (movie of topMovies; track movie.id; let i = $index) {
-            <div class="p-3 bg-dark-800 rounded-lg">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                  <p class="text-gray-200 font-medium truncate">{{ i + 1 }}. {{ movie.title }}</p>
-                  <p class="text-xs text-gray-500 mt-1">{{ movie.year }}</p>
-                  <div class="flex gap-2 mt-2">
-                    <span class="badge badge-sm" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'">{{ movie.resolution }}</span>
-                    <span class="badge badge-sm badge-purple">{{ movie.videoCodec }}</span>
+        <!-- Top 20 Largest Episodes -->
+        <div class="card p-4 md:p-6">
+          <h3 class="text-lg font-semibold text-gray-100 mb-4">Top 20 Largest Episodes</h3>
+          
+          <!-- Desktop Table -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="text-left text-xs text-gray-500 uppercase border-b border-dark-700">
+                  <th class="pb-3 pr-4">Show</th>
+                  <th class="pb-3 pr-4 w-24">Episode</th>
+                  <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortEpisodes('resolution')">
+                    Resolution {{ getSortIcon('resolution', episodeSortField, episodeSortOrder) }}
+                  </th>
+                  <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortEpisodes('videoCodec')">
+                    Codec {{ getSortIcon('videoCodec', episodeSortField, episodeSortOrder) }}
+                  </th>
+                  <th class="pb-3 w-28 text-right cursor-pointer hover:text-gray-300" (click)="sortEpisodes('fileSize')">
+                    Size {{ getSortIcon('fileSize', episodeSortField, episodeSortOrder) }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (episode of topEpisodes; track episode.id; let i = $index) {
+                  <tr class="border-b border-dark-700 last:border-0 hover:bg-dark-800">
+                    <td class="py-3 pr-4">
+                      <div class="flex items-center gap-3">
+                        <span class="text-gray-500 text-sm w-5">{{ i + 1 }}</span>
+                        <span class="text-gray-200">{{ episode.showTitle }}</span>
+                      </div>
+                    </td>
+                    <td class="py-3 pr-4 text-gray-400">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</td>
+                    <td class="py-3 pr-4">
+                      <span class="badge" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'" [class.badge-yellow]="episode.resolution === '720p'">
+                        {{ episode.resolution }}
+                      </span>
+                    </td>
+                    <td class="py-3 pr-4">
+                      <span class="badge badge-purple">{{ episode.videoCodec }}</span>
+                    </td>
+                    <td class="py-3 text-right text-gray-100 font-medium">{{ formatBytes(episode.fileSize) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div class="md:hidden space-y-3">
+            @for (episode of topEpisodes; track episode.id; let i = $index) {
+              <div class="p-3 bg-dark-800 rounded-lg">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-gray-200 font-medium truncate">{{ i + 1 }}. {{ episode.showTitle }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</p>
+                    <div class="flex gap-2 mt-2">
+                      <span class="badge badge-sm" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'">{{ episode.resolution }}</span>
+                      <span class="badge badge-sm badge-purple">{{ episode.videoCodec }}</span>
+                    </div>
+                  </div>
+                  <span class="text-gray-100 font-medium whitespace-nowrap">{{ formatBytes(episode.fileSize) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Storage by Show -->
+        <div class="card p-4 md:p-6">
+          <h3 class="text-lg font-semibold text-gray-100 mb-4">Storage by TV Show</h3>
+          <div class="space-y-3">
+            @for (show of byShow; track show.id; let i = $index) {
+              <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <span class="text-gray-500 text-sm w-5 flex-shrink-0">{{ i + 1 }}</span>
+                  <div class="min-w-0">
+                    <p class="text-gray-200 truncate">{{ show.title }}</p>
+                    <p class="text-xs text-gray-500">{{ show.episodeCount }} episodes</p>
                   </div>
                 </div>
-                <span class="text-gray-100 font-medium whitespace-nowrap">{{ formatBytes(movie.fileSize) }}</span>
+                <span class="text-gray-100 font-medium whitespace-nowrap ml-4">{{ formatBytes(show.totalSize) }}</span>
               </div>
-            </div>
-          }
+            } @empty {
+              <p class="text-gray-500 text-center py-4">No TV shows found</p>
+            }
+          </div>
         </div>
       </div>
-
-      <!-- Top 20 Largest Episodes -->
-      <div class="card p-4 md:p-6">
-        <h3 class="text-lg font-semibold text-gray-100 mb-4">Top 20 Largest Episodes</h3>
-        
-        <!-- Desktop Table -->
-        <div class="hidden md:block overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="text-left text-xs text-gray-500 uppercase border-b border-dark-700">
-                <th class="pb-3 pr-4">Show</th>
-                <th class="pb-3 pr-4 w-24">Episode</th>
-                <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortEpisodes('resolution')">
-                  Resolution {{ getSortIcon('resolution', episodeSortField, episodeSortOrder) }}
-                </th>
-                <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortEpisodes('videoCodec')">
-                  Codec {{ getSortIcon('videoCodec', episodeSortField, episodeSortOrder) }}
-                </th>
-                <th class="pb-3 w-28 text-right cursor-pointer hover:text-gray-300" (click)="sortEpisodes('fileSize')">
-                  Size {{ getSortIcon('fileSize', episodeSortField, episodeSortOrder) }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (episode of topEpisodes; track episode.id; let i = $index) {
-                <tr class="border-b border-dark-700 last:border-0 hover:bg-dark-800">
-                  <td class="py-3 pr-4">
-                    <div class="flex items-center gap-3">
-                      <span class="text-gray-500 text-sm w-5">{{ i + 1 }}</span>
-                      <span class="text-gray-200">{{ episode.showTitle }}</span>
-                    </div>
-                  </td>
-                  <td class="py-3 pr-4 text-gray-400">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</td>
-                  <td class="py-3 pr-4">
-                    <span class="badge" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'" [class.badge-yellow]="episode.resolution === '720p'">
-                      {{ episode.resolution }}
-                    </span>
-                  </td>
-                  <td class="py-3 pr-4">
-                    <span class="badge badge-purple">{{ episode.videoCodec }}</span>
-                  </td>
-                  <td class="py-3 text-right text-gray-100 font-medium">{{ formatBytes(episode.fileSize) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards -->
-        <div class="md:hidden space-y-3">
-          @for (episode of topEpisodes; track episode.id; let i = $index) {
-            <div class="p-3 bg-dark-800 rounded-lg">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                  <p class="text-gray-200 font-medium truncate">{{ i + 1 }}. {{ episode.showTitle }}</p>
-                  <p class="text-xs text-gray-500 mt-1">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</p>
-                  <div class="flex gap-2 mt-2">
-                    <span class="badge badge-sm" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'">{{ episode.resolution }}</span>
-                    <span class="badge badge-sm badge-purple">{{ episode.videoCodec }}</span>
-                  </div>
-                </div>
-                <span class="text-gray-100 font-medium whitespace-nowrap">{{ formatBytes(episode.fileSize) }}</span>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Storage by Show -->
-      <div class="card p-4 md:p-6">
-        <h3 class="text-lg font-semibold text-gray-100 mb-4">Storage by TV Show</h3>
-        <div class="space-y-3">
-          @for (show of byShow; track show.id; let i = $index) {
-            <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <span class="text-gray-500 text-sm w-5 flex-shrink-0">{{ i + 1 }}</span>
-                <div class="min-w-0">
-                  <p class="text-gray-200 truncate">{{ show.title }}</p>
-                  <p class="text-xs text-gray-500">{{ show.episodeCount }} episodes</p>
-                </div>
-              </div>
-              <span class="text-gray-100 font-medium whitespace-nowrap ml-4">{{ formatBytes(show.totalSize) }}</span>
-            </div>
-          } @empty {
-            <p class="text-gray-500 text-center py-4">No TV shows found</p>
-          }
-        </div>
-      </div>
-    </div>
-  }
+    }
+  </div>
 </div>

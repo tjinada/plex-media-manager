@@ -556,137 +556,135 @@
   <!-- Interactive Search Modal -->
   @if (showSearchModal) {
     <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeSearchModal()">
-      <div class="bg-dark-900 rounded-xl w-full max-w-6xl max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+      <div class="bg-dark-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between p-4 border-b border-dark-700">
-          <h2 class="text-lg font-semibold text-gray-100">Interactive Search - {{ searchModalTitle }}</h2>
-          <button (click)="closeSearchModal()" class="p-2 hover:bg-dark-700 rounded-lg transition-colors text-gray-400 hover:text-gray-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+        <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-100">Interactive Search</h2>
+            <p class="text-sm text-gray-400">{{ searchModalTitle }}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            @if (searchExternalUrl) {
+              <button 
+                (click)="openExternalUrl()"
+                class="flex items-center gap-2 px-3 py-1.5 text-sm bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Open in {{ searchModalType === 'movie' ? 'Radarr' : 'Sonarr' }}
+              </button>
+            }
+            <button 
+              (click)="closeSearchModal()"
+              class="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-dark-700 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Modal Content -->
-        <div class="flex-1 overflow-auto p-4">
+        <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
           @if (searchError) {
-            <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm mb-4">
+            <div class="p-4 bg-red-900/30 border-b border-red-700 text-red-400 text-sm">
               {{ searchError }}
             </div>
           }
 
           @if (isSearching) {
-            <div class="flex items-center justify-center py-12">
+            <div class="flex items-center justify-center h-64">
               <div class="text-center">
-                <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <p class="text-gray-400">Searching indexers...</p>
+                <p class="text-gray-400">Searching indexers for releases...</p>
+                <p class="text-xs text-gray-500 mt-1">This may take up to 2 minutes</p>
               </div>
             </div>
           } @else if (searchResults.length === 0) {
-            <div class="text-center py-12 text-gray-400">
+            <div class="p-8 text-center text-gray-500">
               <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p>No releases found</p>
+              <p class="text-sm mt-1">Try again later or check your indexers</p>
             </div>
           } @else {
+            <!-- Results Table -->
             <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead class="bg-dark-800 text-gray-400 text-xs sticky top-0">
+              <table class="w-full text-sm">
+                <thead class="bg-dark-800 text-gray-400 text-left sticky top-0">
                   <tr>
-                    <th class="px-3 py-2 text-left">Source</th>
-                    <th class="px-3 py-2 text-left">Age</th>
-                    <th class="px-3 py-2 text-left">Title</th>
-                    <th class="px-3 py-2 text-left">Indexer</th>
-                    <th class="px-3 py-2 text-right">Size</th>
-                    <th class="px-3 py-2 text-center">Peers</th>
-                    <th class="px-3 py-2 text-left">Language</th>
-                    <th class="px-3 py-2 text-left">Quality</th>
-                    <th class="px-3 py-2 text-center">Actions</th>
+                    <th class="px-4 py-3 font-medium w-10">Action</th>
+                    <th class="px-4 py-3 font-medium">Release</th>
+                    <th class="px-4 py-3 font-medium">Quality</th>
+                    <th class="px-4 py-3 font-medium">Size</th>
+                    <th class="px-4 py-3 font-medium">Age</th>
+                    <th class="px-4 py-3 font-medium">Indexer</th>
+                    <th class="px-4 py-3 font-medium text-center">Peers</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-dark-700">
                   @for (release of searchResults; track release.guid) {
-                    <tr class="hover:bg-dark-800/50" [class.opacity-50]="release.rejected">
-                      <td class="px-3 py-2">
-                        <span [class]="getProtocolBadgeClass(release.protocol)" class="px-2 py-0.5 rounded text-xs text-white font-medium">
-                          {{ getProtocolLabel(release.protocol) }}
-                        </span>
-                      </td>
-                      <td class="px-3 py-2 text-gray-400 text-sm whitespace-nowrap">{{ formatAge(release.age) }}</td>
-                      <td class="px-3 py-2">
-                        <div class="max-w-md">
-                          <p class="text-sm text-gray-200 truncate" [title]="release.title">{{ release.title }}</p>
-                          @if (release.rejected && release.rejections.length > 0) {
-                            <div class="flex flex-wrap gap-1 mt-1">
-                              @for (rejection of release.rejections.slice(0, 3); track rejection) {
-                                <span class="px-1.5 py-0.5 bg-red-900/30 text-red-400 rounded text-xs">{{ rejection }}</span>
-                              }
-                              @if (release.rejections.length > 3) {
-                                <span class="px-1.5 py-0.5 bg-dark-700 text-gray-400 rounded text-xs">+{{ release.rejections.length - 3 }} more</span>
-                              }
-                            </div>
-                          }
-                        </div>
-                      </td>
-                      <td class="px-3 py-2 text-gray-400 text-sm">{{ release.indexer }}</td>
-                      <td class="px-3 py-2 text-gray-300 text-sm text-right whitespace-nowrap">{{ formatFileSize(release.size) }}</td>
-                      <td class="px-3 py-2 text-center">
-                        @if (release.protocol === 'torrent') {
-                          <span class="text-sm">
-                            <span class="text-green-400">{{ release.seeders }}</span>
-                            <span class="text-gray-600">/</span>
-                            <span class="text-red-400">{{ release.leechers }}</span>
-                          </span>
+                    <tr class="hover:bg-dark-800/50">
+                      <td class="px-4 py-3">
+                        @if (isDownloaded(release.guid)) {
+                          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
                         } @else {
-                          <span class="text-gray-500 text-sm">-</span>
+                          <button 
+                            (click)="downloadRelease(release)"
+                            [disabled]="downloadingGuid === release.guid"
+                            [ngClass]="{
+                              'p-1.5 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed': true,
+                              'bg-orange-600 hover:bg-orange-700': release.rejected,
+                              'bg-primary-600 hover:bg-primary-700': !release.rejected
+                            }"
+                            [title]="release.rejected ? 'Force download (rejected by profile)' : 'Download'">
+                            @if (downloadingGuid === release.guid) {
+                              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            } @else {
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                            }
+                          </button>
                         }
                       </td>
-                      <td class="px-3 py-2">
-                        <span class="px-2 py-0.5 bg-dark-700 rounded text-xs text-gray-300">{{ release.languages[0] || 'Unknown' }}</span>
-                      </td>
-                      <td class="px-3 py-2">
-                        <span class="px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded text-xs">{{ release.quality }}</span>
-                      </td>
-                      <td class="px-3 py-2 text-center">
-                        <div class="flex items-center justify-center gap-1">
-                          @if (release.approved) {
-                            <button 
-                              (click)="downloadRelease(release)"
-                              [disabled]="downloadingGuid === release.guid"
-                              class="p-1.5 bg-green-600 hover:bg-green-700 rounded transition-colors text-white disabled:opacity-50"
-                              title="Download">
-                              @if (downloadingGuid === release.guid) {
-                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                              } @else {
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                              }
-                            </button>
-                          } @else {
-                            <span class="p-1.5 bg-red-900/30 rounded text-red-400" title="Rejected">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                              </svg>
+                      <td class="px-4 py-3">
+                        <div class="max-w-md">
+                          <p class="text-gray-200 text-xs truncate" [title]="release.title">{{ release.title }}</p>
+                          @if (release.rejected && release.rejections && release.rejections.length > 0) {
+                            <p class="text-xs text-red-400 mt-1">{{ release.rejections[0] }}</p>
+                          }
+                          @if (release.customFormatScore && release.customFormatScore !== 0) {
+                            <span class="text-xs px-1.5 py-0.5 rounded mt-1 inline-block"
+                              [class]="release.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">
+                              CF: {{ release.customFormatScore > 0 ? '+' : '' }}{{ release.customFormatScore }}
                             </span>
                           }
-                          @if (release.infoUrl) {
-                            <a [href]="release.infoUrl" target="_blank" rel="noopener noreferrer"
-                               class="p-1.5 hover:bg-dark-700 rounded transition-colors text-gray-400 hover:text-gray-200"
-                               title="View on indexer">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                            </a>
-                          }
                         </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <span class="text-xs px-2 py-1 rounded bg-blue-600/20 text-blue-400">{{ release.quality }}</span>
+                      </td>
+                      <td class="px-4 py-3 text-gray-300">{{ formatBytes(release.size) }}</td>
+                      <td class="px-4 py-3 text-gray-400">{{ formatAge(release.age) }}</td>
+                      <td class="px-4 py-3 text-gray-400">{{ release.indexer }}</td>
+                      <td class="px-4 py-3 text-center">
+                        @if (release.protocol === 'torrent') {
+                          <span class="text-green-400">{{ release.seeders }}</span>
+                          <span class="text-gray-600">/</span>
+                          <span class="text-red-400">{{ release.leechers }}</span>
+                        } @else {
+                          <span class="text-gray-500">-</span>
+                        }
                       </td>
                     </tr>
                   }
@@ -694,18 +692,6 @@
               </table>
             </div>
           }
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="flex items-center justify-between p-4 border-t border-dark-700">
-          <p class="text-sm text-gray-400">
-            @if (!isSearching) {
-              {{ searchResults.length }} releases found
-            }
-          </p>
-          <button (click)="closeSearchModal()" class="btn-secondary">
-            Close
-          </button>
         </div>
       </div>
     </div>

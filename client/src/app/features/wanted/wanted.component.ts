@@ -76,6 +76,8 @@ export class WantedComponent implements OnInit {
   isSearching = false;
   downloadingGuid: string | null = null;
   searchError = '';
+  searchExternalUrl: string | null = null;
+  downloadedGuids: Set<string> = new Set();
 
   tabs: Tab[] = [
     { id: 'missing-movies', label: 'Missing Movies', icon: 'warning', count: 0 },
@@ -243,6 +245,25 @@ export class WantedComponent implements OnInit {
     this.searchResults = [];
     this.searchModalId = null;
     this.searchError = '';
+    this.searchExternalUrl = null;
+  }
+
+  openExternalUrl(): void {
+    if (this.searchExternalUrl) {
+      window.open(this.searchExternalUrl, '_blank');
+    }
+  }
+
+  isDownloaded(guid: string): boolean {
+    return this.downloadedGuids.has(guid);
+  }
+
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   loadSearchResults(): void {
@@ -252,6 +273,15 @@ export class WantedComponent implements OnInit {
     this.searchError = '';
 
     if (this.searchModalType === 'movie') {
+      // Get external URL for Radarr
+      this.radarrService.getConfig().subscribe({
+        next: (response) => {
+          if (response.config?.host) {
+            this.searchExternalUrl = `${response.config.host}/movie/${this.searchModalId}`;
+          }
+        }
+      });
+
       this.radarrService.getSearchResults(this.searchModalId).subscribe({
         next: (response) => {
           this.searchResults = response.releases;
@@ -263,6 +293,15 @@ export class WantedComponent implements OnInit {
         }
       });
     } else {
+      // Get external URL for Sonarr
+      this.sonarrService.getConfig().subscribe({
+        next: (response) => {
+          if (response.config?.host) {
+            this.searchExternalUrl = `${response.config.host}/series/${this.searchModalId}`;
+          }
+        }
+      });
+
       this.sonarrService.getSearchResults(this.searchModalId).subscribe({
         next: (response) => {
           this.searchResults = response.releases;
@@ -282,8 +321,8 @@ export class WantedComponent implements OnInit {
     if (this.searchModalType === 'movie') {
       this.radarrService.downloadRelease(release.guid, release.indexerId).subscribe({
         next: () => {
+          this.downloadedGuids.add(release.guid);
           this.downloadingGuid = null;
-          this.closeSearchModal();
         },
         error: (error: { error?: { message?: string } }) => {
           this.searchError = error.error?.message || 'Failed to download release';
@@ -293,8 +332,8 @@ export class WantedComponent implements OnInit {
     } else {
       this.sonarrService.downloadRelease(release.guid, release.indexerId).subscribe({
         next: () => {
+          this.downloadedGuids.add(release.guid);
           this.downloadingGuid = null;
-          this.closeSearchModal();
         },
         error: (error: { error?: { message?: string } }) => {
           this.searchError = error.error?.message || 'Failed to download release';

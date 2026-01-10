@@ -18,12 +18,20 @@ import {
 } from '@core/models';
 
 type TabId = 'missing-movies' | 'missing-episodes' | 'upcoming-movies' | 'upcoming-episodes' | 'movie-upgrades' | 'episode-upgrades' | 'movie-downgrades' | 'episode-downgrades';
+type MediaType = 'movies' | 'tv';
+type StatusTab = 'missing' | 'upcoming' | 'upgrades' | 'downgrades';
 
 interface Tab {
   id: TabId;
   label: string;
   icon: 'warning' | 'clock' | 'arrow-up' | 'arrow-down';
   count: number;
+}
+
+interface StatusTabConfig {
+  id: StatusTab;
+  label: string;
+  icon: 'warning' | 'clock' | 'arrow-up' | 'arrow-down';
 }
 
 type Release = RadarrRelease | SonarrRelease;
@@ -35,7 +43,36 @@ type Release = RadarrRelease | SonarrRelease;
   templateUrl: './wanted.component.html'
 })
 export class WantedComponent implements OnInit {
-  activeTab: TabId = 'missing-movies';
+  // Two-level navigation state
+  mediaType: MediaType = 'movies';
+  statusTab: StatusTab = 'missing';
+
+  // Computed active tab from two-level navigation
+  get activeTab(): TabId {
+    if (this.mediaType === 'movies') {
+      switch (this.statusTab) {
+        case 'missing': return 'missing-movies';
+        case 'upcoming': return 'upcoming-movies';
+        case 'upgrades': return 'movie-upgrades';
+        case 'downgrades': return 'movie-downgrades';
+      }
+    } else {
+      switch (this.statusTab) {
+        case 'missing': return 'missing-episodes';
+        case 'upcoming': return 'upcoming-episodes';
+        case 'upgrades': return 'episode-upgrades';
+        case 'downgrades': return 'episode-downgrades';
+      }
+    }
+  }
+
+  // Status tabs configuration
+  statusTabs: StatusTabConfig[] = [
+    { id: 'missing', label: 'Missing', icon: 'warning' },
+    { id: 'upcoming', label: 'Upcoming', icon: 'clock' },
+    { id: 'upgrades', label: 'Upgrades', icon: 'arrow-up' },
+    { id: 'downgrades', label: 'Downgrades', icon: 'arrow-down' }
+  ];
   isLoading = true;
   
   // Radarr data
@@ -215,7 +252,55 @@ export class WantedComponent implements OnInit {
   }
 
   setActiveTab(tabId: TabId): void {
-    this.activeTab = tabId;
+    // Legacy method - parse tabId into mediaType and statusTab
+    if (tabId.includes('movies') || tabId.includes('movie')) {
+      this.mediaType = 'movies';
+    } else {
+      this.mediaType = 'tv';
+    }
+    if (tabId.includes('missing')) {
+      this.statusTab = 'missing';
+    } else if (tabId.includes('upcoming')) {
+      this.statusTab = 'upcoming';
+    } else if (tabId.includes('upgrade')) {
+      this.statusTab = 'upgrades';
+    } else if (tabId.includes('downgrade')) {
+      this.statusTab = 'downgrades';
+    }
+  }
+
+  setMediaType(type: MediaType): void {
+    this.mediaType = type;
+  }
+
+  setStatusTab(tab: StatusTab): void {
+    this.statusTab = tab;
+  }
+
+  getStatusCount(status: StatusTab): number {
+    if (this.mediaType === 'movies') {
+      switch (status) {
+        case 'missing': return this.missingMoviesTotal;
+        case 'upcoming': return this.upcomingMoviesTotal;
+        case 'upgrades': return this.movieUpgradesTotal;
+        case 'downgrades': return this.movieDowngrades.length;
+      }
+    } else {
+      switch (status) {
+        case 'missing': return this.missingEpisodesTotal;
+        case 'upcoming': return this.upcomingEpisodesTotal;
+        case 'upgrades': return this.episodeUpgradesTotal;
+        case 'downgrades': return this.episodeDowngrades.length;
+      }
+    }
+  }
+
+  getMediaTypeCount(type: MediaType): number {
+    if (type === 'movies') {
+      return this.missingMoviesTotal + this.upcomingMoviesTotal + this.movieUpgradesTotal + this.movieDowngrades.length;
+    } else {
+      return this.missingEpisodesTotal + this.upcomingEpisodesTotal + this.episodeUpgradesTotal + this.episodeDowngrades.length;
+    }
   }
 
   // ===== Interactive Search Modal Methods =====

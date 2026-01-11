@@ -246,10 +246,8 @@
         <!-- Mobile: Card List -->
         <div class="md:hidden space-y-3">
           @for (episode of episodes; track episode.id) {
-            <div 
-              (click)="onEpisodeClick(episode)"
-              class="card p-4 cursor-pointer hover:bg-dark-800/50 transition-colors">
-              <div class="flex justify-between items-start gap-3">
+            <div class="card p-4 cursor-pointer hover:bg-dark-800/50 transition-colors relative group">
+              <div class="flex justify-between items-start gap-3" (click)="onEpisodeClick(episode)">
                 <div class="flex-1 min-w-0">
                   <p class="text-sm text-primary-400 font-medium">{{ episode.showTitle }}</p>
                   <h3 class="text-gray-100 font-medium truncate">
@@ -271,6 +269,15 @@
                   <p class="text-xs text-gray-500">{{ formatDuration(episode.duration) }}</p>
                 </div>
               </div>
+              <!-- Search Button -->
+              <button 
+                (click)="openSearch(episode, $event)"
+                class="absolute top-2 right-2 p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Interactive Search">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
             </div>
           }
         </div>
@@ -309,6 +316,7 @@
                       }
                     </div>
                   </th>
+                  <th class="w-20 p-4"></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-dark-700">
@@ -335,6 +343,16 @@
                     <td class="p-4 text-gray-400">{{ episode.audioCodec || '-' }}</td>
                     <td class="p-4 text-gray-100 text-right font-medium">{{ formatFileSize(episode.fileSize) }}</td>
                     <td class="p-4 text-gray-400 text-right">{{ formatDuration(episode.duration) }}</td>
+                    <td class="p-4">
+                      <button 
+                        (click)="openSearch(episode, $event)"
+                        class="p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                        title="Interactive Search">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -382,3 +400,137 @@
     </div>
   </div>
 </div>
+
+<!-- Search Modal -->
+@if (showSearchModal) {
+  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeSearch()">
+    <div class="bg-dark-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-100">Interactive Search</h2>
+          <p class="text-sm text-gray-400">{{ getSearchTitle() }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          @if (searchExternalUrl) {
+            <button 
+              (click)="openExternalUrl()"
+              class="flex items-center gap-2 px-3 py-1.5 text-sm bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-lg transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              <span class="hidden sm:inline">Open in Sonarr</span>
+            </button>
+          }
+          <button 
+            (click)="closeSearch()"
+            class="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-dark-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
+        @if (searchLoading) {
+          <div class="flex items-center justify-center h-64">
+            <div class="text-center">
+              <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="text-gray-400">Searching indexers for releases...</p>
+              <p class="text-xs text-gray-500 mt-1">This may take up to 2 minutes</p>
+            </div>
+          </div>
+        } @else if (searchError) {
+          <div class="p-8 text-center">
+            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-400 font-medium">{{ searchError }}</p>
+            <p class="text-sm text-gray-500 mt-2">Make sure the episode is added to Sonarr</p>
+          </div>
+        } @else if (searchResults.length === 0) {
+          <div class="p-8 text-center text-gray-500">
+            <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No releases found</p>
+            <p class="text-sm mt-1">Try again later or check your indexers</p>
+          </div>
+        } @else {
+          <!-- Results Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-dark-800 text-gray-400 text-left sticky top-0">
+                <tr>
+                  <th class="px-4 py-3 font-medium w-16">Action</th>
+                  <th class="px-4 py-3 font-medium">Release</th>
+                  <th class="px-4 py-3 font-medium hidden sm:table-cell">Quality</th>
+                  <th class="px-4 py-3 font-medium">Size</th>
+                  <th class="px-4 py-3 font-medium hidden md:table-cell">Age</th>
+                  <th class="px-4 py-3 font-medium hidden lg:table-cell">Indexer</th>
+                  <th class="px-4 py-3 font-medium text-center hidden md:table-cell">Peers</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                @for (result of searchResults; track result.guid) {
+                  <tr class="hover:bg-dark-800/50">
+                    <td class="px-4 py-3">
+                      @if (isDownloaded(result.guid)) {
+                        <span class="inline-flex items-center gap-1 text-green-400">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                      } @else {
+                        <button 
+                          (click)="downloadRelease(result, $event)"
+                          [disabled]="downloadingGuid === result.guid"
+                          class="p-1.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-800 text-white rounded transition-colors">
+                          @if (downloadingGuid === result.guid) {
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          } @else {
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          }
+                        </button>
+                      }
+                    </td>
+                    <td class="px-4 py-3">
+                      <p class="text-gray-200 text-xs break-all line-clamp-2">{{ result.title }}</p>
+                    </td>
+                    <td class="px-4 py-3 hidden sm:table-cell">
+                      <span class="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-400">
+                        {{ result.quality }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-300 whitespace-nowrap">{{ formatBytes(result.size) }}</td>
+                    <td class="px-4 py-3 text-gray-400 whitespace-nowrap hidden md:table-cell">{{ formatAge(result.age) }}</td>
+                    <td class="px-4 py-3 text-gray-400 hidden lg:table-cell">{{ result.indexer }}</td>
+                    <td class="px-4 py-3 text-center hidden md:table-cell">
+                      @if (result.seeders !== undefined) {
+                        <span class="text-green-400">{{ result.seeders }}</span>
+                        <span class="text-gray-600">/</span>
+                        <span class="text-red-400">{{ result.leechers }}</span>
+                      } @else {
+                        <span class="text-gray-600">-</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

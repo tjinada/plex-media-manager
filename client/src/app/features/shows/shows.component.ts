@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { ShowsService, ShowQueryParams, EpisodeQueryParams, PlexService } from '@core/services';
-import { TVShowListItem, EpisodeWithShow, Pagination, FilterState } from '@core/models';
+import { ShowsService, ShowQueryParams, EpisodeQueryParams, PlexService, CompatibilityService } from '@core/services';
+import { TVShowListItem, EpisodeWithShow, Pagination, FilterState, SearchResult, EpisodeSearchResponse } from '@core/models';
 import { FilterPanelComponent, FilterConfig } from '@shared/components/filter-panel/filter-panel.component';
 
 type ViewMode = 'shows' | 'episodes';
@@ -48,9 +48,20 @@ export class ShowsComponent implements OnInit, OnDestroy {
   sortField = 'title';
   sortOrder: 'asc' | 'desc' = 'asc';
 
+  // Search modal state
+  showSearchModal = false;
+  searchLoading = false;
+  searchError: string | null = null;
+  searchResults: SearchResult[] = [];
+  searchEpisode: EpisodeWithShow | null = null;
+  searchExternalUrl: string | null = null;
+  downloadingGuid: string | null = null;
+  downloadedGuids: Set<string> = new Set();
+
   constructor(
     private showsService: ShowsService,
     private plexService: PlexService,
+    private compatibilityService: CompatibilityService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -279,6 +290,87 @@ export class ShowsComponent implements OnInit, OnDestroy {
       case '720p': return 'bg-green-600/20 text-green-400';
       default: return 'bg-gray-600/20 text-gray-400';
     }
+  }
+
+  // ===== Interactive Search Modal Methods =====
+
+  openSearch(episode: EpisodeWithShow, event: Event): void {
+    event.stopPropagation();
+    this.searchEpisode = episode;
+    this.searchResults = [];
+    this.searchError = null;
+    this.showSearchModal = true;
+    this.searchLoading = true;
+
+    this.compatibilityService.searchEpisode(episode.id).subscribe({
+      next: (response: EpisodeSearchResponse) => {
+        this.searchResults = response.results;
+        this.searchExternalUrl = response.sonarrUrl;
+        this.searchLoading = false;
+      },
+      error: (err) => {
+        this.searchError = err.error?.error || err.error?.suggestion || 'Failed to search. Make sure the episode is in Sonarr.';
+        this.searchLoading = false;
+      }
+    });
+  }
+
+  closeSearch(): void {
+    this.showSearchModal = false;
+    this.searchEpisode = null;
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.downloadedGuids.clear();
+  }
+
+  downloadRelease(result: SearchResult, event: Event): void {
+    event.stopPropagation();
+    if (!this.searchEpisode) return;
+    
+    this.downloadingGuid = result.guid;
+    
+    this.compatibilityService.downloadEpisodeRelease(result.guid, result.indexerId).subscribe({
+      next: () => {
+        this.downloadingGuid = null;
+        this.downloadedGuids.add(result.guid);
+      },
+      error: (err) => {
+        this.downloadingGuid = null;
+        alert(err.error?.error || 'Failed to download');
+      }
+    });
+  }
+
+  openExternalUrl(): void {
+    if (this.searchExternalUrl) {
+      window.open(this.searchExternalUrl, '_blank');
+    }
+  }
+
+  getSearchTitle(): string {
+    if (!this.searchEpisode) return '';
+    return `${this.searchEpisode.showTitle} - ${this.formatEpisodeCode(this.searchEpisode.seasonNumber, this.searchEpisode.episodeNumber)}`;
+  }
+
+  isDownloaded(guid: string): boolean {
+    return this.downloadedGuids.has(guid);
+  }
+
+  formatAge(age: number): string {
+    if (age === 0) return 'Today';
+    if (age === 1) return '1 day';
+    if (age < 30) return `${age} days`;
+    if (age < 365) return `${Math.floor(age / 30)} months`;
+    return `${Math.floor(age / 365)} years`;
+  }
+
+  formatBytes(bytes: number): string {
+    if (!bytes || bytes === 0 || isNaN(bytes)) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   get pageNumbers(): number[] {

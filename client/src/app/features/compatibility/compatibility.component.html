@@ -336,11 +336,10 @@
                 <tr>
                   <th class="px-4 py-3 font-medium w-10">Action</th>
                   <th class="px-4 py-3 font-medium">Release</th>
-                  <th class="px-4 py-3 font-medium">Quality</th>
+                  <th class="px-4 py-3 font-medium">Indexer</th>
+                  <th class="px-4 py-3 font-medium">Quality / Score</th>
                   <th class="px-4 py-3 font-medium">Size</th>
                   <th class="px-4 py-3 font-medium">Age</th>
-                  <th class="px-4 py-3 font-medium">Indexer</th>
-                  <th class="px-4 py-3 font-medium text-center">Peers</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-dark-700">
@@ -380,29 +379,22 @@
                         @if (result.rejected && result.rejections.length > 0) {
                           <p class="text-xs text-red-400 mt-1">{{ result.rejections[0] }}</p>
                         }
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-gray-400">{{ result.indexer }}</td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs px-2 py-1 rounded bg-blue-600/20 text-blue-400">{{ result.quality }}</span>
                         @if (result.customFormatScore !== 0) {
-                          <span class="text-xs px-1.5 py-0.5 rounded mt-1 inline-block"
+                          <span class="text-xs px-1.5 py-0.5 rounded"
                             [class]="result.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">
-                            CF: {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}
+                            {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}
                           </span>
                         }
                       </div>
                     </td>
-                    <td class="px-4 py-3">
-                      <span class="text-xs px-2 py-1 rounded bg-blue-600/20 text-blue-400">{{ result.quality }}</span>
-                    </td>
                     <td class="px-4 py-3 text-gray-300">{{ formatBytes(result.size) }}</td>
                     <td class="px-4 py-3 text-gray-400">{{ formatAge(result.age) }}</td>
-                    <td class="px-4 py-3 text-gray-400">{{ result.indexer }}</td>
-                    <td class="px-4 py-3 text-center">
-                      @if (result.protocol === 'torrent') {
-                        <span class="text-green-400">{{ result.seeders }}</span>
-                        <span class="text-gray-600">/</span>
-                        <span class="text-red-400">{{ result.leechers }}</span>
-                      } @else {
-                        <span class="text-gray-500">-</span>
-                      }
-                    </td>
                   </tr>
                 }
               </tbody>

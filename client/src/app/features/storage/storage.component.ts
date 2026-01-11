@@ -6,6 +6,7 @@ import { StorageStats, TopMovie, TopEpisode, ShowStorage } from '@core/models';
 
 type SortField = 'title' | 'fileSize' | 'resolution' | 'videoCodec';
 type SortOrder = 'asc' | 'desc';
+type MediaTab = 'movies' | 'tv';
 
 @Component({
   selector: 'app-storage',
@@ -15,6 +16,7 @@ type SortOrder = 'asc' | 'desc';
 })
 export class StorageComponent implements OnInit {
   isLoading = true;
+  mediaTab: MediaTab = 'movies';
   
   topMovies: TopMovie[] = [];
   topEpisodes: TopEpisode[] = [];
@@ -22,6 +24,8 @@ export class StorageComponent implements OnInit {
   
   storageByType = { movies: 0, episodes: 0 };
   storageByResolution: Record<string, number> = {};
+  movieStorageByResolution: Record<string, number> = {};
+  episodeStorageByResolution: Record<string, number> = {};
 
   movieSortField: SortField = 'fileSize';
   movieSortOrder: SortOrder = 'desc';
@@ -43,12 +47,60 @@ export class StorageComponent implements OnInit {
         this.byShow = data.byShow;
         this.storageByType = data.byType;
         this.storageByResolution = data.byResolution;
+        
+        // Calculate resolution breakdown per media type from top items
+        this.calculateResolutionByMediaType();
+        
         this.isLoading = false;
       },
       error: () => {
         this.isLoading = false;
       }
     });
+  }
+
+  private calculateResolutionByMediaType(): void {
+    // Calculate from top movies
+    this.movieStorageByResolution = {};
+    for (const movie of this.topMovies) {
+      const res = movie.resolution || 'Unknown';
+      this.movieStorageByResolution[res] = (this.movieStorageByResolution[res] || 0) + movie.fileSize;
+    }
+    
+    // Calculate from top episodes
+    this.episodeStorageByResolution = {};
+    for (const episode of this.topEpisodes) {
+      const res = episode.resolution || 'Unknown';
+      this.episodeStorageByResolution[res] = (this.episodeStorageByResolution[res] || 0) + episode.fileSize;
+    }
+  }
+
+  setMediaTab(tab: MediaTab): void {
+    this.mediaTab = tab;
+  }
+
+  getCurrentStorage(): number {
+    return this.mediaTab === 'movies' ? this.storageByType.movies : this.storageByType.episodes;
+  }
+
+  getCurrentResolutionKeys(): string[] {
+    const data = this.mediaTab === 'movies' ? this.movieStorageByResolution : this.episodeStorageByResolution;
+    return Object.keys(data).sort((a, b) => {
+      const order = ['4K', '1080p', '720p', '480p', 'SD', 'Unknown'];
+      return order.indexOf(a) - order.indexOf(b);
+    });
+  }
+
+  getCurrentResolutionStorage(resolution: string): number {
+    const data = this.mediaTab === 'movies' ? this.movieStorageByResolution : this.episodeStorageByResolution;
+    return data[resolution] || 0;
+  }
+
+  getCurrentResolutionPercentage(resolution: string): number {
+    const data = this.mediaTab === 'movies' ? this.movieStorageByResolution : this.episodeStorageByResolution;
+    const total = Object.values(data).reduce((sum, val) => sum + val, 0);
+    if (total === 0) return 0;
+    return (data[resolution] / total) * 100;
   }
 
   sortMovies(field: SortField): void {

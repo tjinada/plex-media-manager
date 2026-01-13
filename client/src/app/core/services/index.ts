@@ -8,3 +8,5 @@ export * from './radarr.service';
 export * from './sonarr.service';
 export * from './watch-history.service';
 export * from './compatibility.service';
+export * from './transcoding.service';
+export * from './tautulli.service';

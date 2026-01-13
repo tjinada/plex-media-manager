@@ -1,4 +1,4 @@
-const { PlexServer, Movie, TVShow, Season, Episode, SyncJob } = require('../models');
+const { PlexServer, Movie, TVShow, Season, Episode, SyncJob, PlaybackSession } = require('../models');
 const PlexService = require('./plex.service');
 const { getResolution } = require('../utils/resolution');
 const { normalizeVideoCodec, normalizeAudioCodec, normalizeContainer } = require('../utils/codec');
@@ -85,7 +85,8 @@ class SyncService {
       startedAt: new Date(),
       moviesRemoved: 0,
       showsRemoved: 0,
-      episodesRemoved: 0
+      episodesRemoved: 0,
+      sessionsAdded: 0
     });
 
     currentSyncJob = this.job._id;
@@ -125,6 +126,11 @@ class SyncService {
         await this.cleanupOrphanedShows();
       }
 
+      // Sync playback sessions for transcoding analysis
+      if (type === 'full') {
+        await this.syncPlaybackSessions();
+      }
+
       // Complete the job
       await this.completeJob();
 
@@ -154,6 +160,223 @@ class SyncService {
     
     // Fallback to item's own metadata (single user)
     return this.plexService.parseWatchInfo(itemMetadata);
+  }
+
+  /**
+   * Sync playback sessions for transcoding analysis
+   * Note: Plex's session history API returns minimal data, so we enrich
+   * sessions with media info from our synced Movie/Episode collections
+   */
+  async syncPlaybackSessions() {
+    console.log('Syncing playback sessions...');
+    
+    try {
+      // Fetch raw session history from Plex
+      const rawSessions = await this.fetchRawPlaybackHistory();
+      console.log(`Fetched ${rawSessions.length} playback sessions from Plex`);
+
+      let added = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      for (const rawSession of rawSessions) {
+        try {
+          // Skip sessions without required data
+          if (!rawSession.ratingKey || !rawSession.viewedAt) {
+            skipped++;
+            continue;
+          }
+
+          // Generate unique session key
+          const sessionKey = `${rawSession.viewedAt}-${rawSession.ratingKey}-${rawSession.accountID || 'unknown'}`;
+          
+          // Determine media type
+          const mediaType = rawSession.type === 'episode' ? 'episode' : 'movie';
+          
+          // Look up media item in our database to get rich metadata
+          let mediaItem = null;
+          let mediaItemId = null;
+          
+          if (mediaType === 'movie') {
+            mediaItem = await Movie.findOne({ 
+              plexId: rawSession.ratingKey, 
+              serverId: this.server._id 
+            });
+          } else {
+            mediaItem = await Episode.findOne({ 
+              plexId: rawSession.ratingKey, 
+              serverId: this.server._id 
+            });
+          }
+          
+          if (mediaItem) {
+            mediaItemId = mediaItem._id;
+          }
+
+          // Build enriched session document
+          const sessionData = {
+            sessionKey,
+            serverId: this.server._id,
+            mediaType,
+            mediaItemId,
+            ratingKey: rawSession.ratingKey,
+            mediaTitle: rawSession.grandparentTitle 
+              ? `${rawSession.grandparentTitle} - ${rawSession.title}`
+              : rawSession.title,
+            viewedAt: new Date(rawSession.viewedAt * 1000),
+            duration: rawSession.duration,
+            
+            // User info from session history
+            userId: rawSession.accountID?.toString(),
+            userName: rawSession.User?.title || null,
+            
+            // Device info - Plex history doesn't provide this, but we can try
+            device: {
+              name: rawSession.Player?.title || rawSession.Player?.device || 'Unknown',
+              platform: rawSession.Player?.platform || null,
+              product: rawSession.Player?.product || null,
+              platformVersion: rawSession.Player?.platformVersion || null,
+              deviceIdentifier: rawSession.Player?.machineIdentifier || 
+                (rawSession.Player?.platform && rawSession.Player?.device 
+                  ? `${rawSession.Player.platform}-${rawSession.Player.device}`.toLowerCase().replace(/\s+/g, '-')
+                  : 'unknown')
+            },
+            
+            // Playback decisions - Plex history has limited transcode info
+            // The history endpoint shows if it was transcoded but not always why
+            playback: {
+              videoDecision: this.normalizeDecision(rawSession.TranscodeSession?.videoDecision),
+              audioDecision: this.normalizeDecision(rawSession.TranscodeSession?.audioDecision),
+              subtitleDecision: rawSession.TranscodeSession?.subtitleDecision || 'none',
+              transcodeReason: rawSession.TranscodeSession?.transcodeReason || null,
+              transcodeHwRequested: rawSession.TranscodeSession?.transcodeHwRequested === true,
+              transcodeHwFullPipeline: rawSession.TranscodeSession?.transcodeHwFullPipeline === true,
+              protocol: rawSession.Session?.location || 'lan'
+            },
+            
+            // Media snapshot - enriched from our database
+            mediaSnapshot: this.buildMediaSnapshot(mediaItem),
+            
+            // Bandwidth
+            bandwidth: {
+              maxStreamingBitrate: rawSession.Session?.bandwidth || null,
+              actualBitrate: mediaItem?.media?.bitrate || null
+            }
+          };
+
+          // Upsert to avoid duplicates
+          const result = await PlaybackSession.updateOne(
+            { sessionKey, serverId: this.server._id },
+            { $set: sessionData },
+            { upsert: true }
+          );
+
+          if (result.upsertedCount > 0) {
+            added++;
+          } else if (result.modifiedCount > 0) {
+            updated++;
+          }
+        } catch (error) {
+          // Skip duplicate key errors silently
+          if (error.code !== 11000) {
+            console.error(`Error saving session:`, error.message);
+          }
+          skipped++;
+        }
+      }
+
+      this.job.sessionsAdded = added;
+      await this.updateJob({ sessionsAdded: added });
+
+      console.log(`Playback session sync complete: ${added} added, ${updated} updated, ${skipped} skipped`);
+    } catch (error) {
+      console.error('Error syncing playback sessions:', error.message);
+      // Don't fail the entire sync job for session sync errors
+    }
+  }
+
+  /**
+   * Fetch raw playback history from Plex
+   */
+  async fetchRawPlaybackHistory() {
+    try {
+      const data = await this.plexService.request('/status/sessions/history/all', {
+        params: { sort: 'viewedAt:desc' }
+      });
+      return data.MediaContainer?.Metadata || [];
+    } catch (error) {
+      console.error('Error fetching playback history:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Normalize playback decision string
+   */
+  normalizeDecision(decision) {
+    if (!decision) return 'directplay';
+    const d = decision.toLowerCase();
+    if (d === 'transcode') return 'transcode';
+    if (d === 'copy' || d === 'directstream') return 'copy';
+    return 'directplay';
+  }
+
+  /**
+   * Build media snapshot from our synced media item
+   */
+  buildMediaSnapshot(mediaItem) {
+    if (!mediaItem || !mediaItem.media) {
+      return {
+        videoCodec: null,
+        audioCodec: null,
+        resolution: null,
+        container: null,
+        bitrate: null,
+        hdrType: 'SDR'
+      };
+    }
+
+    const media = mediaItem.media;
+    
+    // Determine HDR type from our stored HDR info
+    let hdrType = 'SDR';
+    if (media.hdr) {
+      if (media.hdr.doviPresent) {
+        const profile = media.hdr.doviProfile;
+        const blCompatId = media.hdr.doviBLCompatID;
+        if (profile === 5) hdrType = 'DV P5';
+        else if (profile === 7) hdrType = 'DV P7';
+        else if (profile === 8) {
+          if (blCompatId === 1) hdrType = 'DV P8.1';
+          else if (blCompatId === 2) hdrType = 'DV P8.2';
+          else if (blCompatId === 4) hdrType = 'DV P8.4';
+          else hdrType = 'DV P8';
+        } else {
+          hdrType = `DV P${profile || '?'}`;
+        }
+      } else if (media.hdr.colorPrimaries === 'bt2020' && media.hdr.colorTransfer === 'smpte2084') {
+        // Check for HDR10+ indicators
+        const displayTitle = (media.hdr.displayTitle || '').toLowerCase();
+        if (displayTitle.includes('hdr10+') || displayTitle.includes('hdr10 plus')) {
+          hdrType = 'HDR10+';
+        } else {
+          hdrType = 'HDR10';
+        }
+      } else if (media.hdr.colorTransfer === 'arib-std-b67') {
+        hdrType = 'HLG';
+      } else if (media.hdr.bitDepth >= 10 && media.hdr.colorPrimaries === 'bt2020') {
+        hdrType = 'HDR';
+      }
+    }
+
+    return {
+      videoCodec: media.videoCodec || null,
+      audioCodec: media.audioCodec || null,
+      resolution: media.resolution || null,
+      container: media.container || null,
+      bitrate: media.bitrate || null,
+      hdrType
+    };
   }
 
   /**
@@ -694,7 +917,8 @@ class SyncService {
           showsRemoved: this.job.showsRemoved || 0,
           episodesAdded: this.job.episodesAdded,
           episodesUpdated: this.job.episodesUpdated,
-          episodesRemoved: this.job.episodesRemoved || 0
+          episodesRemoved: this.job.episodesRemoved || 0,
+          sessionsAdded: this.job.sessionsAdded || 0
         }
       }
     );

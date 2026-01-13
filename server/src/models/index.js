@@ -6,6 +6,8 @@ const Episode = require('./Episode');
 const SyncJob = require('./SyncJob');
 const RadarrConfig = require('./RadarrConfig');
 const SonarrConfig = require('./SonarrConfig');
+const PlaybackSession = require('./PlaybackSession');
+const TautulliConfig = require('./TautulliConfig');
 
 module.exports = {
   PlexServer,
@@ -15,5 +17,7 @@ module.exports = {
   Episode,
   SyncJob,
   RadarrConfig,
-  SonarrConfig
+  SonarrConfig,
+  PlaybackSession,
+  TautulliConfig
 };

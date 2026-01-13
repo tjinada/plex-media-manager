@@ -26,6 +26,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { path: '/wanted', label: 'Wanted', icon: 'wanted' },
     { path: '/watch-history', label: 'Watch History', icon: 'watch-history' },
     { path: '/compatibility', label: 'Compatibility', icon: 'compatibility' },
+    { path: '/transcoding', label: 'Transcoding', icon: 'transcoding' },
     { path: '/settings', label: 'Settings', icon: 'settings' }
   ];
 

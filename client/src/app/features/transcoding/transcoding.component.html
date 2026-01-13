@@ -1,0 +1,605 @@
+<!-- Header -->
+<div class="sticky top-0 z-10 bg-dark-900/95 backdrop-blur-sm border-b border-dark-700 px-4 py-4 md:px-6">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-100">Transcoding Analysis</h1>
+      <p class="text-sm text-gray-400 mt-1">Understand what causes transcoding on your Plex server</p>
+    </div>
+    
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Period Selector -->
+      <select
+        [(ngModel)]="selectedPeriod"
+        (ngModelChange)="onPeriodChange()"
+        class="bg-dark-800 border border-dark-600 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500">
+        <option value="7d">Last 7 Days</option>
+        <option value="30d">Last 30 Days</option>
+        <option value="90d">Last 90 Days</option>
+        <option value="all">All Time</option>
+      </select>
+      
+      <!-- User Filter -->
+      <select
+        [(ngModel)]="selectedUserId"
+        (ngModelChange)="onUserChange()"
+        class="bg-dark-800 border border-dark-600 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500">
+        <option [ngValue]="null">All Users</option>
+        @for (user of users; track user.userId) {
+          <option [value]="user.userId">{{ user.userName }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="p-4 md:p-6 space-y-6">
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+    </div>
+  } @else {
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <!-- Direct Play Rate -->
+      <div class="bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div class="text-2xl md:text-3xl font-bold" [class]="getDirectPlayRateClass(summary?.directPlayRate ?? 0)">
+          {{ summary?.directPlayRate ?? 0 }}%
+        </div>
+        <div class="text-sm text-gray-400 mt-1">Direct Play Rate</div>
+      </div>
+      
+      <!-- Total Sessions -->
+      <div class="bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div class="text-2xl md:text-3xl font-bold text-gray-100">
+          {{ formatNumber(summary?.totalSessions ?? 0) }}
+        </div>
+        <div class="text-sm text-gray-400 mt-1">Total Plays</div>
+      </div>
+      
+      <!-- Transcodes -->
+      <div class="bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div class="text-2xl md:text-3xl font-bold text-red-400">
+          {{ formatNumber(summary?.transcodeCount ?? 0) }}
+        </div>
+        <div class="text-sm text-gray-400 mt-1">Transcodes</div>
+      </div>
+      
+      <!-- Top Device -->
+      <div class="bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div class="text-lg md:text-xl font-bold text-gray-100 truncate" [title]="summary?.topDevice?.name ?? ''">
+          {{ summary?.topDevice?.name ?? 'N/A' }}
+        </div>
+        <div class="text-sm text-gray-400 mt-1">
+          @if (summary?.topDevice) {
+            {{ summary!.topDevice!.transcodeCount }} transcodes
+          } @else {
+            Top Device
+          }
+        </div>
+      </div>
+      
+      <!-- Top Codec -->
+      <div class="bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div class="text-lg md:text-xl font-bold text-gray-100">
+          {{ summary?.topCodec?.name ?? 'N/A' }}
+        </div>
+        <div class="text-sm text-gray-400 mt-1">
+          @if (summary?.topCodec) {
+            {{ summary!.topCodec!.transcodeCount }} transcodes
+          } @else {
+            Top Codec Issue
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="border-b border-dark-700">
+      <nav class="flex gap-1 overflow-x-auto -mb-px">
+        <button
+          (click)="onTabChange('overview')"
+          class="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+          [class.border-primary-500]="activeTab === 'overview'"
+          [class.text-primary-400]="activeTab === 'overview'"
+          [class.border-transparent]="activeTab !== 'overview'"
+          [class.text-gray-400]="activeTab !== 'overview'"
+          [class.hover:text-gray-200]="activeTab !== 'overview'">
+          Overview
+        </button>
+        <button
+          (click)="onTabChange('devices')"
+          class="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+          [class.border-primary-500]="activeTab === 'devices'"
+          [class.text-primary-400]="activeTab === 'devices'"
+          [class.border-transparent]="activeTab !== 'devices'"
+          [class.text-gray-400]="activeTab !== 'devices'"
+          [class.hover:text-gray-200]="activeTab !== 'devices'">
+          Devices
+        </button>
+        <button
+          (click)="onTabChange('formats')"
+          class="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+          [class.border-primary-500]="activeTab === 'formats'"
+          [class.text-primary-400]="activeTab === 'formats'"
+          [class.border-transparent]="activeTab !== 'formats'"
+          [class.text-gray-400]="activeTab !== 'formats'"
+          [class.hover:text-gray-200]="activeTab !== 'formats'">
+          Formats
+        </button>
+        <button
+          (click)="onTabChange('recommendations')"
+          class="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+          [class.border-primary-500]="activeTab === 'recommendations'"
+          [class.text-primary-400]="activeTab === 'recommendations'"
+          [class.border-transparent]="activeTab !== 'recommendations'"
+          [class.text-gray-400]="activeTab !== 'recommendations'"
+          [class.hover:text-gray-200]="activeTab !== 'recommendations'">
+          Recommendations
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="min-h-[400px]">
+      <!-- Overview Tab -->
+      @if (activeTab === 'overview') {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Playback Decisions Donut -->
+          <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+            <h3 class="text-lg font-medium text-gray-100 mb-4">Playback Decisions</h3>
+            <div class="h-64">
+              <canvas baseChart
+                [data]="donutChartData"
+                [options]="donutChartOptions"
+                type="doughnut">
+              </canvas>
+            </div>
+          </div>
+          
+          <!-- Transcodes Over Time -->
+          <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+            <h3 class="text-lg font-medium text-gray-100 mb-4">Playback Over Time</h3>
+            <div class="h-64">
+              <canvas baseChart
+                [data]="lineChartData"
+                [options]="lineChartOptions"
+                type="line">
+              </canvas>
+            </div>
+          </div>
+          
+          <!-- Transcode Reasons -->
+          <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+            <h3 class="text-lg font-medium text-gray-100 mb-4">Transcode Reasons</h3>
+            @if (transcodeReasons.length > 0) {
+              <div class="h-64">
+                <canvas baseChart
+                  [data]="reasonsChartData"
+                  [options]="reasonsChartOptions"
+                  type="bar">
+                </canvas>
+              </div>
+            } @else {
+              <div class="h-64 flex items-center justify-center text-gray-500">
+                No transcode data available
+              </div>
+            }
+          </div>
+          
+          <!-- Top Transcoding Media -->
+          <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+            <h3 class="text-lg font-medium text-gray-100 mb-4">Top Transcoding Media</h3>
+            @if (topMedia.length > 0) {
+              <div class="space-y-3">
+                @for (item of topMedia; track item.mediaItemId) {
+                  <div class="flex items-center gap-3 p-2 rounded-lg bg-dark-700/50">
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-medium text-gray-200 truncate">
+                        {{ item.title }}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        {{ item.mediaSnapshot.videoCodec }} • {{ item.mediaSnapshot.resolution }}
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-medium text-red-400">
+                        {{ item.transcodeCount }}
+                      </div>
+                      <div class="text-xs text-gray-500">transcodes</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="h-48 flex items-center justify-center text-gray-500">
+                No transcode data available
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Devices Tab -->
+      @if (activeTab === 'devices') {
+        @if (loadingDevices) {
+          <div class="flex items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        } @else {
+          <div class="space-y-6">
+            <!-- Info notice about historical data -->
+            @if (devices.length === 1 && devices[0].name === 'Unknown') {
+              <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                <div class="flex items-start gap-3">
+                  <svg class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <div>
+                    <div class="text-sm font-medium text-blue-300">Device Tracking Starting</div>
+                    <p class="text-sm text-gray-400 mt-1">
+                      Historical playback data from Plex doesn't include device information. 
+                      New sessions will be captured with full device details going forward. 
+                      Play some content to start seeing device-specific analytics.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+            
+            <!-- Device Chart -->
+            <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+              <h3 class="text-lg font-medium text-gray-100 mb-4">Direct Play Rate by Device</h3>
+              @if (devices.length > 0) {
+                <div class="h-80">
+                  <canvas baseChart
+                    [data]="deviceChartData"
+                    [options]="deviceChartOptions"
+                    type="bar">
+                  </canvas>
+                </div>
+              } @else {
+                <div class="h-64 flex items-center justify-center text-gray-500">
+                  No device data available
+                </div>
+              }
+            </div>
+            
+            <!-- Device Details -->
+            <div class="space-y-3">
+              @for (device of devices; track device.deviceIdentifier) {
+                <div class="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+                  <!-- Device Header -->
+                  <button
+                    (click)="toggleDeviceExpanded(device.deviceIdentifier)"
+                    class="w-full p-4 flex items-center justify-between hover:bg-dark-700/50 transition-colors">
+                    <div class="flex items-center gap-4">
+                      <div class="flex-1 min-w-0 text-left">
+                        <div class="text-sm font-medium text-gray-200">{{ device.name }}</div>
+                        <div class="text-xs text-gray-500">{{ device.platform }} • {{ device.product }}</div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                      <div class="text-right hidden sm:block">
+                        <div class="text-sm text-gray-400">{{ device.totalPlays }} plays</div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-lg font-medium" [class]="getDirectPlayRateClass(device.directPlayRate)">
+                          {{ device.directPlayRate }}%
+                        </div>
+                        <div class="text-xs text-gray-500">direct play</div>
+                      </div>
+                      <svg 
+                        class="w-5 h-5 text-gray-400 transition-transform"
+                        [class.rotate-180]="isDeviceExpanded(device.deviceIdentifier)"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </button>
+                  
+                  <!-- Device Details (Expanded) -->
+                  @if (isDeviceExpanded(device.deviceIdentifier)) {
+                    <div class="px-4 pb-4 border-t border-dark-700 pt-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <div class="text-xs text-gray-500 uppercase tracking-wider mb-2">Statistics</div>
+                          <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                              <span class="text-gray-400">Total Plays</span>
+                              <span class="text-gray-200">{{ device.totalPlays }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                              <span class="text-gray-400">Direct Play</span>
+                              <span class="text-green-400">{{ device.directPlayCount }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                              <span class="text-gray-400">Transcodes</span>
+                              <span class="text-red-400">{{ device.transcodeCount }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <div class="text-xs text-gray-500 uppercase tracking-wider mb-2">Top Transcode Reasons</div>
+                          @if (device.topReasons.length > 0) {
+                            <div class="space-y-1 text-sm">
+                              @for (reason of device.topReasons; track reason.reason) {
+                                <div class="flex justify-between">
+                                  <span class="text-gray-400">{{ getReasonLabel(reason.reason) }}</span>
+                                  <span class="text-gray-200">{{ reason.count }}</span>
+                                </div>
+                              }
+                            </div>
+                          } @else {
+                            <div class="text-sm text-gray-500">No transcodes recorded</div>
+                          }
+                        </div>
+                        
+                        <div>
+                          <div class="text-xs text-gray-500 uppercase tracking-wider mb-2">Users</div>
+                          <div class="flex flex-wrap gap-1">
+                            @for (user of device.users; track user) {
+                              <span class="px-2 py-0.5 bg-dark-700 rounded text-xs text-gray-300">{{ user }}</span>
+                            }
+                            @if (device.users.length === 0) {
+                              <span class="text-sm text-gray-500">Unknown</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              
+              @if (devices.length === 0) {
+                <div class="bg-dark-800 rounded-xl p-8 border border-dark-700 text-center text-gray-500">
+                  No device data available for the selected period
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Formats Tab -->
+      @if (activeTab === 'formats') {
+        @if (loadingFormats) {
+          <div class="flex items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        } @else {
+          <div class="space-y-6">
+            <!-- Codec Tables -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Video Codecs -->
+              <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+                <h3 class="text-lg font-medium text-gray-100 mb-4">Video Codecs</h3>
+                @if (formatData && formatData.videoCodecs && formatData.videoCodecs.length > 0) {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-left text-gray-500 border-b border-dark-700">
+                          <th class="pb-2 font-medium">Codec</th>
+                          <th class="pb-2 font-medium text-right">Plays</th>
+                          <th class="pb-2 font-medium text-right">DP Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (codec of formatData.videoCodecs; track codec.name) {
+                          <tr class="border-b border-dark-700/50">
+                            <td class="py-2 text-gray-200">{{ codec.name }}</td>
+                            <td class="py-2 text-right text-gray-400">{{ codec.totalPlays }}</td>
+                            <td class="py-2 text-right" [class]="getDirectPlayRateClass(codec.directPlayRate)">
+                              {{ codec.directPlayRate }}%
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="text-gray-500 text-center py-8">No data available</div>
+                }
+              </div>
+              
+              <!-- Audio Codecs -->
+              <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+                <h3 class="text-lg font-medium text-gray-100 mb-4">Audio Codecs</h3>
+                @if (formatData && formatData.audioCodecs && formatData.audioCodecs.length > 0) {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-left text-gray-500 border-b border-dark-700">
+                          <th class="pb-2 font-medium">Codec</th>
+                          <th class="pb-2 font-medium text-right">Plays</th>
+                          <th class="pb-2 font-medium text-right">DP Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (codec of formatData.audioCodecs; track codec.name) {
+                          <tr class="border-b border-dark-700/50">
+                            <td class="py-2 text-gray-200">{{ codec.name }}</td>
+                            <td class="py-2 text-right text-gray-400">{{ codec.totalPlays }}</td>
+                            <td class="py-2 text-right" [class]="getDirectPlayRateClass(codec.directPlayRate)">
+                              {{ codec.directPlayRate }}%
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="text-gray-500 text-center py-8">No data available</div>
+                }
+              </div>
+            </div>
+            
+            <!-- HDR Formats -->
+            <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+              <h3 class="text-lg font-medium text-gray-100 mb-4">HDR Formats</h3>
+              @if (formatData && formatData.hdrTypes && formatData.hdrTypes.length > 0) {
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="text-left text-gray-500 border-b border-dark-700">
+                        <th class="pb-2 font-medium">Format</th>
+                        <th class="pb-2 font-medium text-right">Plays</th>
+                        <th class="pb-2 font-medium text-right">Direct Play</th>
+                        <th class="pb-2 font-medium text-right">Transcodes</th>
+                        <th class="pb-2 font-medium text-right">DP Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (hdr of formatData.hdrTypes; track hdr.name) {
+                        <tr class="border-b border-dark-700/50">
+                          <td class="py-2 text-gray-200">{{ hdr.name }}</td>
+                          <td class="py-2 text-right text-gray-400">{{ hdr.totalPlays }}</td>
+                          <td class="py-2 text-right text-green-400">{{ hdr.directPlayCount }}</td>
+                          <td class="py-2 text-right text-red-400">{{ hdr.transcodeCount }}</td>
+                          <td class="py-2 text-right" [class]="getDirectPlayRateClass(hdr.directPlayRate)">
+                            {{ hdr.directPlayRate }}%
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <div class="text-gray-500 text-center py-8">No HDR data available</div>
+              }
+            </div>
+            
+            <!-- Problematic Combinations -->
+            <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
+              <h3 class="text-lg font-medium text-gray-100 mb-4">Problematic Combinations</h3>
+              @if (combinations.length > 0) {
+                <div class="space-y-3">
+                  @for (combo of combinations.slice(0, 10); track combo.videoCodec + combo.audioCodec) {
+                    <div class="p-3 rounded-lg bg-dark-700/50 border border-dark-600">
+                      <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 bg-dark-600 rounded text-xs text-gray-300">{{ combo.videoCodec }}</span>
+                        <span class="text-gray-600">+</span>
+                        <span class="px-2 py-0.5 bg-dark-600 rounded text-xs text-gray-300">{{ combo.audioCodec }}</span>
+                        <span class="text-gray-600">+</span>
+                        <span class="px-2 py-0.5 bg-dark-600 rounded text-xs text-gray-300">{{ combo.container }}</span>
+                        @if (combo.hdrType !== 'SDR') {
+                          <span class="text-gray-600">+</span>
+                          <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">{{ combo.hdrType }}</span>
+                        }
+                      </div>
+                      <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                        <div class="text-gray-400">
+                          {{ combo.fileCount }} files • {{ combo.totalPlays }} plays
+                        </div>
+                        <div [class]="getDirectPlayRateClass(combo.directPlayRate)">
+                          {{ combo.directPlayRate }}% direct play
+                        </div>
+                      </div>
+                      @if (combo.affectedDevices.length > 0) {
+                        <div class="mt-2 text-xs text-gray-500">
+                          Affects: {{ combo.affectedDevices.slice(0, 3).join(', ') }}
+                          @if (combo.affectedDevices.length > 3) {
+                            and {{ combo.affectedDevices.length - 3 }} more
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="text-gray-500 text-center py-8">No problematic combinations found</div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Recommendations Tab -->
+      @if (activeTab === 'recommendations') {
+        @if (loadingRecommendations) {
+          <div class="flex items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        } @else {
+          <div class="space-y-4">
+            @if (recommendations.length > 0) {
+              @for (rec of recommendations; track rec.id) {
+                <div 
+                  class="bg-dark-800 rounded-xl p-4 md:p-6 border-l-4"
+                  [ngClass]="getRecommendationTypeClass(rec.type)">
+                  <div class="flex items-start gap-4">
+                    <div class="text-2xl">{{ rec.icon }}</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span 
+                          class="px-2 py-0.5 rounded text-xs font-medium uppercase"
+                          [ngClass]="getRecommendationBadgeClass(rec.type)">
+                          {{ rec.type === 'positive' ? 'Insight' : rec.type + ' Impact' }}
+                        </span>
+                      </div>
+                      <h4 class="text-lg font-medium text-gray-100 mb-2">{{ rec.title }}</h4>
+                      <p class="text-sm text-gray-400 mb-4">{{ rec.description }}</p>
+                      
+                      @if (rec.impact.estimatedTranscodeReduction > 0 || rec.impact.affectedFiles) {
+                        <div class="flex flex-wrap gap-4 text-sm mb-4">
+                          @if (rec.impact.estimatedTranscodeReduction > 0) {
+                            <div>
+                              <span class="text-gray-500">Est. Reduction:</span>
+                              <span class="text-green-400 ml-1">~{{ rec.impact.estimatedTranscodeReduction }} transcodes/period</span>
+                            </div>
+                          }
+                          @if (rec.impact.affectedFiles) {
+                            <div>
+                              <span class="text-gray-500">Files:</span>
+                              <span class="text-gray-200 ml-1">{{ rec.impact.affectedFiles }}</span>
+                            </div>
+                          }
+                          @if (rec.impact.affectedStorage) {
+                            <div>
+                              <span class="text-gray-500">Storage:</span>
+                              <span class="text-gray-200 ml-1">{{ formatBytes(rec.impact.affectedStorage) }}</span>
+                            </div>
+                          }
+                        </div>
+                      }
+                      
+                      @if (rec.actions.length > 0) {
+                        <div class="flex flex-wrap gap-2">
+                          @for (action of rec.actions; track action.label) {
+                            @if (action.type === 'link') {
+                              <a 
+                                [href]="action.data?.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-sm text-gray-300 transition-colors">
+                                {{ action.label }}
+                              </a>
+                            } @else {
+                              <button 
+                                class="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-sm text-gray-300 transition-colors">
+                                {{ action.label }}
+                              </button>
+                            }
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="bg-dark-800 rounded-xl p-8 border border-dark-700 text-center">
+                <div class="text-4xl mb-4">🎉</div>
+                <h3 class="text-lg font-medium text-gray-100 mb-2">No Issues Found!</h3>
+                <p class="text-gray-400">Your library is well-optimized for your devices. No recommendations at this time.</p>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

@@ -175,6 +175,202 @@ class PlexService {
   }
 
   /**
+   * Get detailed playback session history with transcode information
+   * This endpoint provides rich data about each playback session including
+   * device info, transcode decisions, and reasons
+   */
+  async getPlaybackSessions(options = {}) {
+    try {
+      const data = await this.request('/status/sessions/history/all', {
+        params: {
+          sort: 'viewedAt:desc',
+          ...options.params
+        }
+      });
+      
+      const sessions = data.MediaContainer?.Metadata || [];
+      
+      return sessions.map(session => this.parsePlaybackSession(session));
+    } catch (error) {
+      console.error('Error fetching playback sessions:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Parse a playback session from Plex API response
+   */
+  parsePlaybackSession(session) {
+    // Determine HDR type from video stream info
+    const hdrType = this.determineHdrType(session);
+    
+    // Generate a unique session key
+    // Plex doesn't always provide a unique session ID in history,
+    // so we create one from viewedAt + ratingKey + accountID
+    const sessionKey = `${session.viewedAt}-${session.ratingKey}-${session.accountID || 'unknown'}`;
+    
+    return {
+      sessionKey,
+      ratingKey: session.ratingKey,
+      
+      // Media info
+      mediaType: session.type === 'episode' ? 'episode' : 'movie',
+      mediaTitle: session.grandparentTitle 
+        ? `${session.grandparentTitle} - ${session.title}`
+        : session.title,
+      
+      // Timing
+      viewedAt: session.viewedAt ? new Date(session.viewedAt * 1000) : null,
+      duration: session.duration,
+      
+      // User info
+      userId: session.accountID?.toString(),
+      userName: session.User?.title || null,
+      
+      // Device info
+      device: {
+        name: session.Player?.title || session.Player?.device || 'Unknown',
+        platform: session.Player?.platform || null,
+        product: session.Player?.product || null,
+        platformVersion: session.Player?.platformVersion || null,
+        deviceIdentifier: session.Player?.machineIdentifier || 
+          `${session.Player?.platform}-${session.Player?.device}`.toLowerCase().replace(/\s+/g, '-')
+      },
+      
+      // Transcode decisions
+      playback: {
+        videoDecision: this.normalizeDecision(session.TranscodeSession?.videoDecision || session.videoDecision),
+        audioDecision: this.normalizeDecision(session.TranscodeSession?.audioDecision || session.audioDecision),
+        subtitleDecision: this.normalizeSubtitleDecision(session),
+        transcodeReason: session.TranscodeSession?.transcodeReason || 
+          session.transcodeReason || null,
+        transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested === true ||
+          session.TranscodeSession?.transcodeHwRequested === 1,
+        transcodeHwFullPipeline: session.TranscodeSession?.transcodeHwFullPipeline === true ||
+          session.TranscodeSession?.transcodeHwFullPipeline === 1,
+        protocol: session.TranscodeSession?.protocol || 
+          session.Session?.location || 'http'
+      },
+      
+      // Media snapshot
+      mediaSnapshot: {
+        videoCodec: session.Media?.[0]?.videoCodec || null,
+        audioCodec: session.Media?.[0]?.audioCodec || null,
+        resolution: this.getResolutionLabel(session.Media?.[0]),
+        container: session.Media?.[0]?.container || null,
+        bitrate: session.Media?.[0]?.bitrate || null,
+        hdrType
+      },
+      
+      // Bandwidth
+      bandwidth: {
+        maxStreamingBitrate: session.Session?.bandwidth || null,
+        actualBitrate: session.TranscodeSession?.speed 
+          ? Math.round(session.Media?.[0]?.bitrate * session.TranscodeSession.speed)
+          : session.Media?.[0]?.bitrate || null
+      }
+    };
+  }
+
+  /**
+   * Normalize playback decision string
+   */
+  normalizeDecision(decision) {
+    if (!decision) return 'directplay';
+    const d = decision.toLowerCase();
+    if (d === 'transcode') return 'transcode';
+    if (d === 'copy' || d === 'directstream') return 'copy';
+    return 'directplay';
+  }
+
+  /**
+   * Determine subtitle decision
+   */
+  normalizeSubtitleDecision(session) {
+    const subtitleDecision = session.TranscodeSession?.subtitleDecision;
+    if (!subtitleDecision) return 'none';
+    const d = subtitleDecision.toLowerCase();
+    if (d === 'burn') return 'burn';
+    if (d === 'transcode') return 'transcode';
+    return 'directplay';
+  }
+
+  /**
+   * Determine HDR type from session data
+   */
+  determineHdrType(session) {
+    const media = session.Media?.[0];
+    const part = media?.Part?.[0];
+    const streams = part?.Stream || [];
+    const videoStream = streams.find(s => s.streamType === 1);
+    
+    if (!videoStream) return 'SDR';
+    
+    // Check for Dolby Vision
+    if (videoStream.DOVIPresent) {
+      const profile = videoStream.DOVIProfile;
+      const blCompatId = videoStream.DOVIBLCompatID;
+      
+      if (profile === 5) return 'DV P5';
+      if (profile === 7) return 'DV P7';
+      if (profile === 8) {
+        if (blCompatId === 1) return 'DV P8.1';
+        if (blCompatId === 2) return 'DV P8.2';
+        if (blCompatId === 4) return 'DV P8.4';
+        return 'DV P8';
+      }
+      return `DV P${profile || '?'}`;
+    }
+    
+    // Check for HDR10+ (bt2020 + smpte2084 + HDR10Plus flag or metadata)
+    const colorPrimaries = videoStream.colorPrimaries;
+    const colorTransfer = videoStream.colorTransfer;
+    
+    if (colorPrimaries === 'bt2020' && colorTransfer === 'smpte2084') {
+      // This is HDR10 or HDR10+
+      // HDR10+ detection is tricky - often shown in displayTitle
+      const displayTitle = (videoStream.displayTitle || '').toLowerCase();
+      const extendedTitle = (videoStream.extendedDisplayTitle || '').toLowerCase();
+      
+      if (displayTitle.includes('hdr10+') || extendedTitle.includes('hdr10+') ||
+          displayTitle.includes('hdr10 plus') || extendedTitle.includes('hdr10 plus')) {
+        return 'HDR10+';
+      }
+      return 'HDR10';
+    }
+    
+    // Check for HLG
+    if (colorTransfer === 'arib-std-b67') {
+      return 'HLG';
+    }
+    
+    // Check bit depth for basic HDR detection
+    if (videoStream.bitDepth >= 10 && colorPrimaries === 'bt2020') {
+      return 'HDR';
+    }
+    
+    return 'SDR';
+  }
+
+  /**
+   * Get resolution label from media info
+   */
+  getResolutionLabel(media) {
+    if (!media) return null;
+    
+    const height = media.height;
+    const width = media.width;
+    
+    if (!height && !width) return null;
+    
+    if (width >= 3840 || height >= 2160) return '4K';
+    if (width >= 1920 || height >= 1080) return '1080p';
+    if (width >= 1280 || height >= 720) return '720p';
+    if (width >= 720 || height >= 480) return '480p';
+    return `${height}p`;
+  }
+
+  /**
    * Parse media info from Plex metadata
    */
   parseMediaInfo(metadata) {

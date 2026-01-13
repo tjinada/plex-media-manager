@@ -12,6 +12,8 @@ const radarrRoutes = require('./radarr.routes');
 const sonarrRoutes = require('./sonarr.routes');
 const watchHistoryRoutes = require('./watch-history.routes');
 const compatibilityRoutes = require('./compatibility.routes');
+const transcodingRoutes = require('./transcoding.routes');
+const tautulliRoutes = require('./tautulli.routes');
 
 router.use('/auth', authRoutes);
 router.use('/server', serverRoutes);
@@ -24,5 +26,7 @@ router.use('/radarr', radarrRoutes);
 router.use('/sonarr', sonarrRoutes);
 router.use('/watch-history', watchHistoryRoutes);
 router.use('/compatibility', compatibilityRoutes);
+router.use('/transcoding', transcodingRoutes);
+router.use('/tautulli', tautulliRoutes);
 
 module.exports = router;

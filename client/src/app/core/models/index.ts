@@ -6,3 +6,4 @@ export * from './radarr.model';
 export * from './sonarr.model';
 export * from './watch-history.model';
 export * from './compatibility.model';
+export * from './transcoding.model';

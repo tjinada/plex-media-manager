@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PlexService, SyncService, RadarrService, SonarrService } from '@core/services';
+import { PlexService, SyncService, RadarrService, SonarrService, TautulliService } from '@core/services';
+import { TautulliConfig, TautulliConnectionInfo, TautulliImportStatus } from '@core/services/tautulli.service';
 import { PlexServer, RadarrConfig, SonarrConfig, AutoSyncSettings } from '@core/models';
 
 export interface SyncJob {
@@ -23,7 +24,7 @@ export interface SyncJob {
   imports: [CommonModule, FormsModule],
   templateUrl: './settings.component.html'
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   // Server state
   server: PlexServer | null = null;
   isLoading = true;
@@ -84,11 +85,38 @@ export class SettingsComponent implements OnInit {
   savingRadarrSize = false;
   savingSonarrSize = false;
 
+  // Tautulli state
+  tautulliConfig: TautulliConfig | null = null;
+  tautulliConfigured = false;
+  tautulliHost = '';
+  tautulliApiKey = '';
+  tautulliConnecting = false;
+  tautulliTesting = false;
+  tautulliError = '';
+  tautulliTestResult: TautulliConnectionInfo | null = null;
+  tautulliSyncEnabled = true;
+  tautulliSyncInterval = 60;
+  savingTautulliSync = false;
+
+  // Tautulli import state
+  tautulliImportStatus: TautulliImportStatus | null = null;
+  importPollingInterval: any = null;
+
+  // Tautulli sync interval options
+  tautulliSyncOptions = [
+    { value: 30, label: '30 seconds' },
+    { value: 60, label: '1 minute' },
+    { value: 120, label: '2 minutes' },
+    { value: 300, label: '5 minutes' },
+    { value: 600, label: '10 minutes' }
+  ];
+
   constructor(
     private plexService: PlexService,
     private syncService: SyncService,
     private radarrService: RadarrService,
-    private sonarrService: SonarrService
+    private sonarrService: SonarrService,
+    private tautulliService: TautulliService
   ) {}
 
   ngOnInit(): void {
@@ -97,6 +125,13 @@ export class SettingsComponent implements OnInit {
     this.loadAutoSyncSettings();
     this.loadRadarrConfig();
     this.loadSonarrConfig();
+    this.loadTautulliConfig();
+  }
+
+  ngOnDestroy(): void {
+    if (this.importPollingInterval) {
+      clearInterval(this.importPollingInterval);
+    }
   }
 
   // ===== Plex Methods =====
@@ -449,6 +484,199 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  // ===== Tautulli Methods =====
+  loadTautulliConfig(): void {
+    this.tautulliService.getConfig().subscribe({
+      next: (response) => {
+        this.tautulliConfigured = response.configured;
+        this.tautulliConfig = response.config;
+        if (this.tautulliConfig) {
+          this.tautulliHost = this.tautulliConfig.host;
+          this.tautulliSyncEnabled = this.tautulliConfig.syncEnabled;
+          this.tautulliSyncInterval = this.tautulliConfig.syncIntervalSeconds;
+        }
+        // Check import status if configured
+        if (this.tautulliConfigured) {
+          this.checkImportStatus();
+        }
+      }
+    });
+  }
+
+  testTautulliConnection(): void {
+    if (!this.tautulliHost || !this.tautulliApiKey) {
+      this.tautulliError = 'Please enter both host URL and API key';
+      return;
+    }
+
+    this.tautulliTesting = true;
+    this.tautulliError = '';
+    this.tautulliTestResult = null;
+
+    this.tautulliService.testConnection(this.tautulliHost, this.tautulliApiKey).subscribe({
+      next: (result) => {
+        this.tautulliTestResult = result;
+        this.tautulliTesting = false;
+      },
+      error: (error: { error?: { message?: string; details?: string } }) => {
+        this.tautulliError = error.error?.details || error.error?.message || 'Failed to connect to Tautulli';
+        this.tautulliTesting = false;
+      }
+    });
+  }
+
+  connectTautulli(): void {
+    if (!this.tautulliHost || !this.tautulliApiKey) {
+      this.tautulliError = 'Please enter both host URL and API key';
+      return;
+    }
+
+    this.tautulliConnecting = true;
+    this.tautulliError = '';
+
+    this.tautulliService.saveConfig({
+      host: this.tautulliHost,
+      apiKey: this.tautulliApiKey,
+      syncEnabled: this.tautulliSyncEnabled,
+      syncIntervalSeconds: this.tautulliSyncInterval
+    }).subscribe({
+      next: (response) => {
+        this.tautulliConfigured = true;
+        this.tautulliConfig = response.config as TautulliConfig;
+        this.tautulliConnecting = false;
+        this.tautulliApiKey = '';
+        this.tautulliTestResult = null;
+        // Reload to get full config
+        this.loadTautulliConfig();
+      },
+      error: (error: { error?: { message?: string; details?: string } }) => {
+        this.tautulliError = error.error?.details || error.error?.message || 'Failed to connect to Tautulli';
+        this.tautulliConnecting = false;
+      }
+    });
+  }
+
+  disconnectTautulli(): void {
+    if (!confirm('Are you sure you want to disconnect Tautulli? Playback session data will be preserved.')) {
+      return;
+    }
+
+    this.tautulliService.deleteConfig().subscribe({
+      next: () => {
+        this.tautulliConfigured = false;
+        this.tautulliConfig = null;
+        this.tautulliHost = '';
+        this.tautulliApiKey = '';
+        this.stopImportPolling();
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.tautulliError = error.error?.message || 'Failed to disconnect Tautulli';
+      }
+    });
+  }
+
+  saveTautulliSyncSettings(): void {
+    this.savingTautulliSync = true;
+
+    this.tautulliService.updateSyncSettings({
+      syncEnabled: this.tautulliSyncEnabled,
+      syncIntervalSeconds: this.tautulliSyncInterval
+    }).subscribe({
+      next: (response) => {
+        this.tautulliSyncEnabled = response.syncEnabled;
+        this.tautulliSyncInterval = response.syncIntervalSeconds;
+        this.savingTautulliSync = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.tautulliError = error.error?.message || 'Failed to update sync settings';
+        this.savingTautulliSync = false;
+      }
+    });
+  }
+
+  toggleTautulliSync(): void {
+    this.tautulliSyncEnabled = !this.tautulliSyncEnabled;
+    this.saveTautulliSyncSettings();
+  }
+
+  formatTautulliLastSync(): string {
+    if (!this.tautulliConfig?.lastSyncAt) return 'Never';
+    const date = new Date(this.tautulliConfig.lastSyncAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleString();
+  }
+
+  // ===== Tautulli Import Methods =====
+  checkImportStatus(): void {
+    this.tautulliService.getImportStatus().subscribe({
+      next: (status) => {
+        this.tautulliImportStatus = status;
+        if (status.isImporting) {
+          this.startImportPolling();
+        }
+      }
+    });
+  }
+
+  startTautulliImport(): void {
+    if (!confirm('This will import ALL playback history from Tautulli. This may take a few minutes. Continue?')) {
+      return;
+    }
+
+    this.tautulliService.startImport().subscribe({
+      next: () => {
+        this.startImportPolling();
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.tautulliError = error.error?.message || 'Failed to start import';
+      }
+    });
+  }
+
+  cancelTautulliImport(): void {
+    this.tautulliService.cancelImport().subscribe({
+      next: () => {
+        // Status will update via polling
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.tautulliError = error.error?.message || 'Failed to cancel import';
+      }
+    });
+  }
+
+  startImportPolling(): void {
+    if (this.importPollingInterval) return;
+
+    this.importPollingInterval = setInterval(() => {
+      this.tautulliService.getImportStatus().subscribe({
+        next: (status) => {
+          this.tautulliImportStatus = status;
+          if (!status.isImporting) {
+            this.stopImportPolling();
+            // Reload config to get updated import stats
+            this.loadTautulliConfig();
+          }
+        }
+      });
+    }, 1000);
+  }
+
+  stopImportPolling(): void {
+    if (this.importPollingInterval) {
+      clearInterval(this.importPollingInterval);
+      this.importPollingInterval = null;
+    }
+  }
+
   // ===== Utility Methods =====
   formatDate(dateString: string | undefined | null): string {
     if (!dateString) return 'Never';
@@ -458,5 +686,9 @@ export class SettingsComponent implements OnInit {
   getSyncProgress(): number {
     if (!this.syncStatus || !this.syncStatus.totalItems) return 0;
     return Math.round((this.syncStatus.processedItems || 0) / this.syncStatus.totalItems * 100);
+  }
+
+  formatNumber(num: number): string {
+    return num.toLocaleString();
   }
 }

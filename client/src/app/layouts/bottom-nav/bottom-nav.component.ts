@@ -28,6 +28,7 @@ export class BottomNavComponent {
 
   // Items in the "More" menu
   moreItems: NavItem[] = [
+    { path: '/transcoding', label: 'Transcoding', icon: 'transcoding' },
     { path: '/watch-history', label: 'Watch History', icon: 'watch-history' },
     { path: '/movies', label: 'Movies', icon: 'movie' },
     { path: '/shows', label: 'TV Shows', icon: 'tv' }

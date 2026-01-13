@@ -57,6 +57,11 @@ export const routes: Routes = [
           .then(m => m.CompatibilityComponent)
       },
       {
+        path: 'transcoding',
+        loadComponent: () => import('./features/transcoding/transcoding.component')
+          .then(m => m.TranscodingComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings.component')
           .then(m => m.SettingsComponent)

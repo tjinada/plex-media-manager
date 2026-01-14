@@ -1,4 +1,4 @@
-const { TautulliConfig, PlaybackSession, PlexServer } = require('../models');
+const { TautulliConfig, PlaybackSession, PlexServer, Movie, Episode } = require('../models');
 const TautulliService = require('./tautulli.service');
 
 /**
@@ -24,6 +24,9 @@ class TautulliSyncService {
     // Real-time sync
     this.syncIntervalId = null;
     this.isSyncing = false;
+    
+    // Cache for media lookups during import
+    this.mediaCache = new Map();
   }
 
   /**
@@ -56,6 +59,7 @@ class TautulliSyncService {
 
     this.isImporting = true;
     this.importCancelled = false;
+    this.mediaCache.clear(); // Clear cache for fresh import
     this.importProgress = {
       status: 'starting',
       totalRecords: 0,
@@ -166,7 +170,39 @@ class TautulliSyncService {
       throw error;
     } finally {
       this.isImporting = false;
+      this.mediaCache.clear(); // Clear cache after import
     }
+  }
+
+  /**
+   * Look up media item from our library by ratingKey (stored as plexId)
+   */
+  async lookupMediaByRatingKey(ratingKey, mediaType) {
+    if (!ratingKey) return null;
+    
+    // Check cache first
+    const cacheKey = `${mediaType}-${ratingKey}`;
+    if (this.mediaCache.has(cacheKey)) {
+      return this.mediaCache.get(cacheKey);
+    }
+    
+    let media = null;
+    const plexId = ratingKey.toString();
+    
+    if (mediaType === 'movie') {
+      media = await Movie.findOne({ plexId })
+        .select('_id media.videoCodec media.audioCodec media.container media.resolution media.hdr media.bitrate media.audioChannels')
+        .lean();
+    } else if (mediaType === 'episode') {
+      media = await Episode.findOne({ plexId })
+        .select('_id media.videoCodec media.audioCodec media.container media.resolution media.hdr media.bitrate media.audioChannels')
+        .lean();
+    }
+    
+    // Cache result (even if null to avoid repeated lookups)
+    this.mediaCache.set(cacheKey, media);
+    
+    return media;
   }
 
   /**
@@ -179,6 +215,9 @@ class TautulliSyncService {
     // Generate a unique session key
     const sessionKey = `tautulli-${record.id || record.row_id}-${record.started || record.date}`;
 
+    // Enrich with codec data from our library
+    const enrichedData = await this.enrichWithLibraryData(sessionData);
+
     // Check if already exists by tautulliRowId
     const existing = await PlaybackSession.findOne({
       tautulliRowId: record.id || record.row_id,
@@ -186,12 +225,12 @@ class TautulliSyncService {
     });
 
     if (existing) {
-      // Update existing with richer Tautulli data (overwrite strategy)
+      // Update existing with richer data
       await PlaybackSession.updateOne(
         { _id: existing._id },
         {
           $set: {
-            ...this.buildSessionDocument(sessionData, serverId, sessionKey),
+            ...this.buildSessionDocument(enrichedData, serverId, sessionKey),
             source: 'tautulli'
           }
         }
@@ -201,9 +240,86 @@ class TautulliSyncService {
 
     // Create new session
     await PlaybackSession.create({
-      ...this.buildSessionDocument(sessionData, serverId, sessionKey),
+      ...this.buildSessionDocument(enrichedData, serverId, sessionKey),
       source: 'tautulli'
     });
+  }
+
+  /**
+   * Derive HDR type string from hdr object
+   */
+  deriveHdrType(hdr) {
+    if (!hdr) return 'SDR';
+    
+    // Check for Dolby Vision first
+    if (hdr.doviPresent) {
+      const profile = hdr.doviProfile;
+      if (profile === 5) return 'DV P5';
+      if (profile === 7) return 'DV P7';
+      if (profile === 8) {
+        // P8 - check if it has HDR10 fallback
+        if (hdr.doviBLCompatID === 1) return 'DV P8.1';
+        if (hdr.doviBLCompatID === 4) return 'DV P8.4';
+        return 'DV P8';
+      }
+      return `DV P${profile || '?'}`;
+    }
+    
+    // Check for HDR10+ (PQ transfer with BT2020 primaries)
+    if (hdr.colorTransfer === 'smpte2084' || hdr.colorTransfer === 'pq') {
+      if (hdr.colorPrimaries === 'bt2020') {
+        return 'HDR';
+      }
+    }
+    
+    // Check for HLG
+    if (hdr.colorTransfer === 'arib-std-b67' || hdr.colorTransfer === 'hlg') {
+      return 'HLG';
+    }
+    
+    return 'SDR';
+  }
+
+  /**
+   * Enrich session data with codec info from our library
+   */
+  async enrichWithLibraryData(sessionData) {
+    const media = await this.lookupMediaByRatingKey(sessionData.ratingKey, sessionData.mediaType);
+    
+    if (media && media.media) {
+      // Fill in missing mediaSnapshot fields from library
+      if (!sessionData.mediaSnapshot) {
+        sessionData.mediaSnapshot = {};
+      }
+      
+      // Only fill in if not already present from Tautulli
+      if (!sessionData.mediaSnapshot.videoCodec && media.media.videoCodec) {
+        sessionData.mediaSnapshot.videoCodec = media.media.videoCodec;
+      }
+      if (!sessionData.mediaSnapshot.audioCodec && media.media.audioCodec) {
+        sessionData.mediaSnapshot.audioCodec = media.media.audioCodec;
+      }
+      if (!sessionData.mediaSnapshot.container && media.media.container) {
+        sessionData.mediaSnapshot.container = media.media.container;
+      }
+      if (!sessionData.mediaSnapshot.resolution && media.media.resolution) {
+        sessionData.mediaSnapshot.resolution = media.media.resolution;
+      }
+      if (!sessionData.mediaSnapshot.hdrType && media.media.hdr) {
+        sessionData.mediaSnapshot.hdrType = this.deriveHdrType(media.media.hdr);
+      }
+      if (!sessionData.mediaSnapshot.bitrate && media.media.bitrate) {
+        sessionData.mediaSnapshot.bitrate = media.media.bitrate;
+      }
+      if (!sessionData.mediaSnapshot.audioChannels && media.media.audioChannels) {
+        sessionData.mediaSnapshot.audioChannels = media.media.audioChannels;
+      }
+      
+      // Link to the media item
+      sessionData.mediaItemId = media._id;
+    }
+    
+    return sessionData;
   }
 
   /**
@@ -216,6 +332,7 @@ class TautulliSyncService {
       tautulliRowId: data.tautulliRowId,
       tautulliSessionKey: data.tautulliSessionKey,
       mediaType: data.mediaType,
+      mediaItemId: data.mediaItemId,
       ratingKey: data.ratingKey,
       parentRatingKey: data.parentRatingKey,
       grandparentRatingKey: data.grandparentRatingKey,
@@ -315,12 +432,15 @@ class TautulliSyncService {
           const sessionData = tautulli.parseHistoryRecord(record);
           const sessionKey = `tautulli-${record.id || record.row_id}-${record.started || record.date}`;
 
+          // Enrich with codec data from our library
+          const enrichedData = await this.enrichWithLibraryData(sessionData);
+
           // Upsert - update if exists, insert if not
           await PlaybackSession.updateOne(
             { tautulliRowId: record.id || record.row_id, serverId: server._id },
             {
               $set: {
-                ...this.buildSessionDocument(sessionData, server._id, sessionKey),
+                ...this.buildSessionDocument(enrichedData, server._id, sessionKey),
                 source: 'tautulli'
               }
             },
@@ -338,6 +458,9 @@ class TautulliSyncService {
 
       // Update sync status
       await TautulliConfig.updateSyncStatus(syncedCount);
+      
+      // Clear cache after sync
+      this.mediaCache.clear();
 
     } catch (error) {
       console.error('Tautulli sync error:', error.message);

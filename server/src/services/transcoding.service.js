@@ -1,5 +1,107 @@
 const { PlaybackSession, Movie, Episode } = require('../models');
 
+// Codec normalization maps
+const VIDEO_CODEC_MAP = {
+  'h264': 'H.264',
+  'avc': 'H.264',
+  'avc1': 'H.264',
+  'h.264': 'H.264',
+  'hevc': 'H.265 (HEVC)',
+  'h265': 'H.265 (HEVC)',
+  'h.265': 'H.265 (HEVC)',
+  'hev1': 'H.265 (HEVC)',
+  'av1': 'AV1',
+  'vp9': 'VP9',
+  'vp8': 'VP8',
+  'mpeg4': 'MPEG-4',
+  'mpeg2video': 'MPEG-2',
+  'vc1': 'VC-1',
+  'vc-1': 'VC-1',
+  'wmv3': 'WMV3',
+  'divx': 'DivX',
+  'xvid': 'XviD'
+};
+
+const AUDIO_CODEC_MAP = {
+  'eac3': 'EAC3',
+  'ec-3': 'EAC3',
+  'ac3': 'AC3',
+  'ac-3': 'AC3',
+  'truehd': 'TrueHD',
+  'dts-hd ma': 'DTS-HD MA',
+  'dts-hd': 'DTS-HD',
+  'dtshd': 'DTS-HD',
+  'dca-ma': 'DTS-HD MA',
+  'dca': 'DTS',
+  'dts': 'DTS',
+  'aac': 'AAC',
+  'mp3': 'MP3',
+  'flac': 'FLAC',
+  'opus': 'Opus',
+  'vorbis': 'Vorbis',
+  'pcm': 'PCM',
+  'pcm_s16le': 'PCM',
+  'pcm_s24le': 'PCM',
+  'lpcm': 'LPCM',
+  'wmapro': 'WMA Pro'
+};
+
+/**
+ * Normalize video codec name
+ */
+function normalizeVideoCodec(codec) {
+  if (!codec) return 'Unknown';
+  const lower = codec.toLowerCase().trim();
+  return VIDEO_CODEC_MAP[lower] || codec.toUpperCase();
+}
+
+/**
+ * Normalize audio codec name
+ */
+function normalizeAudioCodec(codec) {
+  if (!codec) return 'Unknown';
+  const lower = codec.toLowerCase().trim();
+  return AUDIO_CODEC_MAP[lower] || codec.toUpperCase();
+}
+
+/**
+ * Merge duplicate codec entries after normalization
+ */
+function mergeCodecResults(results, normalizer) {
+  const merged = new Map();
+  
+  for (const r of results) {
+    const normalizedName = normalizer(r._id);
+    
+    if (merged.has(normalizedName)) {
+      const existing = merged.get(normalizedName);
+      existing.totalPlays += r.totalPlays;
+      existing.directPlay += r.directPlay;
+      existing.transcodes += r.transcodes;
+    } else {
+      merged.set(normalizedName, {
+        name: normalizedName,
+        totalPlays: r.totalPlays,
+        directPlay: r.directPlay,
+        transcodes: r.transcodes
+      });
+    }
+  }
+  
+  // Convert to array and calculate rates
+  return Array.from(merged.values())
+    .map(r => ({
+      name: r.name,
+      totalPlays: r.totalPlays,
+      directPlayCount: r.directPlay,
+      transcodeCount: r.transcodes,
+      directPlayRate: r.totalPlays > 0 
+        ? parseFloat(((r.directPlay / r.totalPlays) * 100).toFixed(1))
+        : 0
+    }))
+    .sort((a, b) => b.totalPlays - a.totalPlays);
+}
+
 class TranscodingService {
   /**
    * Get date range for period filter
@@ -100,7 +202,7 @@ class TranscodingService {
         { $match: { ...query, 'playback.videoDecision': 'transcode' } },
         {
           $group: {
-            _id: '$device.name',
+            _id: '$device.product',
             transcodeCount: { $sum: 1 }
           }
         },
@@ -258,7 +360,7 @@ class TranscodingService {
   }
 
   /**
-   * Get stats by device
+   * Get stats by device (grouped by product/platform, not individual device)
    */
   async getByDevice(options = {}) {
     const query = this.buildBaseQuery(options);
@@ -267,11 +369,10 @@ class TranscodingService {
       { $match: query },
       {
         $group: {
+          // Group by product (e.g., "Plex Web", "Plex for Roku") with platform as secondary
           _id: {
-            identifier: '$device.deviceIdentifier',
-            name: '$device.name',
-            platform: '$device.platform',
-            product: '$device.product'
+            product: { $ifNull: ['$device.product', '$device.platform'] },
+            platform: '$device.platform'
           },
           totalPlays: { $sum: 1 },
           directPlay: {
@@ -297,6 +398,7 @@ class TranscodingService {
             }
           },
           users: { $addToSet: '$userName' },
+          deviceNames: { $addToSet: '$device.name' },
           reasons: {
             $push: {
               $cond: [
@@ -329,9 +431,17 @@ class TranscodingService {
         .slice(0, 3)
         .map(([reason, count]) => ({ reason, count }));
 
+      // Build display name
+      const product = r._id.product || 'Unknown';
+      const platform = r._id.platform;
+      let displayName = product;
+      if (platform && platform !== product && !product.toLowerCase().includes(platform.toLowerCase())) {
+        displayName = `${product} (${platform})`;
+      }
+
       return {
-        deviceIdentifier: r._id.identifier,
-        name: r._id.name || 'Unknown Device',
+        deviceIdentifier: `${product}-${platform}`, // Composite key
+        name: displayName,
         platform: r._id.platform,
         product: r._id.product,
         totalPlays: r.totalPlays,
@@ -339,6 +449,7 @@ class TranscodingService {
         transcodeCount: r.transcodes,
         directPlayRate: parseFloat(directPlayRate),
         users: r.users.filter(u => u),
+        deviceNames: r.deviceNames.filter(d => d), // Individual device names within this group
         topReasons
       };
     });
@@ -475,8 +586,8 @@ class TranscodingService {
     }));
 
     return {
-      videoCodecs: mapResults(videoCodecs),
-      audioCodecs: mapResults(audioCodecs),
+      videoCodecs: mergeCodecResults(videoCodecs, normalizeVideoCodec),
+      audioCodecs: mergeCodecResults(audioCodecs, normalizeAudioCodec),
       hdrTypes: mapResults(hdrTypes),
       containers: mapResults(containers)
     };

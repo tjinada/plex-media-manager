@@ -377,6 +377,7 @@
               <!-- Video Codecs -->
               <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
                 <h3 class="text-lg font-medium text-gray-100 mb-4">Video Codecs</h3>
+                <p class="text-xs text-gray-500 mb-3">Click a codec to see media items</p>
                 @if (formatData && formatData.videoCodecs && formatData.videoCodecs.length > 0) {
                   <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -389,8 +390,17 @@
                       </thead>
                       <tbody>
                         @for (codec of formatData.videoCodecs; track codec.name) {
-                          <tr class="border-b border-dark-700/50">
-                            <td class="py-2 text-gray-200">{{ codec.name }}</td>
+                          <tr 
+                            (click)="openCodecModal('video', codec.name)"
+                            class="border-b border-dark-700/50 cursor-pointer hover:bg-dark-700/50 transition-colors">
+                            <td class="py-2 text-gray-200">
+                              <span class="flex items-center gap-2">
+                                {{ codec.name }}
+                                <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                              </span>
+                            </td>
                             <td class="py-2 text-right text-gray-400">{{ codec.totalPlays }}</td>
                             <td class="py-2 text-right" [class]="getDirectPlayRateClass(codec.directPlayRate)">
                               {{ codec.directPlayRate }}%
@@ -408,6 +418,7 @@
               <!-- Audio Codecs -->
               <div class="bg-dark-800 rounded-xl p-4 md:p-6 border border-dark-700">
                 <h3 class="text-lg font-medium text-gray-100 mb-4">Audio Codecs</h3>
+                <p class="text-xs text-gray-500 mb-3">Click a codec to see media items</p>
                 @if (formatData && formatData.audioCodecs && formatData.audioCodecs.length > 0) {
                   <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -420,8 +431,17 @@
                       </thead>
                       <tbody>
                         @for (codec of formatData.audioCodecs; track codec.name) {
-                          <tr class="border-b border-dark-700/50">
-                            <td class="py-2 text-gray-200">{{ codec.name }}</td>
+                          <tr 
+                            (click)="openCodecModal('audio', codec.name)"
+                            class="border-b border-dark-700/50 cursor-pointer hover:bg-dark-700/50 transition-colors">
+                            <td class="py-2 text-gray-200">
+                              <span class="flex items-center gap-2">
+                                {{ codec.name }}
+                                <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                              </span>
+                            </td>
                             <td class="py-2 text-right text-gray-400">{{ codec.totalPlays }}</td>
                             <td class="py-2 text-right" [class]="getDirectPlayRateClass(codec.directPlayRate)">
                               {{ codec.directPlayRate }}%
@@ -603,3 +623,123 @@
     </div>
   }
 </div>
+
+<!-- Codec Media Modal -->
+@if (codecModalOpen) {
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <!-- Backdrop -->
+    <div 
+      class="fixed inset-0 bg-black/70 backdrop-blur-sm"
+      (click)="closeCodecModal()"></div>
+    
+    <!-- Modal Content -->
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+      <div class="relative bg-dark-800 rounded-xl border border-dark-700 w-full max-w-4xl max-h-[85vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-dark-700">
+          <div>
+            <h3 class="text-lg font-medium text-gray-100">
+              Media with {{ codecModalValue }} {{ codecModalType === 'video' ? 'Video' : 'Audio' }}
+            </h3>
+            <p class="text-sm text-gray-400">{{ codecModalTotal }} items found</p>
+          </div>
+          <button 
+            (click)="closeCodecModal()"
+            class="p-2 hover:bg-dark-700 rounded-lg transition-colors">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-4">
+          @if (codecModalLoading) {
+            <div class="flex items-center justify-center py-12">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+            </div>
+          } @else if (codecModalItems.length === 0) {
+            <div class="text-center py-12 text-gray-500">
+              No media items found for this codec
+            </div>
+          } @else {
+            <div class="space-y-2">
+              @for (item of codecModalItems; track item.mediaItemId || item.ratingKey) {
+                <div class="flex items-center gap-4 p-3 rounded-lg bg-dark-700/50 hover:bg-dark-700 transition-colors">
+                  <!-- Poster -->
+                  <div class="w-12 h-16 flex-shrink-0 rounded overflow-hidden bg-dark-600">
+                    @if (item.posterUrl) {
+                      <img [src]="item.posterUrl" [alt]="item.title" class="w-full h-full object-cover">
+                    } @else {
+                      <div class="w-full h-full flex items-center justify-center text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                        </svg>
+                      </div>
+                    }
+                  </div>
+                  
+                  <!-- Info -->
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-gray-200 truncate">{{ getMediaTitle(item) }}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">
+                      @if (item.resolution) {
+                        {{ item.resolution }} •
+                      }
+                      @if (item.fileSize) {
+                        {{ formatBytes(item.fileSize) }} •
+                      }
+                      {{ item.playCount }} plays
+                    </div>
+                    @if (item.devices.length > 0) {
+                      <div class="text-xs text-gray-600 mt-1">
+                        Played on: {{ item.devices.slice(0, 3).join(', ') }}
+                        @if (item.devices.length > 3) {
+                          +{{ item.devices.length - 3 }} more
+                        }
+                      </div>
+                    }
+                  </div>
+                  
+                  <!-- Stats -->
+                  <div class="text-right flex-shrink-0">
+                    <div class="text-sm font-medium" [class]="getDirectPlayRateClass(item.directPlayRate)">
+                      {{ item.directPlayRate }}%
+                    </div>
+                    <div class="text-xs text-gray-500">direct play</div>
+                    @if (item.transcodeCount > 0) {
+                      <div class="text-xs text-red-400 mt-1">{{ item.transcodeCount }} transcodes</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        
+        <!-- Footer with Pagination -->
+        @if (codecModalTotalPages > 1) {
+          <div class="flex items-center justify-between p-4 border-t border-dark-700">
+            <div class="text-sm text-gray-400">
+              Page {{ codecModalPage }} of {{ codecModalTotalPages }}
+            </div>
+            <div class="flex gap-2">
+              <button 
+                (click)="codecModalPrevPage()"
+                [disabled]="codecModalPage <= 1"
+                class="px-3 py-1.5 bg-dark-700 rounded-lg text-sm text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-dark-600 transition-colors">
+                Previous
+              </button>
+              <button 
+                (click)="codecModalNextPage()"
+                [disabled]="codecModalPage >= codecModalTotalPages"
+                class="px-3 py-1.5 bg-dark-700 rounded-lg text-sm text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-dark-600 transition-colors">
+                Next
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

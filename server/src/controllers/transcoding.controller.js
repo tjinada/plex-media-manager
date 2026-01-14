@@ -139,3 +139,31 @@ exports.getSessions = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Get media items for a specific codec
+ */
+exports.getMediaByCodec = async (req, res, next) => {
+  try {
+    const { 
+      period = '30d', 
+      userId, 
+      codecType, 
+      codecValue,
+      page = 1, 
+      limit = 20 
+    } = req.query;
+    
+    const data = await transcodingService.getMediaByCodec({
+      period,
+      userId,
+      codecType,
+      codecValue,
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -32,4 +32,7 @@ router.get('/recommendations', transcodingController.getRecommendations);
 // GET /api/transcoding/sessions - Paginated session list
 router.get('/sessions', transcodingController.getSessions);
 
+// GET /api/transcoding/media-by-codec - Get media items for a specific codec
+router.get('/media-by-codec', transcodingController.getMediaByCodec);
+
 module.exports = router;

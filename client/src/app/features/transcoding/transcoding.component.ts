@@ -14,7 +14,8 @@ import {
   MediaTranscodeStats,
   TranscodingUser,
   Recommendation,
-  TimePeriod
+  TimePeriod,
+  CodecMediaItem
 } from '../../core/models/transcoding.model';
 
 @Component({
@@ -50,6 +51,16 @@ export class TranscodingComponent implements OnInit {
 
   // UI state
   expandedDevices = new Set<string>();
+
+  // Codec modal state
+  codecModalOpen = false;
+  codecModalType: 'video' | 'audio' = 'video';
+  codecModalValue = '';
+  codecModalLoading = false;
+  codecModalItems: CodecMediaItem[] = [];
+  codecModalPage = 1;
+  codecModalTotalPages = 0;
+  codecModalTotal = 0;
 
   // Chart configurations
   donutChartData: ChartData<'doughnut'> = {
@@ -419,5 +430,63 @@ export class TranscodingComponent implements OnInit {
       case 'all': return 'All Time';
       default: return '';
     }
+  }
+
+  // Codec modal methods
+  openCodecModal(type: 'video' | 'audio', codecName: string): void {
+    this.codecModalType = type;
+    this.codecModalValue = codecName;
+    this.codecModalPage = 1;
+    this.codecModalOpen = true;
+    this.loadCodecMedia();
+  }
+
+  closeCodecModal(): void {
+    this.codecModalOpen = false;
+    this.codecModalItems = [];
+  }
+
+  loadCodecMedia(): void {
+    this.codecModalLoading = true;
+    this.transcodingService.getMediaByCodec(
+      this.codecModalType,
+      this.codecModalValue,
+      this.selectedPeriod,
+      this.selectedUserId,
+      this.codecModalPage,
+      20
+    ).subscribe({
+      next: (response) => {
+        this.codecModalItems = response.items;
+        this.codecModalTotalPages = response.pagination.totalPages;
+        this.codecModalTotal = response.pagination.total;
+        this.codecModalLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading codec media:', err);
+        this.codecModalLoading = false;
+      }
+    });
+  }
+
+  codecModalNextPage(): void {
+    if (this.codecModalPage < this.codecModalTotalPages) {
+      this.codecModalPage++;
+      this.loadCodecMedia();
+    }
+  }
+
+  codecModalPrevPage(): void {
+    if (this.codecModalPage > 1) {
+      this.codecModalPage--;
+      this.loadCodecMedia();
+    }
+  }
+
+  getMediaTitle(item: CodecMediaItem): string {
+    if (item.mediaType === 'episode' && item.showTitle) {
+      return `${item.showTitle} - S${item.seasonNumber?.toString().padStart(2, '0')}E${item.episodeNumber?.toString().padStart(2, '0')}`;
+    }
+    return item.title + (item.year ? ` (${item.year})` : '');
   }
 }

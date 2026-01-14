@@ -176,3 +176,31 @@ export interface SessionsResponse {
 
 // Filter options
 export type TimePeriod = '7d' | '30d' | '90d' | 'all';
+
+// Media by codec response
+export interface CodecMediaItem {
+  mediaItemId: string;
+  mediaType: 'movie' | 'episode';
+  ratingKey: string;
+  title: string;
+  showTitle?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  year?: number;
+  posterUrl?: string;
+  playCount: number;
+  directPlayCount: number;
+  transcodeCount: number;
+  directPlayRate: number;
+  devices: string[];
+  resolution?: string;
+  fileSize?: number;
+  lastViewed: string;
+}
+
+export interface CodecMediaResponse {
+  items: CodecMediaItem[];
+  codecType: 'video' | 'audio';
+  codecValue: string;
+  pagination: Pagination;
+}

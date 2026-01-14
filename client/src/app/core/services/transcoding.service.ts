@@ -12,7 +12,8 @@ import {
   TranscodingUser,
   Recommendation,
   SessionsResponse,
-  TimePeriod
+  TimePeriod,
+  CodecMediaResponse
 } from '../models/transcoding.model';
 
 @Injectable({
@@ -94,5 +95,22 @@ export class TranscodingService {
       params = params.set('decision', decision);
     }
     return this.http.get<SessionsResponse>(`${this.baseUrl}/sessions`, { params });
+  }
+
+  getMediaByCodec(
+    codecType: 'video' | 'audio',
+    codecValue: string,
+    period: TimePeriod = '30d',
+    userId?: string | null,
+    page: number = 1,
+    limit: number = 20
+  ): Observable<CodecMediaResponse> {
+    let params = this.buildParams(period, userId);
+    params = params
+      .set('codecType', codecType)
+      .set('codecValue', codecValue)
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    return this.http.get<CodecMediaResponse>(`${this.baseUrl}/media-by-codec`, { params });
   }
 }

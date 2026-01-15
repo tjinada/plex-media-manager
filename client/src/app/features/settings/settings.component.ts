@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PlexService, SyncService, RadarrService, SonarrService, TautulliService } from '@core/services';
+import { PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService } from '@core/services';
 import { TautulliConfig, TautulliConnectionInfo, TautulliImportStatus } from '@core/services/tautulli.service';
+import { NzbgetConfig } from '@core/services/nzbget.service';
+import { QbittorrentConfig } from '@core/services/qbittorrent.service';
 import { PlexServer, RadarrConfig, SonarrConfig, AutoSyncSettings } from '@core/models';
 
 export interface SyncJob {
@@ -111,12 +113,34 @@ export class SettingsComponent implements OnInit, OnDestroy {
     { value: 600, label: '10 minutes' }
   ];
 
+  // NZBGet state
+  nzbgetConfig: NzbgetConfig | null = null;
+  nzbgetHost = '';
+  nzbgetUsername = '';
+  nzbgetPassword = '';
+  nzbgetConnecting = false;
+  nzbgetTesting = false;
+  nzbgetError = '';
+  nzbgetTestResult: { success: boolean; version?: string } | null = null;
+
+  // qBittorrent state
+  qbittorrentConfig: QbittorrentConfig | null = null;
+  qbittorrentHost = '';
+  qbittorrentUsername = '';
+  qbittorrentPassword = '';
+  qbittorrentConnecting = false;
+  qbittorrentTesting = false;
+  qbittorrentError = '';
+  qbittorrentTestResult: { success: boolean; version?: string } | null = null;
+
   constructor(
     private plexService: PlexService,
     private syncService: SyncService,
     private radarrService: RadarrService,
     private sonarrService: SonarrService,
-    private tautulliService: TautulliService
+    private tautulliService: TautulliService,
+    private nzbgetService: NzbgetService,
+    private qbittorrentService: QbittorrentService
   ) {}
 
   ngOnInit(): void {
@@ -126,6 +150,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadRadarrConfig();
     this.loadSonarrConfig();
     this.loadTautulliConfig();
+    this.loadNzbgetConfig();
+    this.loadQbittorrentConfig();
   }
 
   ngOnDestroy(): void {
@@ -675,6 +701,156 @@ export class SettingsComponent implements OnInit, OnDestroy {
       clearInterval(this.importPollingInterval);
       this.importPollingInterval = null;
     }
+  }
+
+  // ===== NZBGet Methods =====
+  loadNzbgetConfig(): void {
+    this.nzbgetService.getConfig().subscribe({
+      next: (response) => {
+        if (response.config) {
+          this.nzbgetConfig = response.config;
+          this.nzbgetHost = response.config.host;
+        }
+      }
+    });
+  }
+
+  testNzbgetConnection(): void {
+    if (!this.nzbgetHost) {
+      this.nzbgetError = 'Please enter the NZBGet URL';
+      return;
+    }
+
+    this.nzbgetTesting = true;
+    this.nzbgetError = '';
+    this.nzbgetTestResult = null;
+
+    this.nzbgetService.testConnection(this.nzbgetHost, this.nzbgetUsername, this.nzbgetPassword).subscribe({
+      next: (result) => {
+        this.nzbgetTestResult = result;
+        this.nzbgetTesting = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.nzbgetError = error.error?.message || 'Failed to connect to NZBGet';
+        this.nzbgetTesting = false;
+      }
+    });
+  }
+
+  connectNzbget(): void {
+    if (!this.nzbgetHost) {
+      this.nzbgetError = 'Please enter the NZBGet URL';
+      return;
+    }
+
+    this.nzbgetConnecting = true;
+    this.nzbgetError = '';
+
+    this.nzbgetService.saveConfig(this.nzbgetHost, this.nzbgetUsername, this.nzbgetPassword).subscribe({
+      next: (response) => {
+        this.nzbgetConfig = response.config;
+        this.nzbgetConnecting = false;
+        this.nzbgetPassword = '';
+        this.nzbgetTestResult = null;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.nzbgetError = error.error?.message || 'Failed to connect to NZBGet';
+        this.nzbgetConnecting = false;
+      }
+    });
+  }
+
+  disconnectNzbget(): void {
+    if (!confirm('Are you sure you want to disconnect NZBGet?')) {
+      return;
+    }
+
+    this.nzbgetService.deleteConfig().subscribe({
+      next: () => {
+        this.nzbgetConfig = null;
+        this.nzbgetHost = '';
+        this.nzbgetUsername = '';
+        this.nzbgetPassword = '';
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.nzbgetError = error.error?.message || 'Failed to disconnect NZBGet';
+      }
+    });
+  }
+
+  // ===== qBittorrent Methods =====
+  loadQbittorrentConfig(): void {
+    this.qbittorrentService.getConfig().subscribe({
+      next: (response) => {
+        if (response.config) {
+          this.qbittorrentConfig = response.config;
+          this.qbittorrentHost = response.config.host;
+        }
+      }
+    });
+  }
+
+  testQbittorrentConnection(): void {
+    if (!this.qbittorrentHost) {
+      this.qbittorrentError = 'Please enter the qBittorrent URL';
+      return;
+    }
+
+    this.qbittorrentTesting = true;
+    this.qbittorrentError = '';
+    this.qbittorrentTestResult = null;
+
+    this.qbittorrentService.testConnection(this.qbittorrentHost, this.qbittorrentUsername, this.qbittorrentPassword).subscribe({
+      next: (result) => {
+        this.qbittorrentTestResult = result;
+        this.qbittorrentTesting = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.qbittorrentError = error.error?.message || 'Failed to connect to qBittorrent';
+        this.qbittorrentTesting = false;
+      }
+    });
+  }
+
+  connectQbittorrent(): void {
+    if (!this.qbittorrentHost) {
+      this.qbittorrentError = 'Please enter the qBittorrent URL';
+      return;
+    }
+
+    this.qbittorrentConnecting = true;
+    this.qbittorrentError = '';
+
+    this.qbittorrentService.saveConfig(this.qbittorrentHost, this.qbittorrentUsername, this.qbittorrentPassword).subscribe({
+      next: (response) => {
+        this.qbittorrentConfig = response.config;
+        this.qbittorrentConnecting = false;
+        this.qbittorrentPassword = '';
+        this.qbittorrentTestResult = null;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.qbittorrentError = error.error?.message || 'Failed to connect to qBittorrent';
+        this.qbittorrentConnecting = false;
+      }
+    });
+  }
+
+  disconnectQbittorrent(): void {
+    if (!confirm('Are you sure you want to disconnect qBittorrent?')) {
+      return;
+    }
+
+    this.qbittorrentService.deleteConfig().subscribe({
+      next: () => {
+        this.qbittorrentConfig = null;
+        this.qbittorrentHost = '';
+        this.qbittorrentUsername = '';
+        this.qbittorrentPassword = '';
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.qbittorrentError = error.error?.message || 'Failed to disconnect qBittorrent';
+      }
+    });
   }
 
   // ===== Utility Methods =====

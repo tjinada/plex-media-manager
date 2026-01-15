@@ -19,6 +19,7 @@ interface NavItem {
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   navItems: NavItem[] = [
+    { path: '/home', label: 'Home', icon: 'home' },
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/movies', label: 'Movies', icon: 'movie' },
     { path: '/shows', label: 'TV Shows', icon: 'tv' },

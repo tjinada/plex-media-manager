@@ -98,6 +98,25 @@ class RadarrService {
     this.config = null;
   }
 
+  async getQueue() {
+    if (!this.client) await this.initialize();
+    if (!this.client) return { records: [] };
+
+    try {
+      const response = await this.client.get('/queue', {
+        params: {
+          page: 1,
+          pageSize: 100,
+          includeMovie: true
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Radarr queue:', error.message);
+      return { records: [] };
+    }
+  }
+
   async getQualityProfiles() {
     if (!this.client) await this.initialize();
     if (!this.client) throw new Error('Radarr not configured');
@@ -525,6 +544,30 @@ class RadarrService {
     } catch (error) {
       console.error('Error getting Radarr stats:', error.message);
       return { missing: 0, upcoming: 0, upgrades: 0, downgrades: 0, configured: true, error: error.message };
+    }
+  }
+
+  /**
+   * Get download history
+   */
+  async getHistory(pageSize = 20) {
+    if (!this.client) await this.initialize();
+    if (!this.client) return { records: [] };
+
+    try {
+      const response = await this.client.get('/history', {
+        params: {
+          page: 1,
+          pageSize,
+          sortKey: 'date',
+          sortDirection: 'descending',
+          includeMovie: true
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Radarr history:', error.message);
+      return { records: [] };
     }
   }
 }

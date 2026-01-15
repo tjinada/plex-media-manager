@@ -20,14 +20,15 @@ export class BottomNavComponent {
 
   // Main navigation items (always visible)
   navItems: NavItem[] = [
+    { path: '/home', label: 'Home', icon: 'home' },
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/wanted', label: 'Wanted', icon: 'wanted' },
-    { path: '/compatibility', label: 'Compat', icon: 'compatibility' },
     { path: '/storage', label: 'Storage', icon: 'storage' }
   ];
 
   // Items in the "More" menu
   moreItems: NavItem[] = [
+    { path: '/compatibility', label: 'Compatibility', icon: 'compatibility' },
     { path: '/transcoding', label: 'Transcoding', icon: 'transcoding' },
     { path: '/watch-history', label: 'Watch History', icon: 'watch-history' },
     { path: '/movies', label: 'Movies', icon: 'movie' },

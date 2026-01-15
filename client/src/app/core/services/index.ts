@@ -10,3 +10,7 @@ export * from './watch-history.service';
 export * from './compatibility.service';
 export * from './transcoding.service';
 export * from './tautulli.service';
+export * from './home.service';
+export * from './websocket.service';
+export * from './nzbget.service';
+export * from './qbittorrent.service';

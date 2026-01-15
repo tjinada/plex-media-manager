@@ -8,6 +8,8 @@ const RadarrConfig = require('./RadarrConfig');
 const SonarrConfig = require('./SonarrConfig');
 const PlaybackSession = require('./PlaybackSession');
 const TautulliConfig = require('./TautulliConfig');
+const NzbgetConfig = require('./NzbgetConfig');
+const QbittorrentConfig = require('./QbittorrentConfig');
 
 module.exports = {
   PlexServer,
@@ -19,5 +21,7 @@ module.exports = {
   RadarrConfig,
   SonarrConfig,
   PlaybackSession,
-  TautulliConfig
+  TautulliConfig,
+  NzbgetConfig,
+  QbittorrentConfig
 };

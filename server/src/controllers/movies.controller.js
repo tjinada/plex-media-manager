@@ -13,6 +13,7 @@ exports.getMovies = async (req, res, next) => {
       order = 'asc',
       search,
       resolution,
+      aspectRatio,
       videoCodec,
       audioCodec,
       container,
@@ -32,6 +33,24 @@ exports.getMovies = async (req, res, next) => {
 
     if (resolution) {
       filter['media.resolution'] = resolution;
+    }
+
+    if (aspectRatio) {
+      const aspectRatioRanges = {
+        standard: { min: 0, max: 1.5 },
+        widescreen: { min: 1.5, max: 1.82 },
+        theatrical: { min: 1.82, max: 2.2 },
+        scope: { min: 2.2, max: 100 }
+      };
+      const range = aspectRatioRanges[aspectRatio];
+      if (range) {
+        filter.$expr = {
+          $and: [
+            { $gte: [{ $toDouble: { $arrayElemAt: [{ $split: ['$media.aspectRatio', ':'] }, 0] } }, range.min] },
+            { $lt: [{ $toDouble: { $arrayElemAt: [{ $split: ['$media.aspectRatio', ':'] }, 0] } }, range.max] }
+          ]
+        };
+      }
     }
 
     if (videoCodec) {

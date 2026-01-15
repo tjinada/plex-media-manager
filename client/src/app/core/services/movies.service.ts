@@ -10,6 +10,7 @@ export interface MovieQueryParams {
   order?: 'asc' | 'desc';
   search?: string;
   resolution?: string;
+  aspectRatio?: string;
   videoCodec?: string;
   audioCodec?: string;
   container?: string;

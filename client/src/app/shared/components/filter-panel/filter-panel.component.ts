@@ -6,6 +6,7 @@ import { FilterState, FilterOption } from '@core/models';
 
 export interface FilterConfig {
   showResolution?: boolean;
+  showAspectRatio?: boolean;
   showVideoCodec?: boolean;
   showAudioCodec?: boolean;
   showContainer?: boolean;
@@ -22,6 +23,7 @@ export class FilterPanelComponent implements OnInit {
   @Input() filters: FilterState = {};
   @Input() config: FilterConfig = {
     showResolution: true,
+    showAspectRatio: true,
     showVideoCodec: true,
     showAudioCodec: true,
     showContainer: true,
@@ -42,6 +44,13 @@ export class FilterPanelComponent implements OnInit {
     { value: '720p', label: '720p' },
     { value: '480p', label: '480p' },
     { value: 'SD', label: 'SD' }
+  ];
+
+  aspectRatioOptions: FilterOption[] = [
+    { value: 'scope', label: 'Scope (2.35+)' },
+    { value: 'theatrical', label: 'Theatrical (1.85)' },
+    { value: 'widescreen', label: 'Widescreen (16:9)' },
+    { value: 'standard', label: 'Standard (4:3)' }
   ];
 
   videoCodecOptions: FilterOption[] = [
@@ -137,6 +146,7 @@ export class FilterPanelComponent implements OnInit {
   get activeFilterCount(): number {
     let count = 0;
     if (this.filters.resolution) count++;
+    if (this.filters.aspectRatio) count++;
     if (this.filters.videoCodec) count++;
     if (this.filters.audioCodec) count++;
     if (this.filters.container) count++;

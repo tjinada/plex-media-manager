@@ -71,12 +71,28 @@
       @if (config.showResolution) {
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">Resolution</label>
-          <select 
+          <select
             [ngModel]="filters.resolution || ''"
             (ngModelChange)="onFilterChange('resolution', $event || undefined)"
             class="input-field w-full">
             <option value="">All Resolutions</option>
             @for (option of resolutionOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- Aspect Ratio Filter -->
+      @if (config.showAspectRatio) {
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Aspect Ratio</label>
+          <select
+            [ngModel]="filters.aspectRatio || ''"
+            (ngModelChange)="onFilterChange('aspectRatio', $event || undefined)"
+            class="input-field w-full">
+            <option value="">All Aspect Ratios</option>
+            @for (option of aspectRatioOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
             }
           </select>

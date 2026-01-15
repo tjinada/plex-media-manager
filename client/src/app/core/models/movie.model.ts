@@ -106,6 +106,7 @@ export interface FilterOption {
 export interface FilterState {
   search?: string;
   resolution?: string;
+  aspectRatio?: string;
   videoCodec?: string;
   audioCodec?: string;
   container?: string;
@@ -115,6 +116,7 @@ export interface FilterState {
 
 export interface FilterOptions {
   resolutions: FilterOption[];
+  aspectRatios: FilterOption[];
   videoCodecs: FilterOption[];
   audioCodecs: FilterOption[];
   containers: FilterOption[];

@@ -22,6 +22,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
   filters: FilterState = {};
   filterConfig: FilterConfig = {
     showResolution: true,
+    showAspectRatio: true,
     showVideoCodec: true,
     showAudioCodec: true,
     showContainer: true,
@@ -84,6 +85,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
     this.searchQuery = params['search'] || '';
     this.filters = {
       resolution: params['resolution'] || undefined,
+      aspectRatio: params['aspectRatio'] || undefined,
       videoCodec: params['videoCodec'] || undefined,
       audioCodec: params['audioCodec'] || undefined,
       container: params['container'] || undefined,
@@ -97,9 +99,10 @@ export class MoviesComponent implements OnInit, OnDestroy {
 
   private updateUrlAndLoad(): void {
     const queryParams: any = {};
-    
+
     if (this.searchQuery) queryParams['search'] = this.searchQuery;
     if (this.filters.resolution) queryParams['resolution'] = this.filters.resolution;
+    if (this.filters.aspectRatio) queryParams['aspectRatio'] = this.filters.aspectRatio;
     if (this.filters.videoCodec) queryParams['videoCodec'] = this.filters.videoCodec;
     if (this.filters.audioCodec) queryParams['audioCodec'] = this.filters.audioCodec;
     if (this.filters.container) queryParams['container'] = this.filters.container;
@@ -126,6 +129,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
       order: this.sortOrder,
       search: this.searchQuery || undefined,
       resolution: this.filters.resolution,
+      aspectRatio: this.filters.aspectRatio,
       videoCodec: this.filters.videoCodec,
       audioCodec: this.filters.audioCodec,
       container: this.filters.container,

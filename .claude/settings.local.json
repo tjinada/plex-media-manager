@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(git -C \"E:\\\\Repositories\\\\plex-media-manager\" log --oneline -20)",
+      "Bash(find:*)"
+    ]
+  }
+}

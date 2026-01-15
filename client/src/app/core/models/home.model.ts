@@ -21,7 +21,27 @@ export interface StreamingSession {
     name: string;
     platform: string;
     product?: string;
+    device?: string;
   };
+  // Source quality (original file)
+  sourceQuality?: {
+    resolution: string;
+    videoCodec: string;
+    audioCodec: string;
+    audioChannels?: string;
+    bitrate?: number;
+    container?: string;
+  };
+  // Stream quality (what's being delivered)
+  streamQuality?: {
+    resolution: string;
+    videoCodec: string;
+    audioCodec: string;
+    audioChannels?: string;
+    bitrate?: number;
+    container?: string;
+  };
+  // Legacy quality field (backward compatibility)
   quality: {
     resolution: string;
     videoCodec: string;
@@ -32,6 +52,7 @@ export interface StreamingSession {
     progress: number;
     duration: number;
     state: 'playing' | 'paused' | 'buffering';
+    startedAt?: string;
   };
   transcoding?: {
     videoDecision: 'directplay' | 'transcode' | 'copy';
@@ -45,6 +66,7 @@ export interface StreamingSession {
     location: 'lan' | 'wan';
     bandwidth?: number;
     secure: boolean;
+    relayed?: boolean;
   };
 }
 

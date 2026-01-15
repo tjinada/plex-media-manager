@@ -1,12 +1,11 @@
 <div class="h-full flex flex-col">
   <!-- Fixed Header Section -->
-  <div class="flex-shrink-0 p-4 md:p-6 lg:p-8 pb-0">
-    <div class="mb-6 flex items-center justify-between">
+  <div class="flex-shrink-0 p-4 md:p-6 pb-0">
+    <div class="mb-3 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Home</h1>
-        <p class="text-gray-400 mt-1">What's happening right now</p>
+        <h1 class="text-2xl font-bold text-gray-100">Home</h1>
+        <p class="text-gray-400 text-sm">What's happening right now</p>
       </div>
-
       <!-- Live Connection Indicator -->
       <div class="flex items-center gap-2">
         <span class="relative flex h-2.5 w-2.5">
@@ -28,9 +27,8 @@
   </div>
 
   <!-- Scrollable Content Section -->
-  <div class="flex-1 overflow-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+  <div class="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6">
     @if (isLoading) {
-      <!-- Loading State -->
       <div class="flex items-center justify-center h-64">
         <div class="text-center">
           <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -41,475 +39,487 @@
         </div>
       </div>
     } @else {
-      <div class="space-y-6">
-        <!-- SECTION 1: QUICK STATS -->
+      <div class="space-y-4">
+        
+        <!-- SECTION 1: NOW STREAMING -->
         <div class="card p-4">
-          <h2 class="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">Quick Stats</h2>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <!-- Streaming -->
-            <div class="bg-dark-800 rounded-lg p-3">
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-gray-100">{{ stats?.streaming?.active || 0 }}</span>
-                <span class="text-sm text-gray-400">Streaming</span>
-              </div>
-              @if (stats?.streaming?.transcoding) {
-                <p class="text-xs text-gray-500 mt-0.5">{{ stats?.streaming?.transcoding }} transcoding</p>
-              }
-            </div>
-
-            <!-- Downloads -->
-            <div class="bg-dark-800 rounded-lg p-3">
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-gray-100">{{ activeDownloads + queuedDownloads }}</span>
-                <span class="text-sm text-gray-400">Downloads</span>
-              </div>
-              @if (totalDownloadSpeed > 0) {
-                <p class="text-xs text-green-400 mt-0.5">{{ formatSpeed(totalDownloadSpeed) }}</p>
-              }
-            </div>
-
-            <!-- Missing -->
-            <div class="bg-dark-800 rounded-lg p-3">
-              <a routerLink="/wanted" class="block hover:opacity-80 transition-opacity">
-                <div class="flex items-baseline gap-2">
-                  <span class="text-2xl font-bold text-gray-100">{{ (stats?.radarr?.missing || 0) + (stats?.sonarr?.missing || 0) }}</span>
-                  <span class="text-sm text-gray-400">Missing</span>
-                </div>
-                @if (stats?.radarr?.configured || stats?.sonarr?.configured) {
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    {{ stats?.radarr?.missing || 0 }} movies &bull; {{ stats?.sonarr?.missing || 0 }} episodes
-                  </p>
-                }
-              </a>
-            </div>
-
-            <!-- Upgrades -->
-            <div class="bg-dark-800 rounded-lg p-3">
-              <a routerLink="/wanted" class="block hover:opacity-80 transition-opacity">
-                <div class="flex items-baseline gap-2">
-                  <span class="text-2xl font-bold text-gray-100">{{ (stats?.radarr?.upgrades || 0) + (stats?.sonarr?.upgrades || 0) }}</span>
-                  <span class="text-sm text-gray-400">Upgrades</span>
-                </div>
-                @if (stats?.radarr?.configured || stats?.sonarr?.configured) {
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    {{ stats?.radarr?.upgrades || 0 }} movies &bull; {{ stats?.sonarr?.upgrades || 0 }} episodes
-                  </p>
-                }
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 2: NOW STREAMING -->
-        <div class="card p-4">
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between mb-3">
             <h2 class="text-xs font-semibold text-primary-400 uppercase tracking-wider">
               Now Streaming ({{ streaming.length }})
             </h2>
-          </div>
-
-          @if (streaming.length === 0) {
-            <div class="text-center py-8">
-              <svg class="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <p class="text-gray-500">No active streams</p>
-            </div>
-          } @else {
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              @for (session of streaming; track trackBySession($index, session)) {
-                <!-- Liquid Glass Card -->
-                <div class="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl shadow-lg">
-                  <!-- Background glow effect -->
-                  <div class="absolute inset-0 bg-gradient-to-br opacity-50"
-                       [class]="session.playback.decision === 'transcode' ? 'from-amber-500/10 to-transparent' : 'from-primary-500/10 to-transparent'">
-                  </div>
-                  
-                  <div class="relative p-4">
-                    <div class="flex gap-4">
-                      <!-- Larger Poster with glass frame -->
-                      <div class="relative flex-shrink-0">
-                        <div class="w-20 h-28 rounded-lg overflow-hidden ring-1 ring-white/20 shadow-xl">
-                          @if (session.media.thumb) {
-                            <img
-                              [src]="getImageUrl(session.media.thumb)"
-                              [alt]="session.media.title"
-                              class="w-full h-full object-cover"
-                              loading="lazy">
-                          } @else {
-                            <div class="w-full h-full bg-dark-700 flex items-center justify-center">
-                              @if (session.media.type === 'movie') {
-                                <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                                </svg>
-                              } @else {
-                                <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                              }
-                            </div>
-                          }
-                        </div>
-                        <!-- Playback state indicator -->
-                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-dark-900/90 backdrop-blur flex items-center justify-center ring-2 ring-dark-800">
-                          @if (session.playback.state === 'playing') {
-                            <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
-                          } @else if (session.playback.state === 'paused') {
-                            <svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                            </svg>
-                          } @else {
-                            <svg class="w-3 h-3 text-blue-400 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                              <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                          }
-                        </div>
-                      </div>
-
-                      <!-- Content -->
-                      <div class="flex-1 min-w-0 flex flex-col">
-                        <!-- Title -->
-                        <h3 class="font-semibold text-gray-100 truncate leading-tight">
-                          @if (session.media.type === 'episode' && session.media.showTitle) {
-                            {{ session.media.showTitle }}
-                          } @else {
-                            {{ session.media.title }}
-                          }
-                          @if (session.media.year) {
-                            <span class="text-gray-500 font-normal text-sm">({{ session.media.year }})</span>
-                          }
-                        </h3>
-
-                        <!-- Episode info -->
-                        @if (session.media.type === 'episode' && session.media.seasonEpisode) {
-                          <p class="text-sm text-gray-400 truncate">{{ session.media.seasonEpisode }} &bull; {{ session.media.title }}</p>
-                        }
-
-                        <!-- User & Device -->
-                        <div class="flex items-center gap-1.5 mt-1">
-                          <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span class="text-sm text-gray-400 truncate">{{ session.user.name }}</span>
-                          <span class="text-gray-600">&bull;</span>
-                          <span class="text-sm text-gray-500 truncate">{{ session.player.name }}</span>
-                        </div>
-
-                        <!-- Quality Badge Row -->
-                        <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                          <!-- Resolution badge -->
-                          <span class="px-2 py-0.5 rounded text-xs font-medium bg-white/10 text-gray-300">
-                            {{ session.quality.resolution }}
-                          </span>
-                          <!-- Codec badge -->
-                          <span class="px-2 py-0.5 rounded text-xs font-medium bg-white/10 text-gray-300">
-                            {{ session.quality.videoCodec }}
-                          </span>
-                          <!-- Decision badge -->
-                          <span class="px-2 py-0.5 rounded text-xs font-medium"
-                                [class]="session.playback.decision === 'directplay' ? 'bg-primary-500/20 text-primary-300' : 
-                                         session.playback.decision === 'transcode' ? 'bg-amber-500/20 text-amber-300' : 
-                                         'bg-blue-500/20 text-blue-300'">
-                            {{ getPlaybackDecisionLabel(session.playback.decision) }}
-                          </span>
-                          <!-- Network location -->
-                          <span class="px-2 py-0.5 rounded text-xs font-medium"
-                                [class]="session.network.location === 'lan' ? 'bg-green-500/20 text-green-300' : 'bg-purple-500/20 text-purple-300'">
-                            {{ session.network.location | uppercase }}
-                          </span>
-                        </div>
-
-                        <!-- Transcode Details (if transcoding) -->
-                        @if (session.playback.decision === 'transcode' && session.transcoding) {
-                          <div class="mt-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                            <div class="flex items-center gap-2 text-xs">
-                              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              <span class="text-amber-200">{{ getTranscodeSummary(session) }}</span>
-                            </div>
-                            <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                              <span>{{ getHwAccelInfo(session) }}</span>
-                              @if (getTranscodeSpeed(session)) {
-                                <span class="text-amber-300">{{ getTranscodeSpeed(session) }}</span>
-                              }
-                              @if (session.transcoding.throttled) {
-                                <span class="text-yellow-400">Throttled</span>
-                              }
-                            </div>
-                          </div>
-                        }
-                      </div>
-                    </div>
-
-                    <!-- Progress Section -->
-                    <div class="mt-4">
-                      <!-- Time display -->
-                      <div class="flex justify-between items-center mb-1.5">
-                        <span class="text-sm font-medium text-gray-300">{{ getElapsedTime(session) }}</span>
-                        <div class="flex items-center gap-2">
-                          @if (session.network.bandwidth) {
-                            <span class="text-xs text-gray-500">
-                              <svg class="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                              {{ formatBandwidth(session.network.bandwidth) }}
-                            </span>
-                          }
-                          <span class="text-sm text-gray-500">{{ getTotalTime(session) }}</span>
-                        </div>
-                      </div>
-                      
-                      <!-- Glass progress bar -->
-                      <div class="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur">
-                        <div
-                          class="h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden"
-                          [class]="session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-primary-500 to-primary-400'"
-                          [style.width]="getProgressWidth(session.playback.progress)">
-                          <!-- Shine effect -->
-                          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- SECTION 3: DOWNLOADS -->
-        <div class="card p-4">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <div class="flex items-center gap-3">
-              <h2 class="text-xs font-semibold text-primary-400 uppercase tracking-wider">
-                Downloads ({{ activeDownloads }} active @if (queuedDownloads > 0) { &bull; {{ queuedDownloads }} queued })
-              </h2>
-            </div>
-            @if (totalDownloadSpeed > 0) {
-              <span class="text-sm font-medium text-green-400">{{ formatSpeed(totalDownloadSpeed) }}</span>
-            }
-          </div>
-
-          @if (downloads.length === 0) {
-            <!-- Collapsed empty state -->
-            <div class="flex items-center gap-2 text-gray-500 py-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span class="text-sm">No active downloads</span>
-            </div>
-          } @else {
-            <!-- Filter tabs -->
-            <div class="flex flex-wrap gap-2 mb-4">
-              <button
-                (click)="setDownloadFilter('all')"
-                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class]="activeDownloadFilter === 'all' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-                All
-              </button>
-              <button
-                (click)="setDownloadFilter('movies')"
-                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class]="activeDownloadFilter === 'movies' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-                Movies
-              </button>
-              <button
-                (click)="setDownloadFilter('tv')"
-                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class]="activeDownloadFilter === 'tv' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-                TV
-              </button>
-              <button
-                (click)="setDownloadFilter('nzbget')"
-                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class]="activeDownloadFilter === 'nzbget' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-                NZBGet
-              </button>
-              <button
-                (click)="setDownloadFilter('qbittorrent')"
-                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class]="activeDownloadFilter === 'qbittorrent' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-                qBittorrent
-              </button>
-            </div>
-
-            <!-- Download items -->
-            <div class="space-y-3">
-              @for (download of filteredDownloads; track trackByDownload($index, download)) {
-                <div class="bg-dark-800 rounded-lg p-3 border border-dark-700">
-                  <div class="flex items-start gap-3">
-                    <!-- Type icon -->
-                    <div class="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                      @if (download.type === 'movie') {
-                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                        </svg>
-                      } @else {
-                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      }
-                    </div>
-
-                    <div class="flex-1 min-w-0">
-                      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-1">
-                        <div class="min-w-0">
-                          <h3 class="font-medium text-gray-100 truncate">{{ download.title }}</h3>
-                          <p class="text-xs text-gray-500">
-                            {{ download.quality || 'Unknown' }} &bull; {{ download.source }}
-                            @if (download.indexer) { &bull; {{ download.indexer }} }
-                          </p>
-                        </div>
-                        <div class="flex items-center gap-3 text-sm flex-shrink-0">
-                          @if (download.speed) {
-                            <span class="text-green-400">{{ formatSpeed(download.speed) }}</span>
-                          }
-                          @if (download.eta) {
-                            <span class="text-gray-500">ETA: {{ download.eta }}</span>
-                          }
-                        </div>
-                      </div>
-
-                      <!-- Progress bar -->
-                      <div class="mt-2">
-                        <div class="h-2 bg-dark-600 rounded-full overflow-hidden">
-                          <div
-                            class="h-full rounded-full transition-all duration-300"
-                            [class]="getDownloadStatusClass(download.status)"
-                            [style.width]="getProgressWidth(download.progress)">
-                          </div>
-                        </div>
-                        <div class="flex justify-between mt-1">
-                          <span class="text-xs text-gray-400">{{ download.progress | number:'1.1-1' }}%</span>
-                          <span class="text-xs text-gray-500">{{ formatBytes(download.sizeRemaining) }} remaining</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- SECTION 4: RECENT ACTIVITY -->
-        <div class="card p-4">
-          <h2 class="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-4">Recent Activity</h2>
-
-          <!-- Activity Tabs -->
-          <div class="flex gap-2 mb-4">
-            <button
-              (click)="setActivityTab('watched')"
-              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              [class]="activeActivityTab === 'watched' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-              Watch History
-            </button>
-            <button
-              (click)="setActivityTab('downloaded')"
-              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              [class]="activeActivityTab === 'downloaded' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-              Download History
-            </button>
-            <button
-              (click)="setActivityTab('added')"
-              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              [class]="activeActivityTab === 'added' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-gray-400 hover:text-gray-200'">
-              Added to Library
-            </button>
-          </div>
-
-          <!-- Activity List -->
-          @if (filteredActivity.length === 0) {
-            <div class="text-center py-8">
-              <svg class="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p class="text-gray-500">No recent activity</p>
-            </div>
-          } @else {
-            <div class="divide-y divide-dark-700">
-              @for (activity of filteredActivity; track trackByActivity($index, activity)) {
-                <div class="py-3 flex items-center gap-3">
-                  <!-- Poster thumbnail -->
-                  <div class="w-10 h-14 bg-dark-700 rounded flex-shrink-0 overflow-hidden">
-                    @if (activity.media.thumb) {
-                      <img
-                        [src]="getImageUrl(activity.media.thumb)"
-                        [alt]="activity.media.title"
-                        class="w-full h-full object-cover"
-                        loading="lazy">
-                    } @else {
-                      <div class="w-full h-full flex items-center justify-center">
-                        @if (activity.media.type === 'movie') {
-                          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                          </svg>
-                        } @else {
-                          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                        }
-                      </div>
-                    }
-                  </div>
-
-                  <!-- Content -->
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm text-gray-100">
-                      @if (activity.type === 'watched' && activity.user) {
-                        <span class="text-gray-400">{{ activity.user }} watched</span>
-                      } @else if (activity.type === 'downloaded') {
-                        <span class="text-gray-400">Downloaded</span>
-                      } @else {
-                        <span class="text-gray-400">Added</span>
-                      }
-                      <span class="font-medium">
-                        @if (activity.media.type === 'episode' && activity.media.showTitle) {
-                          {{ activity.media.showTitle }} {{ activity.media.seasonEpisode }}
-                        } @else {
-                          {{ activity.media.title }}
-                          @if (activity.media.year) {
-                            ({{ activity.media.year }})
-                          }
-                        }
-                      </span>
-                    </p>
-                    @if (activity.quality) {
-                      <p class="text-xs text-gray-500">{{ activity.quality }}</p>
-                    }
-                  </div>
-
-                  <!-- Timestamp -->
-                  <span class="text-xs text-gray-500 flex-shrink-0">{{ formatRelativeTime(activity.timestamp) }}</span>
-                </div>
-              }
-            </div>
-
-            <!-- Load More -->
-            @if (hasMoreActivity) {
-              <div class="mt-4 text-center">
-                <button
-                  (click)="loadMoreActivity()"
-                  [disabled]="isLoadingMoreActivity"
-                  class="px-6 py-2 rounded-lg bg-dark-800 text-gray-400 hover:text-gray-200 hover:bg-dark-700 transition-colors disabled:opacity-50">
-                  @if (isLoadingMoreActivity) {
-                    <span class="flex items-center gap-2">
-                      <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Loading...
-                    </span>
-                  } @else {
-                    Load More
-                  }
+            @if (streaming.length > 0) {
+              <div class="flex items-center gap-1 bg-dark-800 rounded-lg p-0.5">
+                <button (click)="toggleStreamingView()" class="p-1.5 rounded transition-colors"
+                        [class]="streamingViewMode === 'compact' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-gray-200'" title="Compact">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                  </svg>
+                </button>
+                <button (click)="toggleStreamingView()" class="p-1.5 rounded transition-colors"
+                        [class]="streamingViewMode === 'detailed' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-gray-200'" title="Detailed">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                  </svg>
                 </button>
               </div>
             }
+          </div>
+
+          @if (streaming.length === 0) {
+            <div class="flex items-center justify-center py-4 text-gray-500">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <span class="text-sm">No active streams</span>
+            </div>
+          } @else if (streamingViewMode === 'compact') {
+            <!-- COMPACT VIEW - 3 columns -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              @for (session of streaming; track trackBySession($index, session)) {
+                <div class="group relative rounded-lg border transition-all duration-200 cursor-pointer overflow-hidden"
+                     [class]="session.playback.decision === 'transcode' ? 'border-amber-500/30 hover:border-amber-500/50' : session.playback.decision === 'copy' ? 'border-blue-500/30 hover:border-blue-500/50' : 'border-primary-500/30 hover:border-primary-500/50'"
+                     (click)="toggleSessionExpand(session.sessionKey, $event)">
+                  <!-- Color accent bar -->
+                  <div class="absolute top-0 left-0 right-0 h-0.5" [class]="session.playback.decision === 'transcode' ? 'bg-amber-500' : session.playback.decision === 'copy' ? 'bg-blue-500' : 'bg-primary-500'"></div>
+                  
+                  <div class="p-2.5">
+                    <div class="flex items-center gap-2.5">
+                      <!-- Poster -->
+                      <div class="relative flex-shrink-0">
+                        <div class="w-9 h-[54px] rounded overflow-hidden ring-1 ring-white/10">
+                          @if (session.media.thumb) {
+                            <img [src]="getImageUrl(session.media.thumb)" [alt]="session.media.title" class="w-full h-full object-cover" loading="lazy">
+                          } @else {
+                            <div class="w-full h-full bg-dark-700 flex items-center justify-center">
+                              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                              </svg>
+                            </div>
+                          }
+                        </div>
+                        <!-- Play indicator -->
+                        <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-dark-900/90 flex items-center justify-center ring-1 ring-white/10">
+                          @if (session.playback.state === 'playing') {
+                            <svg class="w-2 h-2 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                          } @else if (session.playback.state === 'paused') {
+                            <svg class="w-2 h-2 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+                          } @else {
+                            <svg class="w-2 h-2 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Info -->
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-medium text-gray-100 text-sm truncate leading-tight">
+                          @if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }
+                        </h3>
+                        <div class="flex items-center gap-1 mt-0.5 text-xs">
+                          <span class="text-gray-400 truncate">{{ session.user.name }}</span>
+                          <span class="text-gray-600">•</span>
+                          <span class="text-gray-500">{{ session.streamQuality?.resolution || session.quality.resolution }}</span>
+                          <span class="text-gray-600">•</span>
+                          <span [class]="session.playback.decision === 'directplay' ? 'text-primary-400' : session.playback.decision === 'transcode' ? 'text-amber-400' : 'text-blue-400'">
+                            {{ session.playback.decision === 'directplay' ? 'Direct' : session.playback.decision === 'transcode' ? 'Trans' : 'Stream' }}
+                          </span>
+                        </div>
+                        <!-- Progress -->
+                        <div class="mt-1.5">
+                          <div class="h-1 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500 relative overflow-hidden"
+                                 [class]="session.playback.decision === 'transcode' ? 'bg-amber-500' : session.playback.decision === 'copy' ? 'bg-blue-500' : 'bg-primary-500'"
+                                 [style.width]="getProgressWidth(session.playback.progress)">
+                              @if (session.playback.state === 'playing') {
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer"></div>
+                              }
+                            </div>
+                          </div>
+                          <span class="text-xs text-gray-500 mt-0.5 block tabular-nums">{{ getElapsedTime(session) }} / {{ getTotalTime(session) }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Expand chevron -->
+                      <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" [class.rotate-90]="isSessionExpanded(session.sessionKey)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </div>
+
+                    <!-- Expanded Details -->
+                    @if (isSessionExpanded(session.sessionKey)) {
+                      <div class="mt-2 pt-2 border-t border-white/10 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                        @if (session.media.type === 'episode' && session.media.seasonEpisode) {
+                          <p class="text-xs text-gray-300">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p>
+                        }
+                        <div class="flex flex-wrap gap-1">
+                          <span class="px-1.5 py-0.5 rounded text-xs bg-white/10 text-gray-300">{{ session.streamQuality?.videoCodec || session.quality.videoCodec }}</span>
+                          @if (session.streamQuality?.audioCodec || session.quality.audioCodec) {
+                            <span class="px-1.5 py-0.5 rounded text-xs bg-white/10 text-gray-300">
+                              {{ session.streamQuality?.audioCodec || session.quality.audioCodec }}
+                              @if (session.streamQuality?.audioChannels) { {{ formatAudioChannels(session.streamQuality?.audioChannels) }} }
+                            </span>
+                          }
+                          <span class="px-1.5 py-0.5 rounded text-xs" [class]="session.network.location === 'lan' ? 'bg-green-500/20 text-green-300' : 'bg-purple-500/20 text-purple-300'">{{ session.network.location | uppercase }}</span>
+                        </div>
+                        @if (session.playback.decision === 'transcode' && session.transcoding) {
+                          <div class="p-1.5 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200">
+                            {{ getTranscodeSummary(session) }} • {{ getHwAccelInfo(session) }}
+                            @if (getTranscodeSpeed(session)) { • {{ getTranscodeSpeed(session) }} }
+                          </div>
+                        }
+                        <div class="flex items-center justify-between text-xs text-gray-400">
+                          <span>{{ session.player.name }}</span>
+                          <span>Ends {{ getETA(session) }}</span>
+                        </div>
+                        <button (click)="navigateToMedia(session, $event)" class="w-full py-1.5 rounded bg-primary-600/20 hover:bg-primary-600/30 text-primary-300 text-xs font-medium transition-colors">
+                          View {{ session.media.type === 'movie' ? 'Movie' : 'Show' }}
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <!-- DETAILED VIEW -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+              @for (session of streaming; track trackBySession($index, session)) {
+                <div class="group relative overflow-hidden rounded-xl border border-white/10 shadow-lg cursor-pointer transition-all duration-300 hover:border-white/20 hover:scale-[1.01]" (click)="navigateToMedia(session, $event)">
+                  @if (session.media.thumb) {
+                    <div class="absolute inset-0">
+                      <img [src]="getImageUrl(session.media.thumb)" class="w-full h-full object-cover scale-110 blur-2xl opacity-30" loading="lazy">
+                      <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/90 to-dark-900/70"></div>
+                    </div>
+                  } @else {
+                    <div class="absolute inset-0 bg-gradient-to-br from-dark-800 to-dark-900"></div>
+                  }
+                  <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
+                  
+                  <div class="relative p-3">
+                    <div class="flex gap-3">
+                      <div class="relative flex-shrink-0">
+                        <div class="w-14 h-[84px] rounded-lg overflow-hidden ring-1 ring-white/20 shadow-xl">
+                          @if (session.media.thumb) {
+                            <img [src]="getImageUrl(session.media.thumb)" [alt]="session.media.title" class="w-full h-full object-cover" loading="lazy">
+                          } @else {
+                            <div class="w-full h-full bg-dark-700 flex items-center justify-center">
+                              <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                              </svg>
+                            </div>
+                          }
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-dark-900/90 flex items-center justify-center ring-1 ring-white/10">
+                          @if (session.playback.state === 'playing') {
+                            <svg class="w-2.5 h-2.5 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                          } @else if (session.playback.state === 'paused') {
+                            <svg class="w-2.5 h-2.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+                          } @else {
+                            <svg class="w-2.5 h-2.5 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>
+                          }
+                        </div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-white truncate text-sm">
+                          @if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }
+                        </h3>
+                        @if (session.media.type === 'episode' && session.media.seasonEpisode) {
+                          <p class="text-xs text-gray-300 truncate">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p>
+                        }
+                        <div class="flex items-center gap-1.5 mt-1 text-xs">
+                          <span class="text-gray-300">{{ session.user.name }}</span>
+                          <span class="text-gray-600">•</span>
+                          <span class="text-gray-400">{{ session.streamQuality?.resolution || session.quality.resolution }}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1 mt-1.5">
+                          <span class="px-1.5 py-0.5 rounded text-xs" [class]="session.playback.decision === 'directplay' ? 'bg-primary-500/20 text-primary-300' : session.playback.decision === 'transcode' ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'">
+                            {{ getPlaybackDecisionLabel(session.playback.decision) }}
+                          </span>
+                          <span class="px-1.5 py-0.5 rounded text-xs" [class]="session.network.location === 'lan' ? 'bg-green-500/20 text-green-300' : 'bg-purple-500/20 text-purple-300'">{{ session.network.location | uppercase }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <div class="flex justify-between text-xs mb-1">
+                        <span class="text-white tabular-nums">{{ getElapsedTime(session) }} / {{ getTotalTime(session) }}</span>
+                        <span class="text-gray-400">{{ getETA(session) }}</span>
+                      </div>
+                      <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500 relative overflow-hidden"
+                             [class]="session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-primary-500 to-primary-400'"
+                             [style.width]="getProgressWidth(session.playback.progress)">
+                          @if (session.playback.state === 'playing') {
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer"></div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
           }
+        </div>
+
+        <!-- SECTION 2: THREE COMPACT WIDGETS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- WIDGET 1: QUICK STATS -->
+          <div class="card overflow-hidden">
+            <div class="px-3 py-2 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+              <h3 class="text-xs font-semibold text-primary-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Quick Stats
+              </h3>
+            </div>
+            <div class="p-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-primary-500/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <span class="text-sm text-gray-300">Streaming</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-base font-bold text-gray-100">{{ stats?.streaming?.active || 0 }}</span>
+                  @if (stats?.streaming?.transcoding) {
+                    <span class="text-xs text-amber-400 ml-1">({{ stats?.streaming?.transcoding }}⚡)</span>
+                  }
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                  </div>
+                  <span class="text-sm text-gray-300">Downloads</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-base font-bold text-gray-100">{{ activeDownloads + queuedDownloads }}</span>
+                  @if (totalDownloadSpeed > 0) {
+                    <span class="text-xs text-green-400 ml-1">↓{{ formatSpeed(totalDownloadSpeed) }}</span>
+                  }
+                </div>
+              </div>
+              <a routerLink="/wanted" class="flex items-center justify-between hover:bg-white/5 -mx-3 px-3 py-0.5 rounded transition-colors">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                  </div>
+                  <span class="text-sm text-gray-300">Missing</span>
+                </div>
+                <span class="text-base font-bold text-gray-100">{{ (stats?.radarr?.missing || 0) + (stats?.sonarr?.missing || 0) }}</span>
+              </a>
+              <a routerLink="/wanted" class="flex items-center justify-between hover:bg-white/5 -mx-3 px-3 py-0.5 rounded transition-colors">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                  </div>
+                  <span class="text-sm text-gray-300">Upgrades</span>
+                </div>
+                <span class="text-base font-bold text-gray-100">{{ (stats?.radarr?.upgrades || 0) + (stats?.sonarr?.upgrades || 0) }}</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- WIDGET 2: DOWNLOADS (NZBGet + qBittorrent only) -->
+          <div class="card overflow-hidden">
+            <div class="px-3 py-2 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent flex items-center justify-between">
+              <h3 class="text-xs font-semibold text-primary-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Downloads
+              </h3>
+              @if (downloadClientSpeed > 0) {
+                <span class="text-xs text-green-400 font-medium tabular-nums">↓{{ formatSpeed(downloadClientSpeed) }}</span>
+              }
+            </div>
+            <!-- Tabs -->
+            <div class="flex border-b border-white/10">
+              <button (click)="downloadWidgetTab = 'queue'" class="flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="downloadWidgetTab === 'queue' ? 'text-primary-400 border-primary-500 bg-primary-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                Queue ({{ downloadClientActiveCount }})
+              </button>
+              <button (click)="downloadWidgetTab = 'history'" class="flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="downloadWidgetTab === 'history' ? 'text-primary-400 border-primary-500 bg-primary-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                History
+              </button>
+            </div>
+            <div class="p-2 space-y-1.5 min-h-[140px] max-h-[180px] overflow-y-auto">
+              @if (downloadWidgetTab === 'queue') {
+                @if (downloadClientQueue.length === 0) {
+                  <div class="flex flex-col items-center justify-center py-6 text-gray-500">
+                    <svg class="w-8 h-8 mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <span class="text-xs">Empty</span>
+                  </div>
+                } @else {
+                  @for (download of downloadClientQueue; track trackByDownload($index, download)) {
+                    <div class="p-1.5 rounded bg-dark-800/50">
+                      <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                          <!-- Source icon -->
+                          @if (download.source === 'nzbget') {
+                            <span class="text-xs text-green-400 flex-shrink-0" title="NZBGet">NZB</span>
+                          } @else {
+                            <span class="text-xs text-blue-400 flex-shrink-0" title="qBittorrent">qBt</span>
+                          }
+                          <span class="text-xs text-gray-200 truncate font-medium">{{ download.title }}</span>
+                        </div>
+                        <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">{{ download.progress | number:'1.0-0' }}%</span>
+                      </div>
+                      <div class="h-1 bg-dark-700 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-300"
+                             [class]="download.status === 'downloading' ? 'bg-gradient-to-r from-primary-500 to-primary-400' : download.status === 'paused' ? 'bg-yellow-500' : 'bg-gray-500'"
+                             [style.width]="getProgressWidth(download.progress)"></div>
+                      </div>
+                      <div class="flex items-center justify-between mt-0.5">
+                        <span class="text-xs text-gray-500">{{ download.quality || 'Unknown' }}</span>
+                        @if (download.speed && download.speed > 0) {
+                          <span class="text-xs text-green-400 tabular-nums">{{ formatSpeed(download.speed) }}</span>
+                        } @else if (download.eta) {
+                          <span class="text-xs text-gray-500">{{ download.eta }}</span>
+                        } @else if (download.status === 'paused') {
+                          <span class="text-xs text-yellow-400">Paused</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+              } @else {
+                <!-- History Tab -->
+                @if (downloadClientHistory.length === 0) {
+                  <div class="flex flex-col items-center justify-center py-6 text-gray-500">
+                    <svg class="w-8 h-8 mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">No recent history</span>
+                  </div>
+                } @else {
+                  @for (download of downloadClientHistory; track trackByDownload($index, download)) {
+                    <div class="p-1.5 rounded bg-dark-800/50">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                          <!-- Source icon -->
+                          @if (download.source === 'nzbget') {
+                            <span class="text-xs text-green-400 flex-shrink-0" title="NZBGet">NZB</span>
+                          } @else {
+                            <span class="text-xs text-blue-400 flex-shrink-0" title="qBittorrent">qBt</span>
+                          }
+                          <span class="text-xs text-gray-200 truncate font-medium">{{ download.title }}</span>
+                        </div>
+                        <!-- Status indicator -->
+                        @if (download.status === 'seeding') {
+                          <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                          </svg>
+                        } @else if (download.status === 'importing' || download.status === 'extracting') {
+                          <svg class="w-4 h-4 text-yellow-400 flex-shrink-0 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                          </svg>
+                        } @else {
+                          <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                        }
+                      </div>
+                      <div class="flex items-center justify-between mt-0.5">
+                        <span class="text-xs text-gray-500">{{ download.quality || 'Unknown' }}</span>
+                        @if (download.status === 'seeding') {
+                          <span class="text-xs text-blue-400">Seeding</span>
+                        } @else if (download.status === 'importing') {
+                          <span class="text-xs text-yellow-400">Importing</span>
+                        } @else if (download.status === 'extracting') {
+                          <span class="text-xs text-yellow-400">Extracting</span>
+                        } @else {
+                          <span class="text-xs text-green-400">Done</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+              }
+            </div>
+          </div>
+
+          <!-- WIDGET 3: RECENT ACTIVITY (Compact with tabs) -->
+          <div class="card overflow-hidden">
+            <div class="px-3 py-2 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+              <h3 class="text-xs font-semibold text-primary-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Recent Activity
+              </h3>
+            </div>
+            <!-- Tabs -->
+            <div class="flex border-b border-white/10">
+              <button (click)="setActivityTab('watched')" class="flex-1 px-2 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="activeActivityTab === 'watched' ? 'text-primary-400 border-primary-500 bg-primary-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                Watched
+              </button>
+              <button (click)="setActivityTab('downloaded')" class="flex-1 px-2 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="activeActivityTab === 'downloaded' ? 'text-primary-400 border-primary-500 bg-primary-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                Downloaded
+              </button>
+              <button (click)="setActivityTab('added')" class="flex-1 px-2 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="activeActivityTab === 'added' ? 'text-primary-400 border-primary-500 bg-primary-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                Added
+              </button>
+            </div>
+            <div class="p-2 space-y-1 min-h-[140px] max-h-[180px] overflow-y-auto">
+              @if (filteredActivity.length === 0) {
+                <div class="flex flex-col items-center justify-center py-6 text-gray-500">
+                  <svg class="w-8 h-8 mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span class="text-xs">No recent activity</span>
+                </div>
+              } @else {
+                @for (activity of filteredActivity.slice(0, 6); track trackByActivity($index, activity)) {
+                  <div class="flex items-center gap-2 py-1 px-1 rounded hover:bg-white/5 transition-colors">
+                    <div class="w-7 h-10 rounded bg-dark-700 flex-shrink-0 overflow-hidden">
+                      @if (activity.media.thumb) {
+                        <img [src]="getImageUrl(activity.media.thumb)" [alt]="activity.media.title" class="w-full h-full object-cover" loading="lazy">
+                      } @else {
+                        <div class="w-full h-full flex items-center justify-center">
+                          <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                          </svg>
+                        </div>
+                      }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs text-gray-200 truncate font-medium">
+                        @if (activity.media.type === 'episode' && activity.media.showTitle) { {{ activity.media.showTitle }} } @else { {{ activity.media.title }} }
+                      </p>
+                      <p class="text-xs text-gray-500 truncate">
+                        @if (activity.type === 'watched' && activity.user) { {{ activity.user }} • }
+                        {{ formatRelativeTime(activity.timestamp) }}
+                      </p>
+                    </div>
+                  </div>
+                }
+                @if (filteredActivity.length > 6) {
+                  <div class="text-center pt-1">
+                    <button class="text-xs text-primary-400 hover:text-primary-300 transition-colors">View all →</button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
         </div>
       </div>
     }

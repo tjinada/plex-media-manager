@@ -108,8 +108,28 @@ class HomeAggregatorService {
       player: {
         name: session.player || 'Unknown',
         platform: session.platform || 'Unknown',
-        product: session.product
+        product: session.product,
+        device: session.device || session.platform_name
       },
+      // Source quality (original file)
+      sourceQuality: {
+        resolution: session.video_full_resolution || 'Unknown',
+        videoCodec: session.video_codec || 'Unknown',
+        audioCodec: session.audio_codec || 'Unknown',
+        audioChannels: session.audio_channel_layout || session.audio_channels,
+        bitrate: session.bitrate ? parseInt(session.bitrate) : undefined,
+        container: session.container
+      },
+      // Stream quality (what's being delivered)
+      streamQuality: {
+        resolution: session.stream_video_full_resolution || session.video_full_resolution || 'Unknown',
+        videoCodec: session.stream_video_codec || session.video_codec || 'Unknown',
+        audioCodec: session.stream_audio_codec || session.audio_codec || 'Unknown',
+        audioChannels: session.stream_audio_channel_layout || session.stream_audio_channels,
+        bitrate: session.stream_bitrate ? parseInt(session.stream_bitrate) : undefined,
+        container: session.stream_container || session.container
+      },
+      // Keep old quality field for backward compatibility
       quality: {
         resolution: session.stream_video_full_resolution || session.video_resolution || 'Unknown',
         videoCodec: session.stream_video_codec || session.video_codec || 'Unknown',
@@ -119,7 +139,8 @@ class HomeAggregatorService {
         decision: this.normalizeDecision(session.transcode_decision),
         progress: session.progress_percent ? parseFloat(session.progress_percent) : 0,
         duration: session.duration ? parseInt(session.duration) : 0,
-        state: session.state || 'playing'
+        state: session.state || 'playing',
+        startedAt: session.started ? new Date(session.started * 1000).toISOString() : undefined
       },
       transcoding: session.transcode_decision !== 'direct play' ? {
         videoDecision: this.normalizeDecision(session.stream_video_decision),
@@ -132,7 +153,8 @@ class HomeAggregatorService {
       network: {
         location: session.location === 'lan' ? 'lan' : 'wan',
         bandwidth: session.bandwidth ? parseInt(session.bandwidth) : undefined,
-        secure: session.secure === '1' || session.secure === true
+        secure: session.secure === '1' || session.secure === true,
+        relayed: session.relayed === '1' || session.relayed === true
       }
     };
   }

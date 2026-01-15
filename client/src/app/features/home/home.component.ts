@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HomeService, WebSocketService, PlexService } from '@core/services';
 import {
@@ -18,6 +18,7 @@ type DownloadFilter = 'all' | 'movies' | 'tv' | 'nzbget' | 'qbittorrent';
 interface SessionTiming {
   baseElapsedMs: number;
   lastUpdateTime: number;
+  lastServerProgress: number; // Track server progress to detect seeks
 }
 
 @Component({
@@ -42,6 +43,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   activityLimit = 10;
   hasMoreActivity = false;
   isLoadingMoreActivity = false;
+  streamingViewMode: 'compact' | 'detailed' = 'compact';
+  expandedSessionKey: string | null = null;
+  downloadWidgetTab: 'queue' | 'history' = 'queue';
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -54,7 +58,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private homeService: HomeService,
     private wsService: WebSocketService,
-    private plexService: PlexService
+    private plexService: PlexService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -205,6 +210,29 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Toggle streaming view mode
+   */
+  toggleStreamingView(): void {
+    this.streamingViewMode = this.streamingViewMode === 'compact' ? 'detailed' : 'compact';
+    this.expandedSessionKey = null;
+  }
+
+  /**
+   * Toggle expanded state for a session (compact mode)
+   */
+  toggleSessionExpand(sessionKey: string, event: Event): void {
+    event.stopPropagation();
+    this.expandedSessionKey = this.expandedSessionKey === sessionKey ? null : sessionKey;
+  }
+
+  /**
+   * Check if session is expanded
+   */
+  isSessionExpanded(sessionKey: string): boolean {
+    return this.expandedSessionKey === sessionKey;
+  }
+
+  /**
    * Get filtered downloads based on active filter
    */
   get filteredDownloads(): DownloadItem[] {
@@ -265,6 +293,52 @@ export class HomeComponent implements OnInit, OnDestroy {
    */
   get queuedDownloads(): number {
     return this.downloads.filter(d => d.status === 'queued').length;
+  }
+
+  /**
+   * Get active downloads from NZBGet and qBittorrent only (for widget queue tab)
+   * Excludes completed items (progress >= 100)
+   */
+  get downloadClientQueue(): DownloadItem[] {
+    return this.downloads
+      .filter(d => 
+        (d.source === 'nzbget' || d.source === 'qbittorrent') &&
+        (d.status === 'downloading' || d.status === 'queued' || d.status === 'paused') &&
+        d.progress < 100
+      )
+      .slice(0, 5);
+  }
+
+  /**
+   * Get completed/seeding downloads from NZBGet and qBittorrent (for widget history tab)
+   * Note: 'seeding' = torrent finished downloading, 'importing' = being processed by arr
+   */
+  get downloadClientHistory(): DownloadItem[] {
+    return this.downloads
+      .filter(d => 
+        (d.source === 'nzbget' || d.source === 'qbittorrent') &&
+        (d.status === 'seeding' || d.status === 'importing' || d.status === 'extracting' || d.progress >= 100)
+      )
+      .slice(0, 5);
+  }
+
+  /**
+   * Get count of active downloads from download clients
+   */
+  get downloadClientActiveCount(): number {
+    return this.downloads.filter(d => 
+      (d.source === 'nzbget' || d.source === 'qbittorrent') &&
+      d.status === 'downloading'
+    ).length;
+  }
+
+  /**
+   * Get total speed from download clients only
+   */
+  get downloadClientSpeed(): number {
+    return this.downloads
+      .filter(d => d.source === 'nzbget' || d.source === 'qbittorrent')
+      .reduce((sum, d) => sum + (d.speed || 0), 0);
   }
 
   /**
@@ -437,10 +511,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     
     // Update timings for each session
     sessions.forEach(session => {
-      const baseElapsedMs = (session.playback.progress / 100) * session.playback.duration;
+      const serverElapsedMs = (session.playback.progress / 100) * session.playback.duration;
       this.sessionTimings.set(session.sessionKey, {
-        baseElapsedMs,
-        lastUpdateTime: now
+        baseElapsedMs: serverElapsedMs,
+        lastUpdateTime: now,
+        lastServerProgress: session.playback.progress
       });
     });
 
@@ -455,14 +530,36 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /**
    * Get elapsed time from progress percentage and duration (live updating)
+   * Detects seek events by comparing current session progress with stored progress
    */
   getElapsedTime(session: StreamingSession): string {
+    return this.formatDuration(this.getCurrentElapsedMs(session));
+  }
+
+  /**
+   * Get current elapsed time in milliseconds with seek detection
+   * This is the core timing logic used by all time-related methods
+   */
+  private getCurrentElapsedMs(session: StreamingSession): number {
     const timing = this.sessionTimings.get(session.sessionKey);
+    const serverElapsedMs = (session.playback.progress / 100) * session.playback.duration;
     
     if (!timing) {
-      // Fallback if no timing data
-      const elapsed = (session.playback.progress / 100) * session.playback.duration;
-      return this.formatDuration(elapsed);
+      return serverElapsedMs;
+    }
+
+    // Check if server progress has changed (user seeked or new WebSocket data)
+    // If progress differs by more than 0.15%, snap to server value
+    // For a 2.5 hour movie, 0.15% = ~13 seconds - catches most seeks
+    const progressDiff = Math.abs(session.playback.progress - timing.lastServerProgress);
+    if (progressDiff > 0.15) {
+      // Server progress changed - update timing immediately
+      this.sessionTimings.set(session.sessionKey, {
+        baseElapsedMs: serverElapsedMs,
+        lastUpdateTime: this.currentTime,
+        lastServerProgress: session.playback.progress
+      });
+      return serverElapsedMs;
     }
 
     let elapsedMs = timing.baseElapsedMs;
@@ -474,9 +571,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     // Don't exceed duration
-    elapsedMs = Math.min(elapsedMs, session.playback.duration);
-
-    return this.formatDuration(elapsedMs);
+    return Math.min(elapsedMs, session.playback.duration);
   }
 
   /**
@@ -552,6 +647,152 @@ export class HomeComponent implements OnInit, OnDestroy {
       case 'paused': return 'text-yellow-400';
       case 'buffering': return 'text-blue-400';
       default: return 'text-gray-400';
+    }
+  }
+
+  /**
+   * Get remaining time
+   */
+  getRemainingTime(session: StreamingSession): string {
+    const elapsedMs = this.getCurrentElapsedMs(session);
+    const remaining = Math.max(0, session.playback.duration - elapsedMs);
+    return this.formatDuration(remaining);
+  }
+
+  /**
+   * Get ETA (end time)
+   */
+  getETA(session: StreamingSession): string {
+    const elapsedMs = this.getCurrentElapsedMs(session);
+    const remainingMs = Math.max(0, session.playback.duration - elapsedMs);
+    const endTime = new Date(Date.now() + remainingMs);
+    
+    return endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+
+  /**
+   * Get session duration (how long they've been watching)
+   */
+  getSessionDuration(session: StreamingSession): string {
+    if (!session.playback.startedAt) return '';
+    const started = new Date(session.playback.startedAt).getTime();
+    const duration = Date.now() - started;
+    
+    const mins = Math.floor(duration / 60000);
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.floor(mins / 60);
+    return `${hours}h ${mins % 60}m`;
+  }
+
+  /**
+   * Check if quality is being downgraded
+   */
+  isQualityDowngraded(session: StreamingSession): boolean {
+    if (!session.sourceQuality || !session.streamQuality) return false;
+    return session.sourceQuality.resolution !== session.streamQuality.resolution;
+  }
+
+  /**
+   * Get quality comparison string
+   */
+  getQualityComparison(session: StreamingSession): string {
+    if (!session.sourceQuality || !session.streamQuality) return '';
+    if (session.sourceQuality.resolution === session.streamQuality.resolution) return '';
+    return `${session.sourceQuality.resolution} → ${session.streamQuality.resolution}`;
+  }
+
+  /**
+   * Get stream health status based on transcode speed
+   */
+  getStreamHealth(session: StreamingSession): 'good' | 'warning' | 'poor' {
+    if (session.playback.state === 'buffering') return 'poor';
+    if (!session.transcoding?.speed) return 'good';
+    
+    if (session.transcoding.speed >= 2.0) return 'good';
+    if (session.transcoding.speed >= 1.0) return 'warning';
+    return 'poor';
+  }
+
+  /**
+   * Get stream health color class
+   */
+  getStreamHealthClass(session: StreamingSession): string {
+    const health = this.getStreamHealth(session);
+    switch (health) {
+      case 'good': return 'bg-green-500';
+      case 'warning': return 'bg-yellow-500';
+      case 'poor': return 'bg-red-500';
+    }
+  }
+
+  /**
+   * Get device/platform icon name
+   */
+  getDeviceIcon(session: StreamingSession): string {
+    const platform = (session.player.platform || '').toLowerCase();
+    const product = (session.player.product || '').toLowerCase();
+    const device = (session.player.device || '').toLowerCase();
+    
+    // Apple devices
+    if (platform.includes('ios') || product.includes('iphone')) return 'iphone';
+    if (platform.includes('tvos') || product.includes('apple tv')) return 'appletv';
+    if (platform.includes('macos') || platform.includes('osx')) return 'mac';
+    
+    // Android
+    if (platform.includes('android')) {
+      if (product.includes('tv') || device.includes('tv')) return 'androidtv';
+      return 'android';
+    }
+    
+    // Smart TVs
+    if (platform.includes('roku')) return 'roku';
+    if (platform.includes('fire') || product.includes('fire')) return 'firetv';
+    if (platform.includes('samsung') || platform.includes('tizen')) return 'smarttv';
+    if (platform.includes('lg') || platform.includes('webos')) return 'smarttv';
+    if (platform.includes('chromecast')) return 'chromecast';
+    
+    // Consoles
+    if (platform.includes('playstation') || platform.includes('ps4') || platform.includes('ps5')) return 'playstation';
+    if (platform.includes('xbox')) return 'xbox';
+    
+    // Desktop
+    if (platform.includes('windows')) return 'windows';
+    if (platform.includes('linux')) return 'linux';
+    
+    // Web
+    if (product.includes('web') || platform.includes('chrome') || platform.includes('firefox') || platform.includes('safari')) return 'web';
+    
+    return 'device';
+  }
+
+  /**
+   * Format audio channels display
+   */
+  formatAudioChannels(channels: string | undefined): string {
+    if (!channels) return '';
+    
+    // Handle common formats
+    if (channels.includes('7.1')) return '7.1';
+    if (channels.includes('5.1')) return '5.1';
+    if (channels.includes('stereo') || channels === '2') return '2.0';
+    if (channels.includes('mono') || channels === '1') return '1.0';
+    
+    return channels;
+  }
+
+  /**
+   * Navigate to media detail page
+   */
+  navigateToMedia(session: StreamingSession, event: Event): void {
+    event.stopPropagation();
+    if (!session.media.ratingKey) return;
+    
+    if (session.media.type === 'movie') {
+      // Need to find the movie ID from ratingKey
+      // For now, we'll search - in future could have a lookup endpoint
+      this.router.navigate(['/movies'], { queryParams: { search: session.media.title } });
+    } else {
+      this.router.navigate(['/shows'], { queryParams: { search: session.media.showTitle || session.media.title } });
     }
   }
 }

@@ -1,0 +1,353 @@
+<mxfile host="app.diagrams.net" modified="2026-01-15T17:00:00.000Z" agent="TJ Plex Media Manager" version="22.1.0">
+  <diagram name="Home-Desktop" id="home-desktop">
+    <mxGraphModel dx="1434" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Main Container -->
+        <mxCell id="main-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1a1a2e;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="1200" height="900" as="geometry" />
+        </mxCell>
+        
+        <!-- Sidebar -->
+        <mxCell id="sidebar" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#16162a;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="64" height="900" as="geometry" />
+        </mxCell>
+        
+        <!-- Sidebar Icons -->
+        <mxCell id="nav-home" value="🏠" style="text;html=1;strokeColor=none;fillColor=#14b8a6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="12" y="70" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-dashboard" value="📊" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="12" y="120" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-movies" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="12" y="170" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-shows" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="12" y="220" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-storage" value="💾" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="12" y="270" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav-settings" value="⚙️" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="12" y="820" width="40" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Header -->
+        <mxCell id="header" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1a1a2e;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="64" y="0" width="1136" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="header-title" value="HOME" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="15" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="live-indicator" value="● Live" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#22c55e;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="15" width="80" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- SECTION 1: QUICK STATS (TOP) -->
+        <mxCell id="stats-section" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e1e38;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="90" y="80" width="1084" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="stats-title" value="QUICK STATS" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#14b8a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="88" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Stat Card 1 - Streaming -->
+        <mxCell id="stat-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="110" y="115" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-1-value" value="2" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="115" width="60" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-1-label" value="Streaming" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="170" y="118" width="70" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-1-sub" value="1 transcoding" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="170" y="136" width="80" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- Stat Card 2 - Downloads -->
+        <mxCell id="stat-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="290" y="115" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-2-value" value="8" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="115" width="60" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-2-label" value="Downloads" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="350" y="118" width="70" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-2-sub" value="40 MB/s" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#22c55e;" vertex="1" parent="1">
+          <mxGeometry x="350" y="136" width="80" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- Stat Card 3 - Missing -->
+        <mxCell id="stat-3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="470" y="115" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-3-value" value="20" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="115" width="60" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-3-label" value="Missing" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="530" y="118" width="70" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-3-sub" value="12 🎬 • 8 📺" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="530" y="136" width="80" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- Stat Card 4 - Upgrades -->
+        <mxCell id="stat-4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="650" y="115" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-4-value" value="165" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="115" width="60" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-4-label" value="Upgrades" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="710" y="118" width="70" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="stat-4-sub" value="45 🎬 • 120 📺" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="710" y="136" width="90" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- SECTION 2: NOW STREAMING -->
+        <mxCell id="streaming-section" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e1e38;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="90" y="185" width="1084" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="streaming-title" value="NOW STREAMING (2)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#14b8a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="193" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Stream Card 1 -->
+        <mxCell id="stream-card-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="110" y="220" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d3d5c;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="118" y="228" width="50" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-icon" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="125" y="253" width="36" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-title" value="The Matrix (1999)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="176" y="228" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-user" value="John • Apple TV" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="176" y="248" width="180" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-quality" value="4K HEVC • Direct Play" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#14b8a6;" vertex="1" parent="1">
+          <mxGeometry x="176" y="264" width="180" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-progress-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d3d5c;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="176" y="284" width="160" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-progress" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="176" y="284" width="72" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-1-percent" value="45% • LAN" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="176" y="292" width="100" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- Stream Card 2 -->
+        <mxCell id="stream-card-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="390" y="220" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-poster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d3d5c;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="398" y="228" width="50" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-icon" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="405" y="253" width="36" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-title" value="Breaking Bad S01E03" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="456" y="228" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-user" value="Jane • Roku Ultra" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="456" y="248" width="180" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-quality" value="1080p H.264 • Transcode" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#f59e0b;" vertex="1" parent="1">
+          <mxGeometry x="456" y="264" width="180" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-progress-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d3d5c;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="456" y="284" width="160" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-progress" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f59e0b;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="456" y="284" width="51" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="stream-2-percent" value="32% • WAN" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="456" y="292" width="100" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- SECTION 3: DOWNLOADS -->
+        <mxCell id="downloads-section" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e1e38;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="90" y="350" width="1084" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="downloads-title" value="DOWNLOADS (3 active • 5 queued)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#14b8a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="358" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="downloads-speed" value="40 MB/s" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=13;fontColor=#22c55e;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="358" width="90" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Filter Tabs -->
+        <mxCell id="filter-all" value="All" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="110" y="384" width="45" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="filter-movies" value="Movies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="165" y="384" width="55" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="filter-tv" value="TV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="384" width="35" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="filter-nzbget" value="NZBGet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="384" width="60" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="filter-qbit" value="qBittorrent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="345" y="384" width="80" height="24" as="geometry" />
+        </mxCell>
+        
+        <!-- Download Item 1 -->
+        <mxCell id="download-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="110" y="418" width="1050" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-icon" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="118" y="426" width="28" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-title" value="Dune: Part Two (2024)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="152" y="422" width="180" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-meta" value="Remux-2160p • NZBGet • NZBgeek" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="152" y="440" width="200" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-progress-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d3d5c;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="435" width="400" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-progress" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="435" width="182" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-percent" value="45.5%" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#f3f4f6;" vertex="1" parent="1">
+          <mxGeometry x="810" y="430" width="45" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-remaining" value="12.5 GB left" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="860" y="430" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-speed" value="25 MB/s" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#22c55e;" vertex="1" parent="1">
+          <mxGeometry x="940" y="424" width="60" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="download-1-eta" value="ETA: 16m" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="940" y="440" width="60" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- Download Item 2 -->
+        <mxCell id="download-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;" vertex="1" parent="1">
+          <mxGeometry x="110" y="470" width="1050" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-icon" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="118" y="478" width="28" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-title" value="Shōgun S01E05 - Broken to the Fist" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="152" y="474" width="260" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-meta" value="WEBDL-1080p • qBittorrent • TorrentLeech" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="152" y="492" width="240" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-progress-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d3d5c;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="487" width="400" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-progress" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="487" width="313" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-percent" value="78.2%" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#f3f4f6;" vertex="1" parent="1">
+          <mxGeometry x="810" y="482" width="45" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-remaining" value="545 MB left" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#9ca3af;" vertex="1" parent="1">
+          <mxGeometry x="860" y="482" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-speed" value="15 MB/s" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#22c55e;" vertex="1" parent="1">
+          <mxGeometry x="940" y="476" width="60" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="download-2-eta" value="ETA: 36s" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="940" y="492" width="60" height="14" as="geometry" />
+        </mxCell>
+        
+        <!-- SECTION 4: RECENT ACTIVITY (with tabs) -->
+        <mxCell id="activity-section" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e1e38;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="90" y="535" width="1084" height="345" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-title" value="RECENT ACTIVITY" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#14b8a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="543" width="180" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Activity Tabs -->
+        <mxCell id="tab-watch" value="Watch History" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#14b8a6;strokeColor=none;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="110" y="570" width="100" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="tab-downloads" value="Download History" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="220" y="570" width="115" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="tab-added" value="Added to Library" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="345" y="570" width="115" height="26" as="geometry" />
+        </mxCell>
+        
+        <!-- Watch History Items -->
+        <mxCell id="activity-1-icon" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="120" y="610" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-1-text" value="John watched The Matrix (1999)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="608" width="400" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-1-time" value="2 hours ago" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=11;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="608" width="100" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-1-divider" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=0;spacingRight=0;rotatable=0;labelPosition=center;points=[];portConstraint=eastwest;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="110" y="640" width="1050" height="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="activity-2-icon" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="120" y="650" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-2-text" value="Jane watched Breaking Bad S01E02" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="648" width="400" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-2-time" value="5 hours ago" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=11;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="648" width="100" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-2-divider" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=0;spacingRight=0;rotatable=0;labelPosition=center;points=[];portConstraint=eastwest;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="110" y="680" width="1050" height="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="activity-3-icon" value="🎬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="120" y="690" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-3-text" value="John watched Oppenheimer (2023)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="688" width="400" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-3-time" value="Yesterday" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=11;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="688" width="100" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-3-divider" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=0;spacingRight=0;rotatable=0;labelPosition=center;points=[];portConstraint=eastwest;strokeColor=#2d2d44;" vertex="1" parent="1">
+          <mxGeometry x="110" y="720" width="1050" height="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="activity-4-icon" value="📺" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="120" y="730" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-4-text" value="John watched Shogun S01E04" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#f3f4f6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="728" width="400" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="activity-4-time" value="Yesterday" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=11;fontColor=#6b7280;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="728" width="100" height="24" as="geometry" />
+        </mxCell>
+        
+        <!-- Load More Button -->
+        <mxCell id="load-more" value="Load More" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252542;strokeColor=#3d3d5c;fontColor=#9ca3af;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="770" width="120" height="32" as="geometry" />
+        </mxCell>
+        
+        <!-- Note about collapsed downloads -->
+        <mxCell id="note-collapsed" value="Note: When no downloads, section collapses to: ⬇️ No active downloads" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#6b7280;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="880" width="400" height="16" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

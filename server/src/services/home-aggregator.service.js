@@ -180,7 +180,7 @@ class HomeAggregatorService {
     let totalSpeed = 0;
 
     // Fetch from all sources in parallel
-    const [radarrQueue, sonarrQueue, nzbgetQueue, qbtQueue] = await Promise.all([
+    const [radarrQueue, sonarrQueue, nzbgetQueue, qbtQueue, nzbgetHistory] = await Promise.all([
       this.getRadarrQueue().catch(err => {
         console.error('Error fetching Radarr queue:', err.message);
         return [];
@@ -196,6 +196,10 @@ class HomeAggregatorService {
       this.getQbittorrentQueue().catch(err => {
         console.error('Error fetching qBittorrent queue:', err.message);
         return { torrents: [], downloadSpeed: 0 };
+      }),
+      this.getNzbgetHistory().catch(err => {
+        console.error('Error fetching NZBGet history:', err.message);
+        return [];
       })
     ]);
 
@@ -203,6 +207,7 @@ class HomeAggregatorService {
     downloads.push(...sonarrQueue);
     downloads.push(...nzbgetQueue.downloads);
     downloads.push(...qbtQueue.torrents);
+    downloads.push(...nzbgetHistory);
 
     // Calculate total download speed
     totalSpeed = (nzbgetQueue.speed || 0) + (qbtQueue.downloadSpeed || 0);
@@ -244,6 +249,32 @@ class HomeAggregatorService {
       };
     } catch (error) {
       return { downloads: [], speed: 0 };
+    }
+  }
+
+  /**
+   * Get NZBGet download history
+   */
+  async getNzbgetHistory() {
+    try {
+      const history = await nzbgetService.getHistory(10);
+      return history.map(item => ({
+        id: item.id,
+        source: 'nzbget',
+        type: 'usenet',
+        title: item.name,
+        status: item.status === 'SUCCESS' ? 'completed' : 
+                item.status === 'FAILURE' ? 'failed' : 
+                item.status === 'DELETED' ? 'deleted' : 'completed',
+        progress: 100,
+        size: item.size,
+        sizeRemaining: 0,
+        quality: undefined,
+        category: item.category,
+        completedAt: item.completedAt
+      }));
+    } catch (error) {
+      return [];
     }
   }
 
@@ -474,6 +505,22 @@ class HomeAggregatorService {
             year = show?.year;
           }
 
+          // Calculate watch progress/status
+          let watchStatus = 'partial';
+          let watchProgress = 0;
+          if (session.duration && session.duration > 0) {
+            const watched = session.watchedDuration || 0;
+            watchProgress = Math.round((watched / session.duration) * 100);
+            
+            if (watchProgress >= 90) {
+              watchStatus = 'completed';
+            } else if (watchProgress <= 10) {
+              watchStatus = 'abandoned';
+            } else {
+              watchStatus = 'partial';
+            }
+          }
+
           activities.push({
             id: `watched-${session._id}`,
             type: 'watched',
@@ -486,7 +533,9 @@ class HomeAggregatorService {
               thumb,
               ratingKey: session.ratingKey
             },
-            user: session.userName
+            user: session.userName,
+            watchStatus,
+            watchProgress
           });
         });
       }
@@ -561,7 +610,8 @@ class HomeAggregatorService {
               media: {
                 type: 'movie',
                 title: item.movieTitle || item.sourceTitle,
-                year: item.year
+                year: item.year,
+                thumb: item.posterUrl
               },
               quality: item.quality,
               details: item.eventType === 'grabbed' ? 'Grabbed' : 'Imported'
@@ -577,6 +627,7 @@ class HomeAggregatorService {
                 type: 'episode',
                 title: item.episodeTitle || item.sourceTitle,
                 showTitle: item.seriesTitle,
+                thumb: item.posterUrl,
                 seasonEpisode: item.seasonNumber && item.episodeNumber
                   ? `S${String(item.seasonNumber).padStart(2, '0')}E${String(item.episodeNumber).padStart(2, '0')}`
                   : undefined
@@ -615,17 +666,34 @@ class HomeAggregatorService {
       const history = await radarrService.getHistory(limit);
       if (!history || !history.records) return [];
 
-      return history.records
+      const historyItems = history.records
         .filter(item => item.eventType === 'grabbed' || item.eventType === 'downloadFolderImported')
         .map(item => ({
           id: item.id,
           movieTitle: item.movie?.title,
           sourceTitle: item.sourceTitle,
           year: item.movie?.year,
+          tmdbId: item.movie?.tmdbId,
           quality: item.quality?.quality?.name,
           date: item.date,
-          eventType: item.eventType
+          eventType: item.eventType,
+          // Radarr includes poster in movie.images
+          posterUrl: item.movie?.images?.find(i => i.coverType === 'poster')?.remoteUrl || null
         }));
+
+      // Try to get posters from our local DB for any missing ones
+      const tmdbIds = historyItems.filter(h => h.tmdbId && !h.posterUrl).map(h => h.tmdbId);
+      if (tmdbIds.length > 0) {
+        const movies = await Movie.find({ tmdbId: { $in: tmdbIds } }, { tmdbId: 1, thumbUrl: 1 }).lean();
+        const movieMap = new Map(movies.map(m => [m.tmdbId, m.thumbUrl]));
+        historyItems.forEach(item => {
+          if (!item.posterUrl && item.tmdbId) {
+            item.posterUrl = movieMap.get(item.tmdbId);
+          }
+        });
+      }
+
+      return historyItems;
     } catch (error) {
       return [];
     }
@@ -639,19 +707,37 @@ class HomeAggregatorService {
       const history = await sonarrService.getHistory(limit);
       if (!history || !history.records) return [];
 
-      return history.records
+      const historyItems = history.records
         .filter(item => item.eventType === 'grabbed' || item.eventType === 'downloadFolderImported')
         .map(item => ({
           id: item.id,
           seriesTitle: item.series?.title,
+          seriesId: item.series?.id,
+          tvdbId: item.series?.tvdbId,
           episodeTitle: item.episode?.title,
           seasonNumber: item.episode?.seasonNumber,
           episodeNumber: item.episode?.episodeNumber,
           sourceTitle: item.sourceTitle,
           quality: item.quality?.quality?.name,
           date: item.date,
-          eventType: item.eventType
+          eventType: item.eventType,
+          // Sonarr includes poster in series.images
+          posterUrl: item.series?.images?.find(i => i.coverType === 'poster')?.remoteUrl || null
         }));
+
+      // Try to get posters from our local DB for any missing ones
+      const tvdbIds = historyItems.filter(h => h.tvdbId && !h.posterUrl).map(h => h.tvdbId);
+      if (tvdbIds.length > 0) {
+        const shows = await TVShow.find({ tvdbId: { $in: tvdbIds } }, { tvdbId: 1, thumbUrl: 1 }).lean();
+        const showMap = new Map(shows.map(s => [s.tvdbId, s.thumbUrl]));
+        historyItems.forEach(item => {
+          if (!item.posterUrl && item.tvdbId) {
+            item.posterUrl = showMap.get(item.tvdbId);
+          }
+        });
+      }
+
+      return historyItems;
     } catch (error) {
       return [];
     }

@@ -331,7 +331,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.downloads
       .filter(d => 
         (d.source === 'nzbget' || d.source === 'qbittorrent') &&
-        (d.status === 'seeding' || d.status === 'importing' || d.status === 'extracting' || d.progress >= 100)
+        (d.status === 'seeding' || d.status === 'importing' || d.status === 'extracting' || d.status === 'completed' || d.status === 'failed' || d.progress >= 100)
       )
       .slice(0, 5);
   }
@@ -499,6 +499,19 @@ export class HomeComponent implements OnInit, OnDestroy {
    */
   getImageUrl(path: string | undefined): string {
     return this.plexService.getImageUrl(path);
+  }
+
+  /**
+   * Get image URL for activity items - handles both Plex paths and external URLs
+   */
+  getActivityImageUrl(url: string | undefined): string {
+    if (!url) return '';
+    // If it's already a full URL (from Radarr/Sonarr), use it directly
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // Otherwise, proxy through Plex
+    return this.plexService.getImageUrl(url);
   }
 
   /**

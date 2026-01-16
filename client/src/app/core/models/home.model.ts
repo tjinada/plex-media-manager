@@ -78,7 +78,7 @@ export interface DownloadItem {
   source: 'radarr' | 'sonarr' | 'nzbget' | 'qbittorrent';
   type: 'movie' | 'episode' | 'season' | 'usenet' | 'torrent' | 'unknown';
   title: string;
-  status: 'downloading' | 'queued' | 'paused' | 'extracting' | 'importing' | 'seeding' | 'stalled' | 'error';
+  status: 'downloading' | 'queued' | 'paused' | 'extracting' | 'importing' | 'seeding' | 'stalled' | 'error' | 'completed' | 'failed' | 'deleted';
   progress: number;
   size: number;
   sizeRemaining: number;
@@ -97,6 +97,8 @@ export interface DownloadItem {
   seeds?: number;
   peers?: number;
   ratio?: number;
+  // History fields
+  completedAt?: Date;
 }
 
 /**
@@ -155,6 +157,8 @@ export interface RecentActivity {
   user?: string;
   details?: string;
   quality?: string;
+  watchStatus?: 'completed' | 'partial' | 'abandoned';
+  watchProgress?: number;
 }
 
 /**

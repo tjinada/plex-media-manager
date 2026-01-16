@@ -986,6 +986,117 @@
         }
       </section>
 
+      <!-- Overseerr Connection -->
+      <section class="card p-6">
+        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          Overseerr
+          @if (overseerrConfig) {
+            <span class="ml-auto text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded-full">Connected</span>
+          }
+        </h2>
+        <p class="text-sm text-gray-400 mb-4">Connect to Overseerr to view and manage media requests.</p>
+
+        @if (overseerrConfig) {
+          <!-- Overseerr Connected State -->
+          <div class="bg-dark-800 rounded-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-200">{{ overseerrConfig.host }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Version: {{ overseerrConfig.version || 'Unknown' }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span class="text-sm text-green-400">Connected</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            (click)="disconnectOverseerr()"
+            class="btn-danger flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Disconnect
+          </button>
+        } @else {
+          <!-- Overseerr Connection Form -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Overseerr URL</label>
+              <input
+                type="text"
+                [(ngModel)]="overseerrHost"
+                placeholder="http://192.168.1.100:5055"
+                class="input-field">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
+              <input
+                type="password"
+                [(ngModel)]="overseerrApiKey"
+                placeholder="Your Overseerr API key"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">Find this in Overseerr Settings → General → API Key</p>
+            </div>
+
+            @if (overseerrError) {
+              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
+                {{ overseerrError }}
+              </div>
+            }
+
+            @if (overseerrTestResult?.success) {
+              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
+                Connected to Overseerr (v{{ overseerrTestResult?.version }})
+              </div>
+            }
+
+            <div class="flex gap-3">
+              <button
+                (click)="testOverseerrConnection()"
+                [disabled]="overseerrTesting || !overseerrHost || !overseerrApiKey"
+                class="btn-secondary flex items-center gap-2">
+                @if (overseerrTesting) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Testing...
+                } @else {
+                  Test Connection
+                }
+              </button>
+              <button
+                (click)="connectOverseerr()"
+                [disabled]="overseerrConnecting || !overseerrHost || !overseerrApiKey"
+                class="btn-primary flex items-center gap-2">
+                @if (overseerrConnecting) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Connecting...
+                } @else {
+                  Connect
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
       <!-- Sync History -->
       @if (lastSyncJobs.length > 0) {
         <section class="card p-6">

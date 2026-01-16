@@ -41,6 +41,69 @@
     } @else {
       <div class="space-y-4">
         
+        <!-- SECTION 0: SHORTCUTS -->
+        @if (shortcuts.length > 0) {
+          <div class="flex flex-wrap gap-2">
+            @for (shortcut of shortcuts; track shortcut.id) {
+              <button (click)="openShortcut(shortcut)" 
+                      class="flex items-center gap-2 px-3 py-2 rounded-lg bg-dark-800/50 border border-white/10 hover:border-primary-500/50 hover:bg-dark-700/50 transition-all group"
+                      [class.opacity-50]="!shortcut.connected">
+                <!-- Service Icon -->
+                @switch (shortcut.icon) {
+                  @case ('plex') {
+                    <svg class="w-5 h-5 text-yellow-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M11.643 2H4v20l7.643-10z"/>
+                      <path d="M20 2h-4.286L8.071 12 15.714 22H20l-7.643-10z"/>
+                    </svg>
+                  }
+                  @case ('nzbget') {
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                  }
+                  @case ('radarr') {
+                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  }
+                  @case ('sonarr') {
+                    <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  }
+                  @case ('overseerr') {
+                    <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  }
+                  @case ('tautulli') {
+                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                  }
+                  @case ('qbittorrent') {
+                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                  }
+                  @default {
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                  }
+                }
+                <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{{ shortcut.name }}</span>
+                @if (shortcut.connected) {
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                }
+                <svg class="w-3 h-3 text-gray-500 group-hover:text-gray-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+              </button>
+            }
+          </div>
+        }
+
         <!-- SECTION 1: NOW STREAMING -->
         <div class="card p-4">
           <div class="flex items-center justify-between mb-3">
@@ -514,6 +577,165 @@
                 @if (filteredActivity.length > 6) {
                   <div class="text-center pt-1">
                     <button class="text-xs text-primary-400 hover:text-primary-300 transition-colors">View all →</button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SECTION 3: REQUESTS & CALENDAR -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- WIDGET: OVERSEERR REQUESTS -->
+          <div class="card overflow-hidden">
+            <div class="px-3 py-2 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent flex items-center justify-between">
+              <h3 class="text-xs font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                Requests
+              </h3>
+              @if (pendingRequestsCount > 0) {
+                <span class="text-xs bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-full">{{ pendingRequestsCount }} pending</span>
+              }
+            </div>
+            <!-- Tabs -->
+            <div class="flex border-b border-white/10">
+              <button (click)="setRequestsTab('pending')" class="flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="requestsWidgetTab === 'pending' ? 'text-purple-400 border-purple-500 bg-purple-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                Pending
+              </button>
+              <button (click)="setRequestsTab('all')" class="flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-b-2"
+                      [class]="requestsWidgetTab === 'all' ? 'text-purple-400 border-purple-500 bg-purple-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
+                All
+              </button>
+            </div>
+            <div class="p-2 space-y-2 min-h-[160px] max-h-[220px] overflow-y-auto">
+              @if (requests.length === 0) {
+                <div class="flex flex-col items-center justify-center py-8 text-gray-500">
+                  <svg class="w-8 h-8 mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  <span class="text-xs">No {{ requestsWidgetTab === 'pending' ? 'pending ' : '' }}requests</span>
+                </div>
+              } @else {
+                @for (request of requests; track request.id) {
+                  <div class="p-2 rounded-lg bg-dark-800/50 border border-white/5">
+                    <div class="flex gap-2">
+                      <!-- Poster -->
+                      <div class="w-10 h-[60px] rounded overflow-hidden flex-shrink-0 bg-dark-700">
+                        @if (request.media.posterPath) {
+                          <img [src]="getOverseerrPosterUrl(request.media.posterPath)" [alt]="request.media.title" class="w-full h-full object-cover" loading="lazy">
+                        } @else {
+                          <div class="w-full h-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                            </svg>
+                          </div>
+                        }
+                      </div>
+                      <!-- Info -->
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-1">
+                          <div class="min-w-0">
+                            <h4 class="text-sm font-medium text-gray-200 truncate">{{ request.media.title }}</h4>
+                            <p class="text-xs text-gray-500">
+                              <span class="capitalize">{{ request.type }}</span> • 
+                              {{ request.requestedBy.displayName }} • 
+                              {{ formatRelativeTime(request.createdAt) }}
+                            </p>
+                          </div>
+                          <!-- Status Badge -->
+                          <span class="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
+                                [class]="request.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' : 
+                                         request.status === 'approved' ? 'bg-blue-500/20 text-blue-300' : 
+                                         request.status === 'available' ? 'bg-green-500/20 text-green-300' : 
+                                         request.status === 'declined' ? 'bg-red-500/20 text-red-300' : 'bg-gray-500/20 text-gray-300'">
+                            {{ request.status === 'pending' ? '⏳' : request.status === 'approved' ? '✓' : request.status === 'available' ? '✓✓' : request.status === 'declined' ? '✗' : '?' }}
+                            {{ request.status | titlecase }}
+                          </span>
+                        </div>
+                        <!-- Action Buttons for Pending -->
+                        @if (request.status === 'pending') {
+                          <div class="flex gap-1 mt-1.5">
+                            <button (click)="approveRequest(request, $event)" class="flex-1 py-1 px-2 rounded text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 transition-colors">
+                              ✓ Approve
+                            </button>
+                            <button (click)="declineRequest(request, $event)" class="flex-1 py-1 px-2 rounded text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors">
+                              ✗ Decline
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- WIDGET: RELEASE CALENDAR -->
+          <div class="card overflow-hidden">
+            <div class="px-3 py-2 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent flex items-center justify-between">
+              <h3 class="text-xs font-semibold text-primary-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Release Calendar
+              </h3>
+              <span class="text-xs text-gray-500">Next {{ calendarDays }} days</span>
+            </div>
+            <div class="p-2 space-y-2 min-h-[160px] max-h-[220px] overflow-y-auto">
+              @if (calendarDates.length === 0) {
+                <div class="flex flex-col items-center justify-center py-8 text-gray-500">
+                  <svg class="w-8 h-8 mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  <span class="text-xs">No upcoming releases</span>
+                </div>
+              } @else {
+                @for (date of calendarDates; track date) {
+                  <div class="space-y-1">
+                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ formatCalendarDate(date) }}</h4>
+                    @for (item of calendarGrouped[date]; track item.id) {
+                      <div class="flex items-center gap-2 p-1.5 rounded bg-dark-800/50 hover:bg-dark-700/50 transition-colors">
+                        <!-- Type Icon -->
+                        @if (item.type === 'movie') {
+                          <div class="w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                            </svg>
+                          </div>
+                        } @else {
+                          <div class="w-6 h-6 rounded bg-primary-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                          </div>
+                        }
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs text-gray-200 truncate font-medium">
+                            @if (item.type === 'episode') {
+                              {{ item.seriesTitle }} - S{{ item.seasonNumber | number:'2.0-0' }}E{{ item.episodeNumber | number:'2.0-0' }}
+                            } @else {
+                              {{ item.title }} ({{ item.year }})
+                            }
+                          </p>
+                          <p class="text-xs text-gray-500">
+                            @if (item.type === 'episode') {
+                              {{ item.title }}
+                            } @else {
+                              {{ item.releaseType | titlecase }} Release
+                            }
+                          </p>
+                        </div>
+                        <!-- Time -->
+                        <span class="text-xs text-gray-500 flex-shrink-0">{{ formatAirTime(item) }}</span>
+                      </div>
+                    }
                   </div>
                 }
               }

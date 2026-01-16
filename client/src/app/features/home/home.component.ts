@@ -2,13 +2,16 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { HomeService, WebSocketService, PlexService } from '@core/services';
+import { HomeService, WebSocketService, PlexService, OverseerrService } from '@core/services';
+import { OverseerrRequest } from '@core/services/overseerr.service';
 import {
   StreamingSession,
   DownloadItem,
   QuickStats,
   RecentActivity,
-  WebSocketStatus
+  WebSocketStatus,
+  CalendarItem,
+  ServiceShortcut
 } from '@core/models';
 
 type ActivityTab = 'watched' | 'downloaded' | 'added';
@@ -33,6 +36,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   downloads: DownloadItem[] = [];
   stats: QuickStats | null = null;
   recentActivity: RecentActivity[] = [];
+  shortcuts: ServiceShortcut[] = [];
+  calendarItems: CalendarItem[] = [];
+  calendarGrouped: { [date: string]: CalendarItem[] } = {};
+  requests: OverseerrRequest[] = [];
+  pendingRequestsCount = 0;
 
   // UI State
   isLoading = true;
@@ -46,6 +54,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   streamingViewMode: 'compact' | 'detailed' = 'compact';
   expandedSessionKey: string | null = null;
   downloadWidgetTab: 'queue' | 'history' = 'queue';
+  requestsWidgetTab: 'pending' | 'all' = 'pending';
+  calendarDays = 7;
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -59,11 +69,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     private homeService: HomeService,
     private wsService: WebSocketService,
     private plexService: PlexService,
+    private overseerrService: OverseerrService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadInitialData();
+    this.loadShortcuts();
+    this.loadCalendar();
+    this.loadRequests();
     this.setupWebSocket();
     this.startLiveTimer();
   }
@@ -794,5 +808,166 @@ export class HomeComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/shows'], { queryParams: { search: session.media.showTitle || session.media.title } });
     }
+  }
+
+  // ===== Shortcuts Methods =====
+
+  /**
+   * Load service shortcuts
+   */
+  private loadShortcuts(): void {
+    this.homeService.getShortcuts().subscribe({
+      next: (response) => {
+        this.shortcuts = response.shortcuts;
+      },
+      error: (error) => {
+        console.error('Failed to load shortcuts:', error);
+      }
+    });
+  }
+
+  /**
+   * Open shortcut in new tab
+   */
+  openShortcut(shortcut: ServiceShortcut): void {
+    if (shortcut.url) {
+      window.open(shortcut.url, '_blank');
+    }
+  }
+
+  // ===== Calendar Methods =====
+
+  /**
+   * Load calendar data
+   */
+  private loadCalendar(): void {
+    this.homeService.getCalendar(this.calendarDays).subscribe({
+      next: (response) => {
+        this.calendarItems = response.items;
+        this.calendarGrouped = response.grouped;
+      },
+      error: (error) => {
+        console.error('Failed to load calendar:', error);
+      }
+    });
+  }
+
+  /**
+   * Get calendar dates for display
+   */
+  get calendarDates(): string[] {
+    return Object.keys(this.calendarGrouped).sort();
+  }
+
+  /**
+   * Format calendar date for display
+   */
+  formatCalendarDate(dateStr: string): string {
+    const date = new Date(dateStr + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (date.getTime() === tomorrow.getTime()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+  }
+
+  /**
+   * Format air time for calendar item
+   */
+  formatAirTime(item: CalendarItem): string {
+    const dateStr = item.airDate || item.releaseDate;
+    if (!dateStr) return '';
+    
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // ===== Requests Methods =====
+
+  /**
+   * Load Overseerr requests
+   */
+  private loadRequests(): void {
+    // Load pending count
+    this.overseerrService.getPendingCount().subscribe({
+      next: (response) => {
+        this.pendingRequestsCount = response.pending;
+      },
+      error: () => {
+        // Overseerr might not be configured
+      }
+    });
+
+    // Load requests based on tab
+    this.loadRequestsByTab();
+  }
+
+  /**
+   * Load requests by current tab selection
+   */
+  loadRequestsByTab(): void {
+    const status = this.requestsWidgetTab === 'pending' ? 1 : undefined; // 1 = pending
+    this.homeService.getRequests({ status, take: 5 }).subscribe({
+      next: (response) => {
+        this.requests = response.results;
+      },
+      error: () => {
+        this.requests = [];
+      }
+    });
+  }
+
+  /**
+   * Set requests widget tab
+   */
+  setRequestsTab(tab: 'pending' | 'all'): void {
+    this.requestsWidgetTab = tab;
+    this.loadRequestsByTab();
+  }
+
+  /**
+   * Get Overseerr poster URL
+   */
+  getOverseerrPosterUrl(posterPath: string | undefined): string {
+    if (!posterPath) return '';
+    return `https://image.tmdb.org/t/p/w92${posterPath}`;
+  }
+
+  /**
+   * Approve request
+   */
+  approveRequest(request: OverseerrRequest, event: Event): void {
+    event.stopPropagation();
+    this.overseerrService.approveRequest(request.id).subscribe({
+      next: () => {
+        this.loadRequests();
+      },
+      error: (error) => {
+        console.error('Failed to approve request:', error);
+      }
+    });
+  }
+
+  /**
+   * Decline request
+   */
+  declineRequest(request: OverseerrRequest, event: Event): void {
+    event.stopPropagation();
+    this.overseerrService.declineRequest(request.id).subscribe({
+      next: () => {
+        this.loadRequests();
+      },
+      error: (error) => {
+        console.error('Failed to decline request:', error);
+      }
+    });
   }
 }

@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 
@@ -52,55 +51,52 @@ export interface OverseerrStats {
   providedIn: 'root'
 })
 export class OverseerrService {
-  constructor(
-    private http: HttpClient,
-    private api: ApiService
-  ) {}
+  constructor(private api: ApiService) {}
 
   getConfig(): Observable<{ config: OverseerrConfig | null }> {
-    return this.http.get<{ config: OverseerrConfig | null }>(`${this.api.baseUrl}/overseerr/config`);
+    return this.api.get<{ config: OverseerrConfig | null }>('/overseerr/config');
   }
 
   testConnection(host: string, apiKey: string): Observable<{ success: boolean; version?: string }> {
-    return this.http.post<{ success: boolean; version?: string }>(`${this.api.baseUrl}/overseerr/test`, { host, apiKey });
+    return this.api.post<{ success: boolean; version?: string }>('/overseerr/test', { host, apiKey });
   }
 
   saveConfig(host: string, apiKey: string): Observable<{ success: boolean; config: OverseerrConfig }> {
-    return this.http.post<{ success: boolean; config: OverseerrConfig }>(`${this.api.baseUrl}/overseerr/config`, { host, apiKey });
+    return this.api.post<{ success: boolean; config: OverseerrConfig }>('/overseerr/config', { host, apiKey });
   }
 
   deleteConfig(): Observable<{ success: boolean }> {
-    return this.http.delete<{ success: boolean }>(`${this.api.baseUrl}/overseerr/config`);
+    return this.api.delete<{ success: boolean }>('/overseerr/config');
   }
 
   getRequests(options?: { status?: number; take?: number; skip?: number }): Observable<{
     results: OverseerrRequest[];
     pageInfo: { pages: number; results: number };
   }> {
-    const params: any = {};
-    if (options?.status !== undefined) params.status = options.status;
-    if (options?.take !== undefined) params.take = options.take;
-    if (options?.skip !== undefined) params.skip = options.skip;
+    const params: Record<string, string | number | boolean> = {};
+    if (options?.status !== undefined) params['status'] = options.status;
+    if (options?.take !== undefined) params['take'] = options.take;
+    if (options?.skip !== undefined) params['skip'] = options.skip;
 
-    return this.http.get<{ results: OverseerrRequest[]; pageInfo: { pages: number; results: number } }>(
-      `${this.api.baseUrl}/overseerr/requests`,
-      { params }
+    return this.api.get<{ results: OverseerrRequest[]; pageInfo: { pages: number; results: number } }>(
+      '/overseerr/requests',
+      params
     );
   }
 
   getPendingCount(): Observable<{ pending: number }> {
-    return this.http.get<{ pending: number }>(`${this.api.baseUrl}/overseerr/requests/count`);
+    return this.api.get<{ pending: number }>('/overseerr/requests/count');
   }
 
   approveRequest(requestId: number): Observable<{ success: boolean; request: OverseerrRequest }> {
-    return this.http.post<{ success: boolean; request: OverseerrRequest }>(`${this.api.baseUrl}/overseerr/requests/${requestId}/approve`, {});
+    return this.api.post<{ success: boolean; request: OverseerrRequest }>(`/overseerr/requests/${requestId}/approve`);
   }
 
   declineRequest(requestId: number): Observable<{ success: boolean; request: OverseerrRequest }> {
-    return this.http.post<{ success: boolean; request: OverseerrRequest }>(`${this.api.baseUrl}/overseerr/requests/${requestId}/decline`, {});
+    return this.api.post<{ success: boolean; request: OverseerrRequest }>(`/overseerr/requests/${requestId}/decline`);
   }
 
   getStats(): Observable<OverseerrStats> {
-    return this.http.get<OverseerrStats>(`${this.api.baseUrl}/overseerr/stats`);
+    return this.api.get<OverseerrStats>('/overseerr/stats');
   }
 }

@@ -865,6 +865,80 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ===== Overseerr Methods =====
+  loadOverseerrConfig(): void {
+    this.overseerrService.getConfig().subscribe({
+      next: (response) => {
+        if (response.config) {
+          this.overseerrConfig = response.config;
+          this.overseerrHost = response.config.host;
+        }
+      }
+    });
+  }
+
+  testOverseerrConnection(): void {
+    if (!this.overseerrHost || !this.overseerrApiKey) {
+      this.overseerrError = 'Please enter both host URL and API key';
+      return;
+    }
+
+    this.overseerrTesting = true;
+    this.overseerrError = '';
+    this.overseerrTestResult = null;
+
+    this.overseerrService.testConnection(this.overseerrHost, this.overseerrApiKey).subscribe({
+      next: (result) => {
+        this.overseerrTestResult = result;
+        this.overseerrTesting = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.overseerrError = error.error?.message || 'Failed to connect to Overseerr';
+        this.overseerrTesting = false;
+      }
+    });
+  }
+
+  connectOverseerr(): void {
+    if (!this.overseerrHost || !this.overseerrApiKey) {
+      this.overseerrError = 'Please enter both host URL and API key';
+      return;
+    }
+
+    this.overseerrConnecting = true;
+    this.overseerrError = '';
+
+    this.overseerrService.saveConfig(this.overseerrHost, this.overseerrApiKey).subscribe({
+      next: (response) => {
+        this.overseerrConfig = response.config;
+        this.overseerrConnecting = false;
+        this.overseerrApiKey = '';
+        this.overseerrTestResult = null;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.overseerrError = error.error?.message || 'Failed to connect to Overseerr';
+        this.overseerrConnecting = false;
+      }
+    });
+  }
+
+  disconnectOverseerr(): void {
+    if (!confirm('Are you sure you want to disconnect Overseerr?')) {
+      return;
+    }
+
+    this.overseerrService.deleteConfig().subscribe({
+      next: () => {
+        this.overseerrConfig = null;
+        this.overseerrHost = '';
+        this.overseerrApiKey = '';
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.overseerrError = error.error?.message || 'Failed to disconnect Overseerr';
+      }
+    });
+  }
+
   // ===== Utility Methods =====
   formatDate(dateString: string | undefined | null): string {
     if (!dateString) return 'Never';

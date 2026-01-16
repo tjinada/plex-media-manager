@@ -105,6 +105,7 @@ class HomeAggregatorService {
           ? `S${String(session.parent_media_index || 0).padStart(2, '0')}E${String(session.media_index || 0).padStart(2, '0')}`
           : undefined,
         thumb: session.thumb,
+        grandparentThumb: isEpisode ? session.grandparent_thumb : undefined,
         ratingKey: session.rating_key
       },
       player: {

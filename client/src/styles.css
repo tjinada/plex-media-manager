@@ -283,14 +283,17 @@ body {
 /* Hero section styles */
 .hero-backdrop {
   position: absolute;
-  inset: -20px;
-  width: calc(100% + 40px);
-  height: calc(100% + 40px);
+  top: -40px;
+  left: -40px;
+  width: calc(100% + 80px);
+  height: calc(100% + 80px);
+  min-width: 100%;
+  min-height: 100%;
   object-fit: cover;
-  filter: blur(30px) saturate(1.8) brightness(0.8);
-  opacity: 0.6;
-  transform: scale(1.1);
+  filter: blur(40px) saturate(1.5) brightness(0.7);
+  opacity: 0.8;
   z-index: 0;
+  pointer-events: none;
 }
 
 .hero-gradient-overlay {

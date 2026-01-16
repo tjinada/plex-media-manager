@@ -502,6 +502,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Get the best poster for a streaming session
+   * For episodes: uses show poster (grandparentThumb) if available
+   * For movies: uses movie poster (thumb)
+   */
+  getSessionPoster(session: StreamingSession): string {
+    // For episodes, prefer the show poster (grandparentThumb)
+    if (session.media.type === 'episode' && session.media.grandparentThumb) {
+      return this.plexService.getImageUrl(session.media.grandparentThumb);
+    }
+    // Fall back to episode/movie thumb
+    return this.plexService.getImageUrl(session.media.thumb);
+  }
+
+  /**
    * Get image URL for activity items - handles both Plex paths and external URLs
    */
   getActivityImageUrl(url: string | undefined): string {

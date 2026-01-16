@@ -15,6 +15,7 @@ export interface StreamingSession {
     showTitle?: string;
     seasonEpisode?: string;
     thumb?: string;
+    grandparentThumb?: string;
     ratingKey?: string;
   };
   player: {

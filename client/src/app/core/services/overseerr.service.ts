@@ -15,6 +15,7 @@ export interface OverseerrRequest {
   type: 'movie' | 'tv';
   status: 'pending' | 'approved' | 'declined' | 'available' | 'unknown';
   mediaStatus: string;
+  mediaStatusLabel: string;
   createdAt: string;
   updatedAt: string;
   media: {
@@ -26,6 +27,7 @@ export interface OverseerrRequest {
     backdropPath?: string;
     releaseDate?: string;
     status: string;
+    statusLabel?: string;
   };
   requestedBy: {
     id: number;

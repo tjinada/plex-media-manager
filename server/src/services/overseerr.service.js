@@ -219,15 +219,16 @@ class OverseerrService {
       default: statusLabel = 'unknown';
     }
 
-    // Determine media status
+    // Determine media status (this is what Overseerr displays: Available, Partially Available, etc.)
     let mediaStatus;
+    let mediaStatusLabel;
     switch (media.status) {
-      case 1: mediaStatus = 'unknown'; break;
-      case 2: mediaStatus = 'pending'; break;
-      case 3: mediaStatus = 'processing'; break;
-      case 4: mediaStatus = 'partially_available'; break;
-      case 5: mediaStatus = 'available'; break;
-      default: mediaStatus = 'unknown';
+      case 1: mediaStatus = 'unknown'; mediaStatusLabel = 'Unknown'; break;
+      case 2: mediaStatus = 'pending'; mediaStatusLabel = 'Pending'; break;
+      case 3: mediaStatus = 'processing'; mediaStatusLabel = 'Processing'; break;
+      case 4: mediaStatus = 'partially_available'; mediaStatusLabel = 'Partially Available'; break;
+      case 5: mediaStatus = 'available'; mediaStatusLabel = 'Available'; break;
+      default: mediaStatus = 'unknown'; mediaStatusLabel = 'Requested';
     }
 
     // Use mediaDetails from separate API call if available, otherwise fallback
@@ -246,6 +247,7 @@ class OverseerrService {
       type: req.type === 'movie' ? 'movie' : 'tv',
       status: statusLabel,
       mediaStatus,
+      mediaStatusLabel,
       createdAt: req.createdAt,
       updatedAt: req.updatedAt,
       media: {
@@ -256,7 +258,8 @@ class OverseerrService {
         posterPath: posterPath,
         backdropPath: mediaDetails?.backdropPath || media.backdropPath,
         releaseDate: mediaDetails?.releaseDate || media.releaseDate,
-        status: mediaStatus
+        status: mediaStatus,
+        statusLabel: mediaStatusLabel
       },
       requestedBy: {
         id: requestedBy.id,

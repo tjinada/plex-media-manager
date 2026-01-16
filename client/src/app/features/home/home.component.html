@@ -640,12 +640,11 @@
                           </div>
                           <!-- Status Badge -->
                           <span class="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
-                                [class]="request.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' : 
-                                         request.status === 'approved' ? 'bg-blue-500/20 text-blue-300' : 
-                                         request.status === 'available' ? 'bg-green-500/20 text-green-300' : 
-                                         request.status === 'declined' ? 'bg-red-500/20 text-red-300' : 'bg-gray-500/20 text-gray-300'">
-                            {{ request.status === 'pending' ? '⏳' : request.status === 'approved' ? '✓' : request.status === 'available' ? '✓✓' : request.status === 'declined' ? '✗' : '?' }}
-                            {{ request.status | titlecase }}
+                                [class]="request.mediaStatus === 'available' ? 'bg-green-500/20 text-green-300' : 
+                                         request.mediaStatus === 'partially_available' ? 'bg-yellow-500/20 text-yellow-300' : 
+                                         request.mediaStatus === 'processing' ? 'bg-blue-500/20 text-blue-300' : 
+                                         request.mediaStatus === 'pending' ? 'bg-purple-500/20 text-purple-300' : 'bg-gray-500/20 text-gray-300'">
+                            {{ request.mediaStatusLabel || 'Requested' }}
                           </span>
                         </div>
                         <!-- Action Buttons for Pending -->

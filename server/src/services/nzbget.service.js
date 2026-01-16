@@ -201,24 +201,28 @@ class NzbgetService {
 
   /**
    * Get download history
+   * @param limit - Number of items to return
+   * @param includeHidden - Include hidden history items (default: true)
    */
-  async getHistory(limit = 20) {
+  async getHistory(limit = 20, includeHidden = true) {
     if (!this.client) await this.initialize();
     if (!this.client) return [];
 
     try {
-      const history = await this.request('history', [false]);
+      // NZBGet history API: history(Hidden) where Hidden=true includes hidden items
+      const history = await this.request('history', [includeHidden]);
 
       return history.slice(0, limit).map(item => ({
         id: `nzbget-${item.NZBID}`,
         nzbId: item.NZBID,
-        name: item.NZBName,
+        name: item.Name,  // History uses 'Name', not 'NZBName'
         status: item.Status,
         category: item.Category,
         size: item.FileSizeMB * 1024 * 1024,
         downloadTime: item.DownloadTimeSec,
         postTime: item.PostTotalTimeSec,
-        completedAt: item.HistoryTime ? new Date(item.HistoryTime * 1000) : null
+        completedAt: item.HistoryTime ? new Date(item.HistoryTime * 1000) : null,
+        hidden: item.Hidden || false
       }));
     } catch (error) {
       console.error('Error fetching NZBGet history:', error.message);

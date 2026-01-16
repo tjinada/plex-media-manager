@@ -242,7 +242,7 @@ class HomeAggregatorService {
           sizeRemaining: item.sizeRemaining,
           speed: item.speed,
           eta: item.eta,
-          quality: undefined,
+          quality: this.extractQualityFromTitle(item.name) || item.category || undefined,
           category: item.category
         })),
         speed: queue.speed || 0
@@ -269,13 +269,29 @@ class HomeAggregatorService {
         progress: 100,
         size: item.size,
         sizeRemaining: 0,
-        quality: undefined,
+        quality: this.extractQualityFromTitle(item.name) || item.category || undefined,
         category: item.category,
         completedAt: item.completedAt
       }));
     } catch (error) {
       return [];
     }
+  }
+
+  /**
+   * Extract quality info from release title
+   */
+  extractQualityFromTitle(title) {
+    if (!title) return null;
+    const titleUpper = title.toUpperCase();
+    
+    // Check for resolution
+    if (titleUpper.includes('2160P') || titleUpper.includes('4K') || titleUpper.includes('UHD')) return '4K';
+    if (titleUpper.includes('1080P')) return '1080p';
+    if (titleUpper.includes('720P')) return '720p';
+    if (titleUpper.includes('480P') || titleUpper.includes('SD')) return '480p';
+    
+    return null;
   }
 
   /**
@@ -296,7 +312,7 @@ class HomeAggregatorService {
           sizeRemaining: item.sizeRemaining,
           speed: item.downloadSpeed,
           eta: item.eta,
-          quality: undefined,
+          quality: this.extractQualityFromTitle(item.name) || item.category || undefined,
           category: item.category,
           seeds: item.seeds,
           peers: item.peers,

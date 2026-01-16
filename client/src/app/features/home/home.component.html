@@ -601,24 +601,13 @@
                 <span class="text-xs bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-full">{{ pendingRequestsCount }} pending</span>
               }
             </div>
-            <!-- Tabs -->
-            <div class="flex border-b border-white/10">
-              <button (click)="setRequestsTab('pending')" class="flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-b-2"
-                      [class]="requestsWidgetTab === 'pending' ? 'text-purple-400 border-purple-500 bg-purple-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
-                Pending
-              </button>
-              <button (click)="setRequestsTab('all')" class="flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-b-2"
-                      [class]="requestsWidgetTab === 'all' ? 'text-purple-400 border-purple-500 bg-purple-500/10' : 'text-gray-400 border-transparent hover:text-gray-300'">
-                All
-              </button>
-            </div>
             <div class="p-2 space-y-2 min-h-[160px] max-h-[220px] overflow-y-auto">
               @if (requests.length === 0) {
                 <div class="flex flex-col items-center justify-center py-8 text-gray-500">
                   <svg class="w-8 h-8 mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                   </svg>
-                  <span class="text-xs">No {{ requestsWidgetTab === 'pending' ? 'pending ' : '' }}requests</span>
+                  <span class="text-xs">No requests</span>
                 </div>
               } @else {
                 @for (request of requests; track request.id) {
@@ -640,7 +629,7 @@
                       <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-1">
                           <div class="min-w-0">
-                            <h4 class="text-sm font-medium text-gray-200 truncate">{{ request.media.title }}</h4>
+                            <h4 class="text-sm font-medium text-gray-200 truncate">{{ request.media.title || 'Unknown Title' }}</h4>
                             <p class="text-xs text-gray-500">
                               <span class="capitalize">{{ request.type }}</span> • 
                               {{ request.requestedBy.displayName }} • 

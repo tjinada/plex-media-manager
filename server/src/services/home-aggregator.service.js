@@ -444,18 +444,19 @@ class HomeAggregatorService {
           .map(s => s.grandparentRatingKey);
 
         // Look up thumbs and info from Movie and TVShow collections
+        // Note: plexId in our DB corresponds to ratingKey from Plex/Tautulli
         const [movies, shows] = await Promise.all([
           movieRatingKeys.length > 0
-            ? Movie.find({ ratingKey: { $in: movieRatingKeys } }, { ratingKey: 1, thumbUrl: 1, title: 1, year: 1 }).lean()
+            ? Movie.find({ plexId: { $in: movieRatingKeys } }, { plexId: 1, thumbUrl: 1, title: 1, year: 1 }).lean()
             : [],
           showRatingKeys.length > 0
-            ? TVShow.find({ ratingKey: { $in: showRatingKeys } }, { ratingKey: 1, thumbUrl: 1, title: 1, year: 1 }).lean()
+            ? TVShow.find({ plexId: { $in: showRatingKeys } }, { plexId: 1, thumbUrl: 1, title: 1, year: 1 }).lean()
             : []
         ]);
 
-        // Create lookup maps
-        const movieMap = new Map(movies.map(m => [m.ratingKey, m]));
-        const showMap = new Map(shows.map(s => [s.ratingKey, s]));
+        // Create lookup maps using plexId
+        const movieMap = new Map(movies.map(m => [m.plexId, m]));
+        const showMap = new Map(shows.map(s => [s.plexId, s]));
 
         watchedSessions.forEach(session => {
           // Get media info based on media type

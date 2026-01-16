@@ -178,6 +178,21 @@ class OverseerrService {
       default: mediaStatus = 'unknown';
     }
 
+    // Extract title from various possible locations in Overseerr response
+    // Overseerr may have title in: media.title, media.mediaInfo.title, or req.media.originalTitle
+    const title = media.title || 
+                  media.mediaInfo?.title || 
+                  media.originalTitle || 
+                  media.name || 
+                  media.mediaInfo?.originalTitle ||
+                  media.mediaInfo?.name ||
+                  'Unknown Title';
+
+    // Extract poster path from various locations
+    const posterPath = media.posterPath || 
+                       media.mediaInfo?.posterPath || 
+                       null;
+
     return {
       id: req.id,
       type: req.type === 'movie' ? 'movie' : 'tv',
@@ -189,10 +204,10 @@ class OverseerrService {
         id: media.id,
         tmdbId: media.tmdbId,
         tvdbId: media.tvdbId,
-        title: media.title || req.media?.title,
-        posterPath: media.posterPath,
-        backdropPath: media.backdropPath,
-        releaseDate: media.releaseDate,
+        title: title,
+        posterPath: posterPath,
+        backdropPath: media.backdropPath || media.mediaInfo?.backdropPath,
+        releaseDate: media.releaseDate || media.mediaInfo?.releaseDate,
         status: mediaStatus
       },
       requestedBy: {

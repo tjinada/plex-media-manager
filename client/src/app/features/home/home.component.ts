@@ -906,16 +906,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Load requests based on tab
-    this.loadRequestsByTab();
-  }
-
-  /**
-   * Load requests by current tab selection
-   */
-  loadRequestsByTab(): void {
-    const status = this.requestsWidgetTab === 'pending' ? 1 : undefined; // 1 = pending
-    this.homeService.getRequests({ status, take: 5 }).subscribe({
+    // Load all requests (no status filter)
+    this.homeService.getRequests({ take: 10 }).subscribe({
       next: (response) => {
         this.requests = response.results;
       },
@@ -923,14 +915,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.requests = [];
       }
     });
-  }
-
-  /**
-   * Set requests widget tab
-   */
-  setRequestsTab(tab: 'pending' | 'all'): void {
-    this.requestsWidgetTab = tab;
-    this.loadRequestsByTab();
   }
 
   /**

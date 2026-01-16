@@ -86,14 +86,16 @@ class HomeController {
     try {
       const days = parseInt(req.query.days) || 7;
       
-      // Calculate date range
-      const startDate = new Date();
-      startDate.setHours(0, 0, 0, 0);
+      // Calculate date range - start from today at midnight
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + days);
 
       const startISO = startDate.toISOString();
       const endISO = endDate.toISOString();
+      const startTimestamp = startDate.getTime();
+      const endTimestamp = endDate.getTime();
 
       // Fetch calendars in parallel
       const [radarrCalendar, sonarrCalendar] = await Promise.all([
@@ -101,17 +103,31 @@ class HomeController {
         sonarrService.getCalendar(startISO, endISO).catch(() => [])
       ]);
 
-      // Combine and sort by date
-      const combined = [...radarrCalendar, ...sonarrCalendar].sort((a, b) => {
-        const dateA = new Date(a.releaseDate || a.airDate);
-        const dateB = new Date(b.releaseDate || b.airDate);
+      // Filter items to only include those within our date range
+      const filterByDateRange = (items) => {
+        return items.filter(item => {
+          const itemDate = new Date(item.releaseDate || item.airDate);
+          const itemTimestamp = itemDate.getTime();
+          return itemTimestamp >= startTimestamp && itemTimestamp < endTimestamp;
+        });
+      };
+
+      const filteredRadarr = filterByDateRange(radarrCalendar);
+      const filteredSonarr = filterByDateRange(sonarrCalendar);
+
+      // Combine and sort by date (earliest first)
+      const combined = [...filteredRadarr, ...filteredSonarr].sort((a, b) => {
+        const dateA = new Date(a.releaseDate || a.airDate).getTime();
+        const dateB = new Date(b.releaseDate || b.airDate).getTime();
         return dateA - dateB;
       });
 
-      // Group by date
+      // Group by date (YYYY-MM-DD format)
       const grouped = {};
       combined.forEach(item => {
-        const dateStr = new Date(item.releaseDate || item.airDate).toISOString().split('T')[0];
+        const itemDate = new Date(item.releaseDate || item.airDate);
+        // Format as YYYY-MM-DD in local timezone
+        const dateStr = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, '0')}-${String(itemDate.getDate()).padStart(2, '0')}`;
         if (!grouped[dateStr]) {
           grouped[dateStr] = [];
         }

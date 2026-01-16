@@ -43,7 +43,27 @@
         
         <!-- SECTION 0: SHORTCUTS - Service Quick Links -->
         @if (shortcuts.length > 0) {
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+          <div>
+            <!-- Mobile Toggle Header (hidden on lg+) -->
+            <button (click)="toggleShortcuts()" 
+                    class="lg:hidden w-full flex items-center justify-between p-3 rounded-xl bg-dark-800/50 border border-white/10 hover:bg-dark-700/50 transition-colors mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-300">Services</span>
+                <span class="text-xs text-gray-500">({{ shortcuts.length }})</span>
+              </div>
+              <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" 
+                   [class.rotate-180]="shortcutsExpanded"
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            
+            <!-- Shortcuts Grid: Hidden on mobile by default, always visible on lg+ -->
+            <div [class]="shortcutsExpanded ? 'grid' : 'hidden lg:grid'"
+                 class="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
             @for (shortcut of shortcuts; track shortcut.id) {
               <button (click)="openShortcut(shortcut)" 
                       class="group relative flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-300 hover:scale-105"
@@ -121,6 +141,7 @@
                 </svg>
               </button>
             }
+            </div>
           </div>
         }
 

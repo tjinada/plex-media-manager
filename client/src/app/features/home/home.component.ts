@@ -56,6 +56,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   downloadWidgetTab: 'queue' | 'history' = 'queue';
   requestsWidgetTab: 'pending' | 'all' = 'pending';
   calendarDays = 7;
+  shortcutsExpanded = false; // Hidden by default on mobile
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -229,6 +230,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   toggleStreamingView(): void {
     this.streamingViewMode = this.streamingViewMode === 'compact' ? 'detailed' : 'compact';
     this.expandedSessionKey = null;
+  }
+
+  /**
+   * Toggle shortcuts visibility on mobile
+   */
+  toggleShortcuts(): void {
+    this.shortcutsExpanded = !this.shortcutsExpanded;
   }
 
   /**

@@ -632,8 +632,10 @@
                             <h4 class="text-sm font-medium text-gray-200 truncate">{{ request.media.title || 'Unknown Title' }}</h4>
                             <p class="text-xs text-gray-500">
                               <span class="capitalize">{{ request.type }}</span> • 
-                              {{ request.requestedBy.displayName }} • 
-                              {{ formatRelativeTime(request.createdAt) }}
+                              {{ request.requestedBy.displayName }}
+                            </p>
+                            <p class="text-xs text-gray-600 mt-0.5">
+                              {{ formatRequestDateTime(request.createdAt) }}
                             </p>
                           </div>
                           <!-- Status Badge -->

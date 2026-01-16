@@ -102,13 +102,65 @@ class OverseerrService {
 
       const response = await this.client.get('/request', { params });
       
+      // Fetch media details for each request to get titles
+      // Using Promise.allSettled to ensure one failure doesn't break all requests
+      const resultsWithDetails = await Promise.all(
+        response.data.results.map(async (req) => {
+          try {
+            // Determine the media type - Overseerr uses 'movie' or 'tv'
+            const mediaType = req.type === 'movie' ? 'movie' : 'tv';
+            const tmdbId = req.media?.tmdbId;
+            
+            if (tmdbId) {
+              const mediaDetails = await this.getMediaDetails(tmdbId, mediaType);
+              return this.mapRequest(req, mediaDetails);
+            }
+            return this.mapRequest(req, null);
+          } catch (error) {
+            console.error(`Error processing request ${req.id}:`, error.message);
+            return this.mapRequest(req, null);
+          }
+        })
+      );
+      
       return {
-        results: response.data.results.map(req => this.mapRequest(req)),
+        results: resultsWithDetails,
         pageInfo: response.data.pageInfo
       };
     } catch (error) {
       console.error('Error fetching Overseerr requests:', error.message);
       return { results: [], pageInfo: { pages: 0, results: 0 } };
+    }
+  }
+
+  /**
+   * Get media details (title, poster) from Overseerr's TMDB proxy
+   * This fetches full movie/TV details including title and poster
+   */
+  async getMediaDetails(tmdbId, type) {
+    if (!this.client || !tmdbId) {
+      console.log(`getMediaDetails called with invalid params: tmdbId=${tmdbId}, type=${type}`);
+      return null;
+    }
+
+    try {
+      // Overseerr proxies TMDB API calls through /movie/:id and /tv/:id
+      const endpoint = type === 'movie' ? `/movie/${tmdbId}` : `/tv/${tmdbId}`;
+      const response = await this.client.get(endpoint);
+      
+      const data = response.data;
+      return {
+        title: data.title || data.name || data.originalTitle || data.originalName,
+        posterPath: data.posterPath,
+        backdropPath: data.backdropPath,
+        releaseDate: data.releaseDate || data.firstAirDate,
+        overview: data.overview,
+        year: data.releaseDate ? new Date(data.releaseDate).getFullYear() : 
+              data.firstAirDate ? new Date(data.firstAirDate).getFullYear() : null
+      };
+    } catch (error) {
+      console.error(`Error fetching media details for ${type} tmdbId=${tmdbId}:`, error.message);
+      return null;
     }
   }
 
@@ -153,7 +205,7 @@ class OverseerrService {
   /**
    * Map Overseerr request to our format
    */
-  mapRequest(req) {
+  mapRequest(req, mediaDetails = null) {
     const media = req.media || {};
     const requestedBy = req.requestedBy || {};
     
@@ -178,19 +230,15 @@ class OverseerrService {
       default: mediaStatus = 'unknown';
     }
 
-    // Extract title from various possible locations in Overseerr response
-    // Overseerr may have title in: media.title, media.mediaInfo.title, or req.media.originalTitle
-    const title = media.title || 
-                  media.mediaInfo?.title || 
-                  media.originalTitle || 
+    // Use mediaDetails from separate API call if available, otherwise fallback
+    const title = mediaDetails?.title || 
+                  media.title || 
                   media.name || 
-                  media.mediaInfo?.originalTitle ||
-                  media.mediaInfo?.name ||
+                  media.originalTitle ||
                   'Unknown Title';
 
-    // Extract poster path from various locations
-    const posterPath = media.posterPath || 
-                       media.mediaInfo?.posterPath || 
+    const posterPath = mediaDetails?.posterPath || 
+                       media.posterPath || 
                        null;
 
     return {
@@ -206,8 +254,8 @@ class OverseerrService {
         tvdbId: media.tvdbId,
         title: title,
         posterPath: posterPath,
-        backdropPath: media.backdropPath || media.mediaInfo?.backdropPath,
-        releaseDate: media.releaseDate || media.mediaInfo?.releaseDate,
+        backdropPath: mediaDetails?.backdropPath || media.backdropPath,
+        releaseDate: mediaDetails?.releaseDate || media.releaseDate,
         status: mediaStatus
       },
       requestedBy: {

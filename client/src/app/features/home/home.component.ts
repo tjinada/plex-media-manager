@@ -396,6 +396,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Format request date and time for display
+   * Shows: "Jan 15, 2025 at 3:42 PM"
+   */
+  formatRequestDateTime(date: Date | string): string {
+    const then = new Date(date);
+    const dateStr = then.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+    const timeStr = then.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${dateStr} at ${timeStr}`;
+  }
+
+  /**
    * Get playback decision color class
    */
   getPlaybackDecisionClass(decision: string): string {

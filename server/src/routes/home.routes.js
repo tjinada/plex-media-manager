@@ -17,4 +17,13 @@ router.get('/stats', homeController.getStats);
 // GET /api/home/activity - Paginated recent activity
 router.get('/activity', homeController.getActivity);
 
+// GET /api/home/calendar - Combined calendar from Radarr/Sonarr
+router.get('/calendar', homeController.getCalendar);
+
+// GET /api/home/requests - Overseerr requests
+router.get('/requests', homeController.getRequests);
+
+// GET /api/home/shortcuts - Service shortcuts
+router.get('/shortcuts', homeController.getShortcuts);
+
 module.exports = router;

@@ -621,6 +621,46 @@ class SonarrService {
       return { records: [] };
     }
   }
+
+  /**
+   * Get calendar events for date range
+   */
+  async getCalendar(startDate, endDate) {
+    if (!this.client) await this.initialize();
+    if (!this.client) return [];
+
+    try {
+      const response = await this.client.get('/calendar', {
+        params: {
+          start: startDate,
+          end: endDate,
+          unmonitored: false,
+          includeSeries: true,
+          includeEpisodeFile: true,
+          includeEpisodeImages: false
+        }
+      });
+
+      return response.data.map(episode => ({
+        id: episode.id,
+        seriesId: episode.seriesId,
+        title: episode.title,
+        seriesTitle: episode.series?.title || 'Unknown Series',
+        seasonNumber: episode.seasonNumber,
+        episodeNumber: episode.episodeNumber,
+        type: 'episode',
+        airDate: episode.airDateUtc,
+        hasFile: episode.hasFile,
+        monitored: episode.monitored,
+        overview: episode.overview,
+        posterUrl: episode.series?.images?.find(i => i.coverType === 'poster')?.remoteUrl || null,
+        runtime: episode.series?.runtime || 30
+      }));
+    } catch (error) {
+      console.error('Error fetching Sonarr calendar:', error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = new SonarrService();

@@ -6,8 +6,12 @@ import {
   StreamingSession,
   DownloadItem,
   QuickStats,
-  ActivityResponse
+  ActivityResponse,
+  CalendarItem,
+  CalendarResponse,
+  ServiceShortcut
 } from '@core/models/home.model';
+import { OverseerrRequest } from './overseerr.service';
 
 @Injectable({
   providedIn: 'root'
@@ -62,5 +66,38 @@ export class HomeService {
     }
 
     return this.http.get<ActivityResponse>(`${this.apiUrl}/activity`, { params });
+  }
+
+  /**
+   * Get combined calendar from Radarr and Sonarr
+   */
+  getCalendar(days: number = 7): Observable<CalendarResponse> {
+    const params = new HttpParams().set('days', days.toString());
+    return this.http.get<CalendarResponse>(`${this.apiUrl}/calendar`, { params });
+  }
+
+  /**
+   * Get Overseerr requests for widget
+   */
+  getRequests(options?: { status?: number; take?: number; skip?: number }): Observable<{
+    results: OverseerrRequest[];
+    pageInfo: { pages: number; results: number };
+  }> {
+    let params = new HttpParams();
+    if (options?.status !== undefined) params = params.set('status', options.status.toString());
+    if (options?.take !== undefined) params = params.set('take', options.take.toString());
+    if (options?.skip !== undefined) params = params.set('skip', options.skip.toString());
+
+    return this.http.get<{ results: OverseerrRequest[]; pageInfo: { pages: number; results: number } }>(
+      `${this.apiUrl}/requests`,
+      { params }
+    );
+  }
+
+  /**
+   * Get configured service shortcuts
+   */
+  getShortcuts(): Observable<{ shortcuts: ServiceShortcut[] }> {
+    return this.http.get<{ shortcuts: ServiceShortcut[] }>(`${this.apiUrl}/shortcuts`);
   }
 }

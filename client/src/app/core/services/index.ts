@@ -14,3 +14,4 @@ export * from './home.service';
 export * from './websocket.service';
 export * from './nzbget.service';
 export * from './qbittorrent.service';
+export * from './overseerr.service';

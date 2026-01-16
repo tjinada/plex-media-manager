@@ -3,10 +3,12 @@ const radarrService = require('./radarr.service');
 const sonarrService = require('./sonarr.service');
 const nzbgetService = require('./nzbget.service');
 const qbittorrentService = require('./qbittorrent.service');
+const overseerrService = require('./overseerr.service');
 const TautulliConfig = require('../models/TautulliConfig');
 const PlaybackSession = require('../models/PlaybackSession');
 const Movie = require('../models/Movie');
 const TVShow = require('../models/TVShow');
+const PlexServer = require('../models/PlexServer');
 
 class HomeAggregatorService {
   constructor() {
@@ -652,6 +654,111 @@ class HomeAggregatorService {
     } catch (error) {
       return [];
     }
+  }
+
+  /**
+   * Get configured service URLs for shortcuts widget
+   */
+  async getShortcuts() {
+    const shortcuts = [];
+
+    try {
+      // Plex
+      const plexServer = await PlexServer.findOne();
+      if (plexServer && plexServer.host) {
+        shortcuts.push({
+          id: 'plex',
+          name: 'Plex',
+          url: plexServer.host.replace(/\/+$/, '') + '/web',
+          icon: 'plex',
+          configured: true,
+          connected: true
+        });
+      }
+
+      // NZBGet
+      const nzbgetConfig = await nzbgetService.getConfig();
+      if (nzbgetConfig) {
+        shortcuts.push({
+          id: 'nzbget',
+          name: 'NZBGet',
+          url: nzbgetConfig.host,
+          icon: 'nzbget',
+          configured: true,
+          connected: nzbgetConfig.isConnected
+        });
+      }
+
+      // Radarr
+      const radarrConfig = await radarrService.getConfig();
+      if (radarrConfig) {
+        shortcuts.push({
+          id: 'radarr',
+          name: 'Radarr',
+          url: radarrConfig.host,
+          icon: 'radarr',
+          configured: true,
+          connected: radarrConfig.isConnected
+        });
+      }
+
+      // Sonarr
+      const sonarrConfig = await sonarrService.getConfig();
+      if (sonarrConfig) {
+        shortcuts.push({
+          id: 'sonarr',
+          name: 'Sonarr',
+          url: sonarrConfig.host,
+          icon: 'sonarr',
+          configured: true,
+          connected: sonarrConfig.isConnected
+        });
+      }
+
+      // Overseerr
+      const overseerrConfig = await overseerrService.getConfig();
+      if (overseerrConfig) {
+        shortcuts.push({
+          id: 'overseerr',
+          name: 'Overseerr',
+          url: overseerrConfig.host,
+          icon: 'overseerr',
+          configured: true,
+          connected: overseerrConfig.isConnected
+        });
+      }
+
+      // Tautulli
+      const tautulliConfig = await TautulliConfig.getConfig();
+      if (tautulliConfig && tautulliConfig.host) {
+        shortcuts.push({
+          id: 'tautulli',
+          name: 'Tautulli',
+          url: tautulliConfig.host,
+          icon: 'tautulli',
+          configured: true,
+          connected: tautulliConfig.enabled
+        });
+      }
+
+      // qBittorrent
+      const qbtConfig = await qbittorrentService.getConfig();
+      if (qbtConfig) {
+        shortcuts.push({
+          id: 'qbittorrent',
+          name: 'qBittorrent',
+          url: qbtConfig.host,
+          icon: 'qbittorrent',
+          configured: true,
+          connected: qbtConfig.isConnected
+        });
+      }
+
+    } catch (error) {
+      console.error('Error fetching shortcuts:', error.message);
+    }
+
+    return shortcuts;
   }
 }
 

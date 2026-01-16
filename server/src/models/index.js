@@ -10,6 +10,7 @@ const PlaybackSession = require('./PlaybackSession');
 const TautulliConfig = require('./TautulliConfig');
 const NzbgetConfig = require('./NzbgetConfig');
 const QbittorrentConfig = require('./QbittorrentConfig');
+const OverseerrConfig = require('./OverseerrConfig');
 
 module.exports = {
   PlexServer,
@@ -23,5 +24,6 @@ module.exports = {
   PlaybackSession,
   TautulliConfig,
   NzbgetConfig,
-  QbittorrentConfig
+  QbittorrentConfig,
+  OverseerrConfig
 };

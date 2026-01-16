@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService } from '@core/services';
+import { PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService, OverseerrService } from '@core/services';
+import { OverseerrConfig } from '@core/services/overseerr.service';
 import { TautulliConfig, TautulliConnectionInfo, TautulliImportStatus } from '@core/services/tautulli.service';
 import { NzbgetConfig } from '@core/services/nzbget.service';
 import { QbittorrentConfig } from '@core/services/qbittorrent.service';
@@ -133,6 +134,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
   qbittorrentError = '';
   qbittorrentTestResult: { success: boolean; version?: string } | null = null;
 
+  // Overseerr state
+  overseerrConfig: OverseerrConfig | null = null;
+  overseerrHost = '';
+  overseerrApiKey = '';
+  overseerrConnecting = false;
+  overseerrTesting = false;
+  overseerrError = '';
+  overseerrTestResult: { success: boolean; version?: string } | null = null;
+
   constructor(
     private plexService: PlexService,
     private syncService: SyncService,
@@ -140,7 +150,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private sonarrService: SonarrService,
     private tautulliService: TautulliService,
     private nzbgetService: NzbgetService,
-    private qbittorrentService: QbittorrentService
+    private qbittorrentService: QbittorrentService,
+    private overseerrService: OverseerrService
   ) {}
 
   ngOnInit(): void {
@@ -152,6 +163,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadTautulliConfig();
     this.loadNzbgetConfig();
     this.loadQbittorrentConfig();
+    this.loadOverseerrConfig();
   }
 
   ngOnDestroy(): void {

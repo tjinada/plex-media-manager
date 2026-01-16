@@ -205,3 +205,81 @@ export interface QbittorrentConfig {
   version?: string;
   lastCheckedAt?: Date;
 }
+
+/**
+ * Calendar item from Radarr/Sonarr
+ */
+export interface CalendarItem {
+  id: number;
+  title: string;
+  type: 'movie' | 'episode';
+  // Movie fields
+  year?: number;
+  releaseDate?: string;
+  releaseType?: 'digital' | 'physical' | 'theatrical';
+  // Episode fields
+  seriesId?: number;
+  seriesTitle?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  airDate?: string;
+  runtime?: number;
+  // Common fields
+  hasFile: boolean;
+  monitored: boolean;
+  posterUrl?: string;
+  overview?: string;
+}
+
+/**
+ * Calendar response with grouped items
+ */
+export interface CalendarResponse {
+  items: CalendarItem[];
+  grouped: { [date: string]: CalendarItem[] };
+  startDate: string;
+  endDate: string;
+}
+
+/**
+ * Service shortcut for quick access widget
+ */
+export interface ServiceShortcut {
+  id: string;
+  name: string;
+  url: string;
+  icon: 'plex' | 'nzbget' | 'radarr' | 'sonarr' | 'overseerr' | 'tautulli' | 'qbittorrent';
+  configured: boolean;
+  connected: boolean;
+}
+
+/**
+ * Overseerr request for the requests widget
+ */
+export interface OverseerrRequestItem {
+  id: number;
+  type: 'movie' | 'tv';
+  status: 'pending' | 'approved' | 'declined' | 'available' | 'unknown';
+  mediaStatus: string;
+  createdAt: string;
+  updatedAt: string;
+  media: {
+    id: number;
+    tmdbId: number;
+    tvdbId?: number;
+    title: string;
+    posterPath?: string;
+    backdropPath?: string;
+    releaseDate?: string;
+    status: string;
+  };
+  requestedBy: {
+    id: number;
+    displayName: string;
+    avatar?: string;
+  };
+  seasons?: {
+    seasonNumber: number;
+    status: number;
+  }[];
+}

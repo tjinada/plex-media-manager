@@ -570,6 +570,40 @@ class RadarrService {
       return { records: [] };
     }
   }
+
+  /**
+   * Get calendar events for date range
+   */
+  async getCalendar(startDate, endDate) {
+    if (!this.client) await this.initialize();
+    if (!this.client) return [];
+
+    try {
+      const response = await this.client.get('/calendar', {
+        params: {
+          start: startDate,
+          end: endDate,
+          unmonitored: false
+        }
+      });
+
+      return response.data.map(movie => ({
+        id: movie.id,
+        title: movie.title,
+        year: movie.year,
+        type: 'movie',
+        releaseDate: movie.digitalRelease || movie.physicalRelease || movie.inCinemas,
+        releaseType: movie.digitalRelease ? 'digital' : movie.physicalRelease ? 'physical' : 'theatrical',
+        hasFile: movie.hasFile,
+        monitored: movie.monitored,
+        posterUrl: movie.images?.find(i => i.coverType === 'poster')?.remoteUrl || null,
+        overview: movie.overview
+      }));
+    } catch (error) {
+      console.error('Error fetching Radarr calendar:', error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = new RadarrService();

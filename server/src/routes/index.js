@@ -17,6 +17,7 @@ const tautulliRoutes = require('./tautulli.routes');
 const homeRoutes = require('./home.routes');
 const nzbgetRoutes = require('./nzbget.routes');
 const qbittorrentRoutes = require('./qbittorrent.routes');
+const overseerrRoutes = require('./overseerr.routes');
 
 router.use('/auth', authRoutes);
 router.use('/server', serverRoutes);
@@ -34,5 +35,6 @@ router.use('/tautulli', tautulliRoutes);
 router.use('/home', homeRoutes);
 router.use('/nzbget', nzbgetRoutes);
 router.use('/qbittorrent', qbittorrentRoutes);
+router.use('/overseerr', overseerrRoutes);
 
 module.exports = router;

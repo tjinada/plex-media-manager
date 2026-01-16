@@ -6,6 +6,11 @@ const sonarrConfigSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  externalUrl: {
+    type: String,
+    trim: true,
+    default: null
+  },
   apiKey: {
     type: String,
     required: true

@@ -12,6 +12,16 @@ const plexServerSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  externalUrl: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  externalUrl: {
+    type: String,
+    trim: true,
+    default: null
+  },
   token: {
     type: String,
     required: true,

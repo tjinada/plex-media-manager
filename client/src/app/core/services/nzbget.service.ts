@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface NzbgetConfig {
   host: string;
   username?: string;
+  externalUrl?: string;
   enabled: boolean;
   isConnected: boolean;
   version?: string;
@@ -61,11 +62,18 @@ export class NzbgetService {
     });
   }
 
-  saveConfig(host: string, username?: string, password?: string): Observable<{ success: boolean; config: NzbgetConfig }> {
+  saveConfig(host: string, username?: string, password?: string, externalUrl?: string): Observable<{ success: boolean; config: NzbgetConfig }> {
     return this.http.post<{ success: boolean; config: NzbgetConfig }>(`${this.apiUrl}/config`, {
       host,
       username,
-      password
+      password,
+      externalUrl
+    });
+  }
+
+  updateConfig(externalUrl?: string): Observable<{ success: boolean; config: NzbgetConfig }> {
+    return this.http.patch<{ success: boolean; config: NzbgetConfig }>(`${this.apiUrl}/config`, {
+      externalUrl
     });
   }
 

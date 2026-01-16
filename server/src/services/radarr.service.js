@@ -43,11 +43,12 @@ class RadarrService {
     }
   }
 
-  async saveConfig(host, apiKey, maxMovieSize) {
+  async saveConfig(host, apiKey, externalUrl, maxMovieSize) {
     const testResult = await this.testConnection(host, apiKey);
     
     const configData = {
       host: host.replace(/\/$/, ''),
+      externalUrl: externalUrl ? externalUrl.replace(/\/$/, '') : null,
       apiKey: encrypt(apiKey),
       enabled: true,
       isConnected: true,
@@ -72,6 +73,9 @@ class RadarrService {
     if (updates.maxMovieSize !== undefined) {
       config.maxMovieSize = updates.maxMovieSize;
     }
+    if (updates.externalUrl !== undefined) {
+      config.externalUrl = updates.externalUrl ? updates.externalUrl.replace(/\/$/, '') : null;
+    }
 
     await config.save();
     this.config = config;
@@ -84,6 +88,7 @@ class RadarrService {
     
     return {
       host: config.host,
+      externalUrl: config.externalUrl || null,
       enabled: config.enabled,
       isConnected: config.isConnected,
       version: config.version,

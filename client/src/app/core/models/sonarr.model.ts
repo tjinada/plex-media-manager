@@ -1,5 +1,6 @@
 export interface SonarrConfig {
   host: string;
+  externalUrl?: string;
   enabled: boolean;
   isConnected: boolean;
   version: string | null;

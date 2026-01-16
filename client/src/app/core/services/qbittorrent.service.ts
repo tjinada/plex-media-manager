@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface QbittorrentConfig {
   host: string;
   username?: string;
+  externalUrl?: string;
   enabled: boolean;
   isConnected: boolean;
   version?: string;
@@ -66,11 +67,18 @@ export class QbittorrentService {
     });
   }
 
-  saveConfig(host: string, username?: string, password?: string): Observable<{ success: boolean; config: QbittorrentConfig }> {
+  saveConfig(host: string, username?: string, password?: string, externalUrl?: string): Observable<{ success: boolean; config: QbittorrentConfig }> {
     return this.http.post<{ success: boolean; config: QbittorrentConfig }>(`${this.apiUrl}/config`, {
       host,
       username,
-      password
+      password,
+      externalUrl
+    });
+  }
+
+  updateConfig(externalUrl?: string): Observable<{ success: boolean; config: QbittorrentConfig }> {
+    return this.http.patch<{ success: boolean; config: QbittorrentConfig }>(`${this.apiUrl}/config`, {
+      externalUrl
     });
   }
 

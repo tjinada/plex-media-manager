@@ -22,13 +22,13 @@ exports.getConfig = async (req, res) => {
  */
 exports.saveConfig = async (req, res) => {
   try {
-    const { host, username, password } = req.body;
+    const { host, username, password, externalUrl } = req.body;
 
     if (!host) {
       return res.status(400).json({ error: 'Host is required' });
     }
 
-    await qbittorrentService.saveConfig(host, username, password);
+    await qbittorrentService.saveConfig(host, username, password, externalUrl);
     const config = await qbittorrentService.getConfig();
 
     res.json({
@@ -37,6 +37,26 @@ exports.saveConfig = async (req, res) => {
     });
   } catch (error) {
     console.error('Error saving qBittorrent config:', error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+/**
+ * Update qBittorrent configuration
+ */
+exports.updateConfig = async (req, res) => {
+  try {
+    const { externalUrl } = req.body;
+
+    await qbittorrentService.updateConfig({ externalUrl });
+    const config = await qbittorrentService.getConfig();
+
+    res.json({
+      success: true,
+      config
+    });
+  } catch (error) {
+    console.error('Error updating qBittorrent config:', error);
     res.status(400).json({ error: error.message });
   }
 };

@@ -7,6 +7,11 @@ const qbittorrentConfigSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  externalUrl: {
+    type: String,
+    trim: true,
+    default: null
+  },
   username: {
     type: String,
     default: ''

@@ -4,6 +4,7 @@ import { ApiService } from './api.service';
 
 export interface OverseerrConfig {
   host: string;
+  externalUrl?: string;
   enabled: boolean;
   isConnected: boolean;
   version?: string;
@@ -63,8 +64,12 @@ export class OverseerrService {
     return this.api.post<{ success: boolean; version?: string }>('/overseerr/test', { host, apiKey });
   }
 
-  saveConfig(host: string, apiKey: string): Observable<{ success: boolean; config: OverseerrConfig }> {
-    return this.api.post<{ success: boolean; config: OverseerrConfig }>('/overseerr/config', { host, apiKey });
+  saveConfig(host: string, apiKey: string, externalUrl?: string): Observable<{ success: boolean; config: OverseerrConfig }> {
+    return this.api.post<{ success: boolean; config: OverseerrConfig }>('/overseerr/config', { host, apiKey, externalUrl });
+  }
+
+  updateConfig(externalUrl?: string): Observable<{ success: boolean; config: OverseerrConfig }> {
+    return this.api.patch<{ success: boolean; config: OverseerrConfig }>('/overseerr/config', { externalUrl });
   }
 
   deleteConfig(): Observable<{ success: boolean }> {

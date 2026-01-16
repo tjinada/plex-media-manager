@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface TautulliConfig {
   host: string;
+  externalUrl?: string;
   enabled: boolean;
   isConnected: boolean;
   serverName: string | null;
@@ -80,6 +81,7 @@ export class TautulliService {
   saveConfig(config: {
     host: string;
     apiKey: string;
+    externalUrl?: string;
     enabled?: boolean;
     syncEnabled?: boolean;
     syncIntervalSeconds?: number;
@@ -107,6 +109,7 @@ export class TautulliService {
   updateSyncSettings(settings: {
     syncEnabled?: boolean;
     syncIntervalSeconds?: number;
+    externalUrl?: string;
   }): Observable<{ success: boolean; syncEnabled: boolean; syncIntervalSeconds: number }> {
     return this.http.patch<any>(`${this.apiUrl}/sync-settings`, settings);
   }

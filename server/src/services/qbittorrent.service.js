@@ -130,11 +130,12 @@ class QbittorrentService {
   /**
    * Save qBittorrent configuration
    */
-  async saveConfig(host, username, password) {
+  async saveConfig(host, username, password, externalUrl) {
     const testResult = await this.testConnection(host, username, password);
 
     const configData = {
       host: host.replace(/\/$/, ''),
+      externalUrl: externalUrl ? externalUrl.replace(/\/$/, '') : null,
       username: username || '',
       password: password || '',
       enabled: true,
@@ -149,6 +150,22 @@ class QbittorrentService {
   }
 
   /**
+   * Update qBittorrent configuration
+   */
+  async updateConfig(updates) {
+    const config = await QbittorrentConfig.getConfig();
+    if (!config) throw new Error('qBittorrent not configured');
+
+    if (updates.externalUrl !== undefined) {
+      config.externalUrl = updates.externalUrl ? updates.externalUrl.replace(/\/$/, '') : null;
+    }
+
+    await config.save();
+    this.config = config;
+    return config;
+  }
+
+  /**
    * Get qBittorrent configuration (without password)
    */
   async getConfig() {
@@ -157,6 +174,7 @@ class QbittorrentService {
 
     return {
       host: config.host,
+      externalUrl: config.externalUrl || null,
       username: config.username,
       enabled: config.enabled,
       isConnected: config.isConnected,

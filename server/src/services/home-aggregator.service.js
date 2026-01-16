@@ -770,10 +770,11 @@ class HomeAggregatorService {
       // Plex
       const plexServer = await PlexServer.findOne();
       if (plexServer && plexServer.host) {
+        const plexBaseUrl = (plexServer.externalUrl || plexServer.host).replace(/\/+$/, '');
         shortcuts.push({
           id: 'plex',
           name: 'Plex',
-          url: plexServer.host.replace(/\/+$/, '') + '/web',
+          url: plexBaseUrl + '/web',
           icon: 'plex',
           configured: true,
           connected: true
@@ -786,7 +787,7 @@ class HomeAggregatorService {
         shortcuts.push({
           id: 'nzbget',
           name: 'NZBGet',
-          url: nzbgetConfig.host,
+          url: nzbgetConfig.externalUrl || nzbgetConfig.host,
           icon: 'nzbget',
           configured: true,
           connected: nzbgetConfig.isConnected
@@ -799,7 +800,7 @@ class HomeAggregatorService {
         shortcuts.push({
           id: 'radarr',
           name: 'Radarr',
-          url: radarrConfig.host,
+          url: radarrConfig.externalUrl || radarrConfig.host,
           icon: 'radarr',
           configured: true,
           connected: radarrConfig.isConnected
@@ -812,7 +813,7 @@ class HomeAggregatorService {
         shortcuts.push({
           id: 'sonarr',
           name: 'Sonarr',
-          url: sonarrConfig.host,
+          url: sonarrConfig.externalUrl || sonarrConfig.host,
           icon: 'sonarr',
           configured: true,
           connected: sonarrConfig.isConnected
@@ -825,7 +826,7 @@ class HomeAggregatorService {
         shortcuts.push({
           id: 'overseerr',
           name: 'Overseerr',
-          url: overseerrConfig.host,
+          url: overseerrConfig.externalUrl || overseerrConfig.host,
           icon: 'overseerr',
           configured: true,
           connected: overseerrConfig.isConnected
@@ -838,7 +839,7 @@ class HomeAggregatorService {
         shortcuts.push({
           id: 'tautulli',
           name: 'Tautulli',
-          url: tautulliConfig.host,
+          url: tautulliConfig.externalUrl || tautulliConfig.host,
           icon: 'tautulli',
           configured: true,
           connected: tautulliConfig.enabled
@@ -851,7 +852,7 @@ class HomeAggregatorService {
         shortcuts.push({
           id: 'qbittorrent',
           name: 'qBittorrent',
-          url: qbtConfig.host,
+          url: qbtConfig.externalUrl || qbtConfig.host,
           icon: 'qbittorrent',
           configured: true,
           connected: qbtConfig.isConnected

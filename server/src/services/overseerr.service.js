@@ -43,11 +43,12 @@ class OverseerrService {
     }
   }
 
-  async saveConfig(host, apiKey) {
+  async saveConfig(host, apiKey, externalUrl) {
     const testResult = await this.testConnection(host, apiKey);
     
     const configData = {
       host: host.replace(/\/$/, ''),
+      externalUrl: externalUrl ? externalUrl.replace(/\/$/, '') : null,
       apiKey: encrypt(apiKey),
       enabled: true,
       isConnected: true,
@@ -61,12 +62,26 @@ class OverseerrService {
     return config;
   }
 
+  async updateConfig(updates) {
+    const config = await OverseerrConfig.getConfig();
+    if (!config) throw new Error('Overseerr not configured');
+
+    if (updates.externalUrl !== undefined) {
+      config.externalUrl = updates.externalUrl ? updates.externalUrl.replace(/\/$/, '') : null;
+    }
+
+    await config.save();
+    this.config = config;
+    return config;
+  }
+
   async getConfig() {
     const config = await OverseerrConfig.getConfig();
     if (!config) return null;
     
     return {
       host: config.host,
+      externalUrl: config.externalUrl || null,
       enabled: config.enabled,
       isConnected: config.isConnected,
       version: config.version,

@@ -5,6 +5,7 @@ const qbittorrentController = require('../controllers/qbittorrent.controller');
 // Configuration endpoints
 router.get('/config', qbittorrentController.getConfig);
 router.post('/config', qbittorrentController.saveConfig);
+router.patch('/config', qbittorrentController.updateConfig);
 router.delete('/config', qbittorrentController.deleteConfig);
 
 // Connection test

@@ -4,7 +4,20 @@ const radarrService = require('../services/radarr.service');
 exports.getConfig = async (req, res, next) => {
   try {
     const config = await radarrService.getConfig();
-    res.json({ config });
+    if (config) {
+      res.json({ 
+        config: {
+          host: config.host,
+          externalUrl: config.externalUrl || null,
+          enabled: config.enabled,
+          isConnected: config.isConnected,
+          version: config.version,
+          maxMovieSize: config.maxMovieSize
+        }
+      });
+    } else {
+      res.json({ config: null });
+    }
   } catch (error) {
     next(error);
   }
@@ -13,7 +26,7 @@ exports.getConfig = async (req, res, next) => {
 // Save Radarr configuration
 exports.saveConfig = async (req, res, next) => {
   try {
-    const { host, apiKey, maxMovieSize } = req.body;
+    const { host, apiKey, externalUrl, maxMovieSize } = req.body;
 
     if (!host || !apiKey) {
       return res.status(400).json({ 
@@ -21,12 +34,13 @@ exports.saveConfig = async (req, res, next) => {
       });
     }
 
-    const config = await radarrService.saveConfig(host, apiKey, maxMovieSize);
+    const config = await radarrService.saveConfig(host, apiKey, externalUrl, maxMovieSize);
     
     res.json({ 
       success: true,
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         version: config.version,
@@ -41,14 +55,15 @@ exports.saveConfig = async (req, res, next) => {
 // Update Radarr configuration (for settings like max size)
 exports.updateConfig = async (req, res, next) => {
   try {
-    const { maxMovieSize } = req.body;
+    const { maxMovieSize, externalUrl } = req.body;
 
-    const config = await radarrService.updateConfig({ maxMovieSize });
+    const config = await radarrService.updateConfig({ maxMovieSize, externalUrl });
     
     res.json({ 
       success: true,
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         version: config.version,

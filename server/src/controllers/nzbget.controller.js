@@ -22,13 +22,13 @@ exports.getConfig = async (req, res) => {
  */
 exports.saveConfig = async (req, res) => {
   try {
-    const { host, username, password } = req.body;
+    const { host, username, password, externalUrl } = req.body;
 
     if (!host) {
       return res.status(400).json({ error: 'Host is required' });
     }
 
-    await nzbgetService.saveConfig(host, username, password);
+    await nzbgetService.saveConfig(host, username, password, externalUrl);
     const config = await nzbgetService.getConfig();
 
     res.json({
@@ -37,6 +37,26 @@ exports.saveConfig = async (req, res) => {
     });
   } catch (error) {
     console.error('Error saving NZBGet config:', error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+/**
+ * Update NZBGet configuration
+ */
+exports.updateConfig = async (req, res) => {
+  try {
+    const { externalUrl } = req.body;
+
+    await nzbgetService.updateConfig({ externalUrl });
+    const config = await nzbgetService.getConfig();
+
+    res.json({
+      success: true,
+      config
+    });
+  } catch (error) {
+    console.error('Error updating NZBGet config:', error);
     res.status(400).json({ error: error.message });
   }
 };

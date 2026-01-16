@@ -26,17 +26,19 @@ export class SonarrService {
     return this.http.get<{ config: SonarrConfig | null }>(`${this.baseUrl}/config`);
   }
 
-  saveConfig(host: string, apiKey: string, maxEpisodeSize?: number): Observable<{ success: boolean; config: SonarrConfig }> {
+  saveConfig(host: string, apiKey: string, externalUrl?: string, maxEpisodeSize?: number): Observable<{ success: boolean; config: SonarrConfig }> {
     return this.http.post<{ success: boolean; config: SonarrConfig }>(`${this.baseUrl}/config`, {
       host,
       apiKey,
+      externalUrl,
       maxEpisodeSize
     });
   }
 
-  updateConfig(maxEpisodeSize: number): Observable<{ success: boolean; config: SonarrConfig }> {
+  updateConfig(maxEpisodeSize?: number, externalUrl?: string): Observable<{ success: boolean; config: SonarrConfig }> {
     return this.http.patch<{ success: boolean; config: SonarrConfig }>(`${this.baseUrl}/config`, {
-      maxEpisodeSize
+      maxEpisodeSize,
+      externalUrl
     });
   }
 

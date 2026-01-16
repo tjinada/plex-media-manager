@@ -100,11 +100,12 @@ class NzbgetService {
   /**
    * Save NZBGet configuration
    */
-  async saveConfig(host, username, password) {
+  async saveConfig(host, username, password, externalUrl) {
     const testResult = await this.testConnection(host, username, password);
 
     const configData = {
       host: host.replace(/\/$/, ''),
+      externalUrl: externalUrl ? externalUrl.replace(/\/$/, '') : null,
       username: username || '',
       password: password || '',
       enabled: true,
@@ -119,6 +120,22 @@ class NzbgetService {
   }
 
   /**
+   * Update NZBGet configuration
+   */
+  async updateConfig(updates) {
+    const config = await NzbgetConfig.getConfig();
+    if (!config) throw new Error('NZBGet not configured');
+
+    if (updates.externalUrl !== undefined) {
+      config.externalUrl = updates.externalUrl ? updates.externalUrl.replace(/\/$/, '') : null;
+    }
+
+    await config.save();
+    this.config = config;
+    return config;
+  }
+
+  /**
    * Get NZBGet configuration (without password)
    */
   async getConfig() {
@@ -127,6 +144,7 @@ class NzbgetService {
 
     return {
       host: config.host,
+      externalUrl: config.externalUrl || null,
       username: config.username,
       enabled: config.enabled,
       isConnected: config.isConnected,

@@ -11,6 +11,9 @@ router.post('/', serverController.connectServer);
 // DELETE /api/server - Disconnect server
 router.delete('/', serverController.disconnectServer);
 
+// PATCH /api/server/external-url - Update external URL
+router.patch('/external-url', serverController.updateExternalUrl);
+
 // POST /api/server/test - Test connection
 router.post('/test', serverController.testConnection);
 

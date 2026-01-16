@@ -4,7 +4,20 @@ const sonarrService = require('../services/sonarr.service');
 exports.getConfig = async (req, res, next) => {
   try {
     const config = await sonarrService.getConfig();
-    res.json({ config });
+    if (config) {
+      res.json({ 
+        config: {
+          host: config.host,
+          externalUrl: config.externalUrl || null,
+          enabled: config.enabled,
+          isConnected: config.isConnected,
+          version: config.version,
+          maxEpisodeSize: config.maxEpisodeSize
+        }
+      });
+    } else {
+      res.json({ config: null });
+    }
   } catch (error) {
     next(error);
   }
@@ -13,7 +26,7 @@ exports.getConfig = async (req, res, next) => {
 // Save Sonarr configuration
 exports.saveConfig = async (req, res, next) => {
   try {
-    const { host, apiKey, maxEpisodeSize } = req.body;
+    const { host, apiKey, externalUrl, maxEpisodeSize } = req.body;
 
     if (!host || !apiKey) {
       return res.status(400).json({ 
@@ -21,12 +34,13 @@ exports.saveConfig = async (req, res, next) => {
       });
     }
 
-    const config = await sonarrService.saveConfig(host, apiKey, maxEpisodeSize);
+    const config = await sonarrService.saveConfig(host, apiKey, externalUrl, maxEpisodeSize);
     
     res.json({ 
       success: true,
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         version: config.version,
@@ -41,14 +55,15 @@ exports.saveConfig = async (req, res, next) => {
 // Update Sonarr configuration (for settings like max size)
 exports.updateConfig = async (req, res, next) => {
   try {
-    const { maxEpisodeSize } = req.body;
+    const { maxEpisodeSize, externalUrl } = req.body;
 
-    const config = await sonarrService.updateConfig({ maxEpisodeSize });
+    const config = await sonarrService.updateConfig({ maxEpisodeSize, externalUrl });
     
     res.json({ 
       success: true,
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         version: config.version,

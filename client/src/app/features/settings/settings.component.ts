@@ -35,6 +35,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // Plex Connection form
   host = '';
   token = '';
+  plexExternalUrl = '';
   isConnecting = false;
   isTesting = false;
   connectionError = '';
@@ -68,6 +69,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   radarrConfig: RadarrConfig | null = null;
   radarrHost = '';
   radarrApiKey = '';
+  radarrExternalUrl = '';
   radarrConnecting = false;
   radarrTesting = false;
   radarrError = '';
@@ -78,6 +80,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   sonarrConfig: SonarrConfig | null = null;
   sonarrHost = '';
   sonarrApiKey = '';
+  sonarrExternalUrl = '';
   sonarrConnecting = false;
   sonarrTesting = false;
   sonarrError = '';
@@ -88,11 +91,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
   savingRadarrSize = false;
   savingSonarrSize = false;
 
+  // Saving external URLs
+  savingPlexExternalUrl = false;
+  savingTautulliExternalUrl = false;
+  savingRadarrExternalUrl = false;
+  savingSonarrExternalUrl = false;
+  savingNzbgetExternalUrl = false;
+  savingQbittorrentExternalUrl = false;
+  savingOverseerrExternalUrl = false;
+
   // Tautulli state
   tautulliConfig: TautulliConfig | null = null;
   tautulliConfigured = false;
   tautulliHost = '';
   tautulliApiKey = '';
+  tautulliExternalUrl = '';
   tautulliConnecting = false;
   tautulliTesting = false;
   tautulliError = '';
@@ -119,6 +132,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   nzbgetHost = '';
   nzbgetUsername = '';
   nzbgetPassword = '';
+  nzbgetExternalUrl = '';
   nzbgetConnecting = false;
   nzbgetTesting = false;
   nzbgetError = '';
@@ -129,6 +143,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   qbittorrentHost = '';
   qbittorrentUsername = '';
   qbittorrentPassword = '';
+  qbittorrentExternalUrl = '';
   qbittorrentConnecting = false;
   qbittorrentTesting = false;
   qbittorrentError = '';
@@ -138,6 +153,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   overseerrConfig: OverseerrConfig | null = null;
   overseerrHost = '';
   overseerrApiKey = '';
+  overseerrExternalUrl = '';
   overseerrConnecting = false;
   overseerrTesting = false;
   overseerrError = '';
@@ -180,6 +196,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.server = response.server;
         if (this.server) {
           this.host = this.server.host;
+          this.plexExternalUrl = this.server.externalUrl || '';
         }
         this.isLoading = false;
       },
@@ -239,7 +256,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isConnecting = true;
     this.connectionError = '';
 
-    this.plexService.connectServer({ host: this.host, token: this.token }).subscribe({
+    this.plexService.connectServer({ 
+      host: this.host, 
+      token: this.token,
+      externalUrl: this.plexExternalUrl || undefined
+    }).subscribe({
       next: (response: { server: PlexServer }) => {
         this.server = response.server;
         this.isConnecting = false;
@@ -281,6 +302,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
       error: (error: { error?: { message?: string } }) => {
         this.isSyncing = false;
         alert(error.error?.message || 'Failed to start sync');
+      }
+    });
+  }
+
+  savePlexExternalUrl(): void {
+    this.savingPlexExternalUrl = true;
+    this.plexService.updateExternalUrl(this.plexExternalUrl || null).subscribe({
+      next: (response: { server: PlexServer }) => {
+        this.server = response.server;
+        this.savingPlexExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.connectionError = error.error?.message || 'Failed to update external URL';
+        this.savingPlexExternalUrl = false;
       }
     });
   }
@@ -345,6 +380,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.radarrConfig = response.config;
         if (this.radarrConfig) {
           this.radarrHost = this.radarrConfig.host;
+          this.radarrExternalUrl = this.radarrConfig.externalUrl || '';
           this.maxMovieSizeGB = Math.round(this.radarrConfig.maxMovieSize / (1024 * 1024 * 1024));
         }
       }
@@ -382,7 +418,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.radarrConnecting = true;
     this.radarrError = '';
 
-    this.radarrService.saveConfig(this.radarrHost, this.radarrApiKey).subscribe({
+    this.radarrService.saveConfig(this.radarrHost, this.radarrApiKey, this.radarrExternalUrl || undefined).subscribe({
       next: (response: { success: boolean; config: RadarrConfig }) => {
         this.radarrConfig = response.config;
         this.radarrConnecting = false;
@@ -430,6 +466,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  saveRadarrExternalUrl(): void {
+    this.savingRadarrExternalUrl = true;
+    this.radarrService.updateConfig(undefined, this.radarrExternalUrl || undefined).subscribe({
+      next: (response: { success: boolean; config: RadarrConfig }) => {
+        this.radarrConfig = response.config;
+        this.radarrExternalUrl = response.config.externalUrl || '';
+        this.savingRadarrExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.radarrError = error.error?.message || 'Failed to update external URL';
+        this.savingRadarrExternalUrl = false;
+      }
+    });
+  }
+
   // ===== Sonarr Methods =====
   loadSonarrConfig(): void {
     this.sonarrService.getConfig().subscribe({
@@ -437,6 +488,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.sonarrConfig = response.config;
         if (this.sonarrConfig) {
           this.sonarrHost = this.sonarrConfig.host;
+          this.sonarrExternalUrl = this.sonarrConfig.externalUrl || '';
           this.maxEpisodeSizeGB = Math.round(this.sonarrConfig.maxEpisodeSize / (1024 * 1024 * 1024));
         }
       }
@@ -474,7 +526,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.sonarrConnecting = true;
     this.sonarrError = '';
 
-    this.sonarrService.saveConfig(this.sonarrHost, this.sonarrApiKey).subscribe({
+    this.sonarrService.saveConfig(this.sonarrHost, this.sonarrApiKey, this.sonarrExternalUrl || undefined).subscribe({
       next: (response: { success: boolean; config: SonarrConfig }) => {
         this.sonarrConfig = response.config;
         this.sonarrConnecting = false;
@@ -522,6 +574,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  saveSonarrExternalUrl(): void {
+    this.savingSonarrExternalUrl = true;
+    this.sonarrService.updateConfig(undefined, this.sonarrExternalUrl || undefined).subscribe({
+      next: (response: { success: boolean; config: SonarrConfig }) => {
+        this.sonarrConfig = response.config;
+        this.sonarrExternalUrl = response.config.externalUrl || '';
+        this.savingSonarrExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.sonarrError = error.error?.message || 'Failed to update external URL';
+        this.savingSonarrExternalUrl = false;
+      }
+    });
+  }
+
   // ===== Tautulli Methods =====
   loadTautulliConfig(): void {
     this.tautulliService.getConfig().subscribe({
@@ -530,6 +597,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.tautulliConfig = response.config;
         if (this.tautulliConfig) {
           this.tautulliHost = this.tautulliConfig.host;
+          this.tautulliExternalUrl = this.tautulliConfig.externalUrl || '';
           this.tautulliSyncEnabled = this.tautulliConfig.syncEnabled;
           this.tautulliSyncInterval = this.tautulliConfig.syncIntervalSeconds;
         }
@@ -575,6 +643,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.tautulliService.saveConfig({
       host: this.tautulliHost,
       apiKey: this.tautulliApiKey,
+      externalUrl: this.tautulliExternalUrl || undefined,
       syncEnabled: this.tautulliSyncEnabled,
       syncIntervalSeconds: this.tautulliSyncInterval
     }).subscribe({
@@ -628,6 +697,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
       error: (error: { error?: { message?: string } }) => {
         this.tautulliError = error.error?.message || 'Failed to update sync settings';
         this.savingTautulliSync = false;
+      }
+    });
+  }
+
+  saveTautulliExternalUrl(): void {
+    this.savingTautulliExternalUrl = true;
+    this.tautulliService.updateSyncSettings({
+      externalUrl: this.tautulliExternalUrl || undefined
+    }).subscribe({
+      next: (response: any) => {
+        this.tautulliExternalUrl = response.externalUrl || '';
+        this.savingTautulliExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.tautulliError = error.error?.message || 'Failed to update external URL';
+        this.savingTautulliExternalUrl = false;
       }
     });
   }
@@ -722,6 +807,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         if (response.config) {
           this.nzbgetConfig = response.config;
           this.nzbgetHost = response.config.host;
+          this.nzbgetExternalUrl = response.config.externalUrl || '';
         }
       }
     });
@@ -758,7 +844,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.nzbgetConnecting = true;
     this.nzbgetError = '';
 
-    this.nzbgetService.saveConfig(this.nzbgetHost, this.nzbgetUsername, this.nzbgetPassword).subscribe({
+    this.nzbgetService.saveConfig(this.nzbgetHost, this.nzbgetUsername, this.nzbgetPassword, this.nzbgetExternalUrl || undefined).subscribe({
       next: (response) => {
         this.nzbgetConfig = response.config;
         this.nzbgetConnecting = false;
@@ -790,6 +876,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  saveNzbgetExternalUrl(): void {
+    this.savingNzbgetExternalUrl = true;
+    this.nzbgetService.updateConfig(this.nzbgetExternalUrl || undefined).subscribe({
+      next: (response) => {
+        this.nzbgetConfig = response.config;
+        this.nzbgetExternalUrl = response.config.externalUrl || '';
+        this.savingNzbgetExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.nzbgetError = error.error?.message || 'Failed to update external URL';
+        this.savingNzbgetExternalUrl = false;
+      }
+    });
+  }
+
   // ===== qBittorrent Methods =====
   loadQbittorrentConfig(): void {
     this.qbittorrentService.getConfig().subscribe({
@@ -797,6 +898,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         if (response.config) {
           this.qbittorrentConfig = response.config;
           this.qbittorrentHost = response.config.host;
+          this.qbittorrentExternalUrl = response.config.externalUrl || '';
         }
       }
     });
@@ -833,7 +935,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.qbittorrentConnecting = true;
     this.qbittorrentError = '';
 
-    this.qbittorrentService.saveConfig(this.qbittorrentHost, this.qbittorrentUsername, this.qbittorrentPassword).subscribe({
+    this.qbittorrentService.saveConfig(this.qbittorrentHost, this.qbittorrentUsername, this.qbittorrentPassword, this.qbittorrentExternalUrl || undefined).subscribe({
       next: (response) => {
         this.qbittorrentConfig = response.config;
         this.qbittorrentConnecting = false;
@@ -865,6 +967,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  saveQbittorrentExternalUrl(): void {
+    this.savingQbittorrentExternalUrl = true;
+    this.qbittorrentService.updateConfig(this.qbittorrentExternalUrl || undefined).subscribe({
+      next: (response) => {
+        this.qbittorrentConfig = response.config;
+        this.qbittorrentExternalUrl = response.config.externalUrl || '';
+        this.savingQbittorrentExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.qbittorrentError = error.error?.message || 'Failed to update external URL';
+        this.savingQbittorrentExternalUrl = false;
+      }
+    });
+  }
+
   // ===== Overseerr Methods =====
   loadOverseerrConfig(): void {
     this.overseerrService.getConfig().subscribe({
@@ -872,6 +989,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         if (response.config) {
           this.overseerrConfig = response.config;
           this.overseerrHost = response.config.host;
+          this.overseerrExternalUrl = response.config.externalUrl || '';
         }
       }
     });
@@ -908,7 +1026,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.overseerrConnecting = true;
     this.overseerrError = '';
 
-    this.overseerrService.saveConfig(this.overseerrHost, this.overseerrApiKey).subscribe({
+    this.overseerrService.saveConfig(this.overseerrHost, this.overseerrApiKey, this.overseerrExternalUrl || undefined).subscribe({
       next: (response) => {
         this.overseerrConfig = response.config;
         this.overseerrConnecting = false;
@@ -935,6 +1053,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
       },
       error: (error: { error?: { message?: string } }) => {
         this.overseerrError = error.error?.message || 'Failed to disconnect Overseerr';
+      }
+    });
+  }
+
+  saveOverseerrExternalUrl(): void {
+    this.savingOverseerrExternalUrl = true;
+    this.overseerrService.updateConfig(this.overseerrExternalUrl || undefined).subscribe({
+      next: (response) => {
+        this.overseerrConfig = response.config;
+        this.overseerrExternalUrl = response.config.externalUrl || '';
+        this.savingOverseerrExternalUrl = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.overseerrError = error.error?.message || 'Failed to update external URL';
+        this.savingOverseerrExternalUrl = false;
       }
     });
   }

@@ -153,6 +153,29 @@
               <p class="text-xs text-red-400 mt-2">{{ autoSyncError }}</p>
             }
           </div>
+
+          <!-- External URL Setting -->
+          <div class="mt-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use server URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="plexExternalUrl"
+                placeholder="https://my-server.tailnet:32400"
+                class="input-field flex-1">
+              <button 
+                (click)="savePlexExternalUrl()"
+                [disabled]="savingPlexExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingPlexExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
         } @else {
           <!-- Connection Form -->
           <div class="space-y-4">
@@ -181,6 +204,16 @@
                   How to find your Plex token →
                 </a>
               </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="plexExternalUrl"
+                placeholder="https://my-server.tailnet:32400"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Server URL above.</p>
             </div>
 
             @if (connectionError) {
@@ -386,6 +419,29 @@
             }
           </div>
 
+          <!-- External URL Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Tautulli URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="tautulliExternalUrl"
+                placeholder="https://my-server.tailnet:8181"
+                class="input-field flex-1">
+              <button 
+                (click)="saveTautulliExternalUrl()"
+                [disabled]="savingTautulliExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingTautulliExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button 
             (click)="disconnectTautulli()"
             class="btn-danger flex items-center gap-2">
@@ -414,6 +470,16 @@
                 placeholder="Your Tautulli API key"
                 class="input-field">
               <p class="text-xs text-gray-500 mt-1">Found in Tautulli → Settings → Web Interface → API Key</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="tautulliExternalUrl"
+                placeholder="https://my-server.tailnet:8181"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Tautulli URL above.</p>
             </div>
 
             @if (tautulliError) {
@@ -533,6 +599,29 @@
             </div>
           </div>
 
+          <!-- External URL Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Radarr URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="radarrExternalUrl"
+                placeholder="https://my-server.tailnet:7878"
+                class="input-field flex-1">
+              <button 
+                (click)="saveRadarrExternalUrl()"
+                [disabled]="savingRadarrExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingRadarrExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button 
             (click)="disconnectRadarr()"
             class="btn-danger flex items-center gap-2">
@@ -561,6 +650,16 @@
                 placeholder="Your Radarr API key"
                 class="input-field">
               <p class="text-xs text-gray-500 mt-1">Found in Radarr → Settings → General → API Key</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="radarrExternalUrl"
+                placeholder="https://my-server.tailnet:7878"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Radarr URL above.</p>
             </div>
 
             @if (radarrError) {
@@ -667,6 +766,29 @@
             </div>
           </div>
 
+          <!-- External URL Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Sonarr URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="sonarrExternalUrl"
+                placeholder="https://my-server.tailnet:8989"
+                class="input-field flex-1">
+              <button 
+                (click)="saveSonarrExternalUrl()"
+                [disabled]="savingSonarrExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingSonarrExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button 
             (click)="disconnectSonarr()"
             class="btn-danger flex items-center gap-2">
@@ -695,6 +817,16 @@
                 placeholder="Your Sonarr API key"
                 class="input-field">
               <p class="text-xs text-gray-500 mt-1">Found in Sonarr → Settings → General → API Key</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="sonarrExternalUrl"
+                placeholder="https://my-server.tailnet:8989"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Sonarr URL above.</p>
             </div>
 
             @if (sonarrError) {
@@ -786,6 +918,29 @@
             </div>
           </div>
 
+          <!-- External URL Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use NZBGet URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="nzbgetExternalUrl"
+                placeholder="https://my-server.tailnet:6789"
+                class="input-field flex-1">
+              <button 
+                (click)="saveNzbgetExternalUrl()"
+                [disabled]="savingNzbgetExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingNzbgetExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button
             (click)="disconnectNzbget()"
             class="btn-danger flex items-center gap-2">
@@ -822,6 +977,16 @@
                 [(ngModel)]="nzbgetPassword"
                 placeholder="Your NZBGet password"
                 class="input-field">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="nzbgetExternalUrl"
+                placeholder="https://my-server.tailnet:6789"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use NZBGet URL above.</p>
             </div>
 
             @if (nzbgetError) {
@@ -902,6 +1067,29 @@
             </div>
           </div>
 
+          <!-- External URL Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use qBittorrent URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="qbittorrentExternalUrl"
+                placeholder="https://my-server.tailnet:8080"
+                class="input-field flex-1">
+              <button 
+                (click)="saveQbittorrentExternalUrl()"
+                [disabled]="savingQbittorrentExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingQbittorrentExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button
             (click)="disconnectQbittorrent()"
             class="btn-danger flex items-center gap-2">
@@ -938,6 +1126,16 @@
                 [(ngModel)]="qbittorrentPassword"
                 placeholder="Your qBittorrent password"
                 class="input-field">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="qbittorrentExternalUrl"
+                placeholder="https://my-server.tailnet:8080"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use qBittorrent URL above.</p>
             </div>
 
             @if (qbittorrentError) {
@@ -1021,6 +1219,29 @@
             </div>
           </div>
 
+          <!-- External URL Setting -->
+          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
+            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Overseerr URL.</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="text"
+                [(ngModel)]="overseerrExternalUrl"
+                placeholder="https://my-server.tailnet:5055"
+                class="input-field flex-1">
+              <button 
+                (click)="saveOverseerrExternalUrl()"
+                [disabled]="savingOverseerrExternalUrl"
+                class="btn-secondary text-sm">
+                @if (savingOverseerrExternalUrl) {
+                  Saving...
+                } @else {
+                  Save
+                }
+              </button>
+            </div>
+          </div>
+
           <button
             (click)="disconnectOverseerr()"
             class="btn-danger flex items-center gap-2">
@@ -1049,6 +1270,16 @@
                 placeholder="Your Overseerr API key"
                 class="input-field">
               <p class="text-xs text-gray-500 mt-1">Find this in Overseerr Settings → General → API Key</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
+              <input 
+                type="text"
+                [(ngModel)]="overseerrExternalUrl"
+                placeholder="https://my-server.tailnet:5055"
+                class="input-field">
+              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Overseerr URL above.</p>
             </div>
 
             @if (overseerrError) {

@@ -19,6 +19,7 @@ exports.getServer = async (req, res, next) => {
         id: server._id,
         name: server.name,
         host: server.host,
+        externalUrl: server.externalUrl || null,
         version: server.version,
         platform: server.platform,
         isConnected: server.isConnected,
@@ -36,7 +37,7 @@ exports.getServer = async (req, res, next) => {
  */
 exports.connectServer = async (req, res, next) => {
   try {
-    const { host, token } = req.body;
+    const { host, token, externalUrl } = req.body;
 
     if (!host || !token) {
       throw new ApiError(400, 'Host and token are required', 'VALIDATION_ERROR');
@@ -50,6 +51,7 @@ exports.connectServer = async (req, res, next) => {
     const server = await PlexServer.upsertServer({
       name: serverInfo.name,
       host: host.replace(/\/$/, ''), // Remove trailing slash
+      externalUrl: externalUrl ? externalUrl.replace(/\/$/, '') : null,
       token,
       machineId: serverInfo.machineId,
       version: serverInfo.version,
@@ -63,6 +65,7 @@ exports.connectServer = async (req, res, next) => {
         id: server._id,
         name: server.name,
         host: server.host,
+        externalUrl: server.externalUrl || null,
         version: server.version,
         platform: server.platform,
         isConnected: server.isConnected
@@ -82,6 +85,40 @@ exports.disconnectServer = async (req, res, next) => {
     await PlexServer.deleteMany({});
 
     res.json({ success: true });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update Plex server external URL
+ */
+exports.updateExternalUrl = async (req, res, next) => {
+  try {
+    const { externalUrl } = req.body;
+
+    const server = await PlexServer.getServer();
+
+    if (!server) {
+      throw new ApiError(404, 'No Plex server configured', 'NOT_FOUND');
+    }
+
+    server.externalUrl = externalUrl ? externalUrl.replace(/\/$/, '') : null;
+    await server.save();
+
+    res.json({
+      server: {
+        id: server._id,
+        name: server.name,
+        host: server.host,
+        externalUrl: server.externalUrl || null,
+        version: server.version,
+        platform: server.platform,
+        isConnected: server.isConnected,
+        lastSyncAt: server.lastSyncAt
+      }
+    });
 
   } catch (error) {
     next(error);

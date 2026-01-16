@@ -26,12 +26,34 @@ router.post('/test', async (req, res) => {
 // Save config
 router.post('/config', async (req, res) => {
   try {
-    const { host, apiKey } = req.body;
-    const config = await overseerrService.saveConfig(host, apiKey);
+    const { host, apiKey, externalUrl } = req.body;
+    const config = await overseerrService.saveConfig(host, apiKey, externalUrl);
     res.json({ 
       success: true, 
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
+        enabled: config.enabled,
+        isConnected: config.isConnected,
+        version: config.version,
+        lastCheckedAt: config.lastCheckedAt
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update config
+router.patch('/config', async (req, res) => {
+  try {
+    const { externalUrl } = req.body;
+    const config = await overseerrService.updateConfig({ externalUrl });
+    res.json({ 
+      success: true, 
+      config: {
+        host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         version: config.version,

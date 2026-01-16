@@ -21,6 +21,7 @@ exports.getConfig = async (req, res) => {
       configured: true,
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         serverName: config.serverName,
@@ -47,7 +48,7 @@ exports.getConfig = async (req, res) => {
  */
 exports.saveConfig = async (req, res) => {
   try {
-    const { host, apiKey, enabled, syncEnabled, syncIntervalSeconds } = req.body;
+    const { host, apiKey, externalUrl, enabled, syncEnabled, syncIntervalSeconds } = req.body;
 
     if (!host || !apiKey) {
       return res.status(400).json({ error: 'Host and API key are required' });
@@ -57,6 +58,12 @@ exports.saveConfig = async (req, res) => {
     let normalizedHost = host.trim();
     if (!normalizedHost.startsWith('http://') && !normalizedHost.startsWith('https://')) {
       normalizedHost = 'http://' + normalizedHost;
+    }
+
+    // Normalize external URL if provided
+    let normalizedExternalUrl = null;
+    if (externalUrl) {
+      normalizedExternalUrl = externalUrl.trim().replace(/\/$/, '');
     }
 
     // Test connection before saving
@@ -75,6 +82,7 @@ exports.saveConfig = async (req, res) => {
     // Save configuration
     const config = await TautulliConfig.saveConfig({
       host: normalizedHost,
+      externalUrl: normalizedExternalUrl,
       apiKey: apiKey,
       enabled: enabled !== false,
       isConnected: true,
@@ -94,6 +102,7 @@ exports.saveConfig = async (req, res) => {
       message: 'Tautulli configuration saved',
       config: {
         host: config.host,
+        externalUrl: config.externalUrl || null,
         enabled: config.enabled,
         isConnected: config.isConnected,
         serverName: config.serverName,
@@ -224,7 +233,7 @@ exports.getActivity = async (req, res) => {
  */
 exports.updateSyncSettings = async (req, res) => {
   try {
-    const { syncEnabled, syncIntervalSeconds } = req.body;
+    const { syncEnabled, syncIntervalSeconds, externalUrl } = req.body;
 
     const config = await TautulliConfig.getConfig();
     
@@ -240,6 +249,10 @@ exports.updateSyncSettings = async (req, res) => {
       config.syncIntervalSeconds = Math.max(30, Math.min(3600, syncIntervalSeconds));
     }
 
+    if (externalUrl !== undefined) {
+      config.externalUrl = externalUrl ? externalUrl.trim().replace(/\/$/, '') : null;
+    }
+
     await config.save();
 
     // Restart sync with new settings
@@ -251,7 +264,8 @@ exports.updateSyncSettings = async (req, res) => {
     res.json({
       success: true,
       syncEnabled: config.syncEnabled,
-      syncIntervalSeconds: config.syncIntervalSeconds
+      syncIntervalSeconds: config.syncIntervalSeconds,
+      externalUrl: config.externalUrl || null
     });
   } catch (error) {
     console.error('Error updating sync settings:', error);

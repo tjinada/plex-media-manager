@@ -43,6 +43,13 @@ export class PlexService {
   }
 
   /**
+   * Update external URL for Plex server
+   */
+  updateExternalUrl(externalUrl: string | null): Observable<{ server: PlexServer }> {
+    return this.api.patch<{ server: PlexServer }>('/server/external-url', { externalUrl });
+  }
+
+  /**
    * Get Plex image URL with proxy
    */
   getImageUrl(path: string | undefined | null): string {

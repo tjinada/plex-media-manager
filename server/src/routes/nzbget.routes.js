@@ -5,6 +5,7 @@ const nzbgetController = require('../controllers/nzbget.controller');
 // Configuration endpoints
 router.get('/config', nzbgetController.getConfig);
 router.post('/config', nzbgetController.saveConfig);
+router.patch('/config', nzbgetController.updateConfig);
 router.delete('/config', nzbgetController.deleteConfig);
 
 // Connection test

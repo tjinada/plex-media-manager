@@ -1,5 +1,6 @@
 const { TautulliConfig, PlaybackSession, PlexServer, Movie, Episode } = require('../models');
 const TautulliService = require('./tautulli.service');
+const websocketService = require('./websocket.service');
 
 /**
  * Service for syncing playback history from Tautulli
@@ -464,6 +465,11 @@ class TautulliSyncService {
       
       // Clear cache after sync
       this.mediaCache.clear();
+
+      // Notify connected clients to refresh their activity list
+      if (syncedCount > 0) {
+        websocketService.emitActivityRefresh();
+      }
 
     } catch (error) {
       console.error('Tautulli sync error:', error.message);

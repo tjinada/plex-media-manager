@@ -161,6 +161,14 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.recentActivity = [activity, ...this.recentActivity.slice(0, this.activityLimit - 1)];
       })
     );
+
+    // Subscribe to activity refresh (triggered when Tautulli syncs new data)
+    this.subscriptions.push(
+      this.wsService.activityRefresh$.subscribe(() => {
+        // Reload activity data for current tab
+        this.loadActivity();
+      })
+    );
   }
 
   /**

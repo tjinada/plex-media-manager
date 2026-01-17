@@ -297,6 +297,13 @@ class WebSocketService {
   emitActivity(activity) {
     this.broadcast('activity:new', activity);
   }
+
+  /**
+   * Emit activity refresh event (tells clients to reload their activity list)
+   */
+  emitActivityRefresh() {
+    this.broadcast('activity:refresh', { timestamp: Date.now() });
+  }
 }
 
 module.exports = new WebSocketService();

@@ -34,6 +34,7 @@ export class WebSocketService implements OnDestroy {
   private streamStoppedSubject = new Subject<{ sessionKey: string }>();
   private downloadCompletedSubject = new Subject<{ id: string; title: string; type: string }>();
   private activitySubject = new Subject<RecentActivity>();
+  private activityRefreshSubject = new Subject<void>();
 
   // Public observables
   status$ = this.statusSubject.asObservable();
@@ -44,6 +45,7 @@ export class WebSocketService implements OnDestroy {
   streamStopped$ = this.streamStoppedSubject.asObservable();
   downloadCompleted$ = this.downloadCompletedSubject.asObservable();
   newActivity$ = this.activitySubject.asObservable();
+  activityRefresh$ = this.activityRefreshSubject.asObservable();
 
   constructor() {}
 
@@ -161,6 +163,10 @@ export class WebSocketService implements OnDestroy {
 
       case 'activity:new':
         this.activitySubject.next(message.data);
+        break;
+
+      case 'activity:refresh':
+        this.activityRefreshSubject.next();
         break;
 
       default:

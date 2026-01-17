@@ -226,6 +226,8 @@ class TautulliService {
       duration: record.duration,
       watchedDuration: record.play_duration || record.duration,
       pausedDuration: record.paused_counter || 0,
+      // Tautulli provides percent_complete directly - use it!
+      percentComplete: record.percent_complete !== undefined ? parseInt(record.percent_complete) : null,
       
       // User info
       userId: record.user_id?.toString(),

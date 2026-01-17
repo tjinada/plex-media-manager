@@ -128,6 +128,7 @@ const playbackSessionSchema = new mongoose.Schema({
   duration: Number,
   watchedDuration: Number,    // How long actually watched
   pausedDuration: Number,     // Time spent paused
+  percentComplete: Number,    // Watch progress percentage from Tautulli
   
   // Who
   userId: {

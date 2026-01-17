@@ -523,19 +523,26 @@ class HomeAggregatorService {
           }
 
           // Calculate watch progress/status
+          // Use Tautulli's percentComplete directly if available (most accurate)
           let watchStatus = 'partial';
           let watchProgress = 0;
-          if (session.duration && session.duration > 0) {
+          
+          if (session.percentComplete !== null && session.percentComplete !== undefined) {
+            // Use Tautulli's direct percentage
+            watchProgress = session.percentComplete;
+          } else if (session.duration && session.duration > 0) {
+            // Fallback: calculate from watched/total duration
             const watched = session.watchedDuration || 0;
             watchProgress = Math.round((watched / session.duration) * 100);
-            
-            if (watchProgress >= 90) {
-              watchStatus = 'completed';
-            } else if (watchProgress <= 10) {
-              watchStatus = 'abandoned';
-            } else {
-              watchStatus = 'partial';
-            }
+          }
+          
+          // Determine watch status based on progress
+          if (watchProgress >= 90) {
+            watchStatus = 'completed';
+          } else if (watchProgress <= 10) {
+            watchStatus = 'abandoned';
+          } else {
+            watchStatus = 'partial';
           }
 
           activities.push({

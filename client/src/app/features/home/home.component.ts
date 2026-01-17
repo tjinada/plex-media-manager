@@ -280,19 +280,45 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /**
    * Get filtered activity based on active tab
+   * For 'watched' tab: excludes items currently being streamed
    */
   get filteredActivity(): RecentActivity[] {
     return this.recentActivity.filter(a => {
-      switch (this.activeActivityTab) {
-        case 'watched':
-          return a.type === 'watched';
-        case 'downloaded':
-          return a.type === 'downloaded';
-        case 'added':
-          return a.type === 'added';
-        default:
-          return true;
+      // Filter by tab type
+      const matchesTab = (() => {
+        switch (this.activeActivityTab) {
+          case 'watched':
+            return a.type === 'watched';
+          case 'downloaded':
+            return a.type === 'downloaded';
+          case 'added':
+            return a.type === 'added';
+          default:
+            return true;
+        }
+      })();
+
+      if (!matchesTab) return false;
+
+      // For watched tab, filter out items that are currently streaming
+      if (this.activeActivityTab === 'watched' && this.streaming.length > 0) {
+        const isCurrentlyStreaming = this.streaming.some(session => {
+          // Match by media title and user
+          const activityTitle = a.media.type === 'episode' 
+            ? a.media.showTitle 
+            : a.media.title;
+          const sessionTitle = session.media.type === 'episode'
+            ? session.media.showTitle
+            : session.media.title;
+          
+          // Check if same content by same user
+          return activityTitle === sessionTitle && a.user === session.user.name;
+        });
+        
+        if (isCurrentlyStreaming) return false;
       }
+
+      return true;
     });
   }
 

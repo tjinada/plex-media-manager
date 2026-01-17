@@ -191,11 +191,11 @@ class TautulliSyncService {
     
     if (mediaType === 'movie') {
       media = await Movie.findOne({ plexId })
-        .select('_id media.videoCodec media.audioCodec media.container media.resolution media.hdr media.bitrate media.audioChannels')
+        .select('_id media.duration media.videoCodec media.audioCodec media.container media.resolution media.hdr media.bitrate media.audioChannels')
         .lean();
     } else if (mediaType === 'episode') {
       media = await Episode.findOne({ plexId })
-        .select('_id media.videoCodec media.audioCodec media.container media.resolution media.hdr media.bitrate media.audioChannels')
+        .select('_id media.duration media.videoCodec media.audioCodec media.container media.resolution media.hdr media.bitrate media.audioChannels')
         .lean();
     }
     
@@ -286,33 +286,35 @@ class TautulliSyncService {
   async enrichWithLibraryData(sessionData) {
     const media = await this.lookupMediaByRatingKey(sessionData.ratingKey, sessionData.mediaType);
     
-    if (media && media.media) {
-      // Fill in missing mediaSnapshot fields from library
-      if (!sessionData.mediaSnapshot) {
-        sessionData.mediaSnapshot = {};
-      }
-      
-      // Only fill in if not already present from Tautulli
-      if (!sessionData.mediaSnapshot.videoCodec && media.media.videoCodec) {
-        sessionData.mediaSnapshot.videoCodec = media.media.videoCodec;
-      }
-      if (!sessionData.mediaSnapshot.audioCodec && media.media.audioCodec) {
-        sessionData.mediaSnapshot.audioCodec = media.media.audioCodec;
-      }
-      if (!sessionData.mediaSnapshot.container && media.media.container) {
-        sessionData.mediaSnapshot.container = media.media.container;
-      }
-      if (!sessionData.mediaSnapshot.resolution && media.media.resolution) {
-        sessionData.mediaSnapshot.resolution = media.media.resolution;
-      }
-      if (!sessionData.mediaSnapshot.hdrType && media.media.hdr) {
-        sessionData.mediaSnapshot.hdrType = this.deriveHdrType(media.media.hdr);
-      }
-      if (!sessionData.mediaSnapshot.bitrate && media.media.bitrate) {
-        sessionData.mediaSnapshot.bitrate = media.media.bitrate;
-      }
-      if (!sessionData.mediaSnapshot.audioChannels && media.media.audioChannels) {
-        sessionData.mediaSnapshot.audioChannels = media.media.audioChannels;
+    if (media) {
+      if (media.media) {
+        // Fill in missing mediaSnapshot fields from library
+        if (!sessionData.mediaSnapshot) {
+          sessionData.mediaSnapshot = {};
+        }
+        
+        // Only fill in if not already present from Tautulli
+        if (!sessionData.mediaSnapshot.videoCodec && media.media.videoCodec) {
+          sessionData.mediaSnapshot.videoCodec = media.media.videoCodec;
+        }
+        if (!sessionData.mediaSnapshot.audioCodec && media.media.audioCodec) {
+          sessionData.mediaSnapshot.audioCodec = media.media.audioCodec;
+        }
+        if (!sessionData.mediaSnapshot.container && media.media.container) {
+          sessionData.mediaSnapshot.container = media.media.container;
+        }
+        if (!sessionData.mediaSnapshot.resolution && media.media.resolution) {
+          sessionData.mediaSnapshot.resolution = media.media.resolution;
+        }
+        if (!sessionData.mediaSnapshot.hdrType && media.media.hdr) {
+          sessionData.mediaSnapshot.hdrType = this.deriveHdrType(media.media.hdr);
+        }
+        if (!sessionData.mediaSnapshot.bitrate && media.media.bitrate) {
+          sessionData.mediaSnapshot.bitrate = media.media.bitrate;
+        }
+        if (!sessionData.mediaSnapshot.audioChannels && media.media.audioChannels) {
+          sessionData.mediaSnapshot.audioChannels = media.media.audioChannels;
+        }
       }
       
       // Link to the media item
@@ -343,6 +345,7 @@ class TautulliSyncService {
       duration: data.duration,
       watchedDuration: data.watchedDuration,
       pausedDuration: data.pausedDuration,
+      percentComplete: data.percentComplete,
       userId: data.userId,
       userName: data.userName,
       userThumb: data.userThumb,

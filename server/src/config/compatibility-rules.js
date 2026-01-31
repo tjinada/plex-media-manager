@@ -267,6 +267,36 @@ const compatibilityRules = [
       
       return null;
     }
+  },
+  {
+    id: 'unknown-media-info',
+    name: 'Unknown Media Info',
+    description: 'Media file has missing or unreadable video/resolution information. This usually indicates a corrupted file or unsupported container that Plex cannot parse. The file likely will not play.',
+    severity: 'high',
+    category: 'video',
+    enabled: true,
+    check: (mediaInfo) => {
+      const videoTrack = mediaInfo.videoTracks?.[0];
+      
+      // Check if video track is missing or has no codec
+      const noVideoCodec = !videoTrack || !videoTrack.codec;
+      
+      // Check if dimensions are missing (indicates Unknown resolution)
+      const noDimensions = !videoTrack || (!videoTrack.width && !videoTrack.height);
+      
+      if (noVideoCodec || noDimensions) {
+        const issues = [];
+        if (noVideoCodec) issues.push('video codec');
+        if (noDimensions) issues.push('resolution');
+        
+        return {
+          detected: true,
+          details: `Missing ${issues.join(' and ')} - file may be corrupted or use unsupported format`
+        };
+      }
+      
+      return null;
+    }
   }
 ];
 

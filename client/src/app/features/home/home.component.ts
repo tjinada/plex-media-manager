@@ -44,6 +44,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // UI State
   isLoading = true;
+  loadingProgress = {
+    main: false,
+    shortcuts: false,
+    calendar: false,
+    requests: false
+  };
   connectionStatus: WebSocketStatus = { connected: false, reconnecting: false };
   activeActivityTab: ActivityTab = 'watched';
   activeDownloadFilter: DownloadFilter = 'all';
@@ -103,6 +109,7 @@ export class HomeComponent implements OnInit, OnDestroy {
    */
   private loadInitialData(): void {
     this.isLoading = true;
+    this.loadingProgress.main = false;
 
     this.homeService.getHomeData().subscribe({
       next: (data) => {
@@ -111,14 +118,51 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.stats = data.stats;
         this.recentActivity = data.recentActivity;
         this.hasMoreActivity = data.recentActivity.length >= this.activityLimit;
-        this.isLoading = false;
+        this.loadingProgress.main = true;
+        this.checkLoadingComplete();
         this.updateSessionTimings(data.streaming);
       },
       error: (error) => {
         console.error('Failed to load home data:', error);
-        this.isLoading = false;
+        this.loadingProgress.main = true;
+        this.checkLoadingComplete();
       }
     });
+  }
+
+  /**
+   * Check if all loading is complete
+   */
+  private checkLoadingComplete(): void {
+    const { main, shortcuts, calendar, requests } = this.loadingProgress;
+    if (main && shortcuts && calendar && requests) {
+      this.isLoading = false;
+    }
+  }
+
+  /**
+   * Get loading progress percentage
+   */
+  get loadingPercent(): number {
+    const { main, shortcuts, calendar, requests } = this.loadingProgress;
+    let count = 0;
+    if (main) count++;
+    if (shortcuts) count++;
+    if (calendar) count++;
+    if (requests) count++;
+    return Math.round((count / 4) * 100);
+  }
+
+  /**
+   * Get current loading step label
+   */
+  get loadingLabel(): string {
+    const { main, shortcuts, calendar, requests } = this.loadingProgress;
+    if (!main) return 'Loading streams & activity...';
+    if (!shortcuts) return 'Loading services...';
+    if (!calendar) return 'Loading calendar...';
+    if (!requests) return 'Loading requests...';
+    return 'Complete';
   }
 
   /**
@@ -908,12 +952,17 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Load service shortcuts
    */
   private loadShortcuts(): void {
+    this.loadingProgress.shortcuts = false;
     this.homeService.getShortcuts().subscribe({
       next: (response) => {
         this.shortcuts = response.shortcuts;
+        this.loadingProgress.shortcuts = true;
+        this.checkLoadingComplete();
       },
       error: (error) => {
         console.error('Failed to load shortcuts:', error);
+        this.loadingProgress.shortcuts = true;
+        this.checkLoadingComplete();
       }
     });
   }
@@ -933,13 +982,18 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Load calendar data
    */
   private loadCalendar(): void {
+    this.loadingProgress.calendar = false;
     this.homeService.getCalendar(this.calendarDays).subscribe({
       next: (response) => {
         this.calendarItems = response.items;
         this.calendarGrouped = response.grouped;
+        this.loadingProgress.calendar = true;
+        this.checkLoadingComplete();
       },
       error: (error) => {
         console.error('Failed to load calendar:', error);
+        this.loadingProgress.calendar = true;
+        this.checkLoadingComplete();
       }
     });
   }
@@ -988,13 +1042,28 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Load Overseerr requests
    */
   private loadRequests(): void {
+    this.loadingProgress.requests = false;
+    let pendingDone = false;
+    let requestsDone = false;
+
+    const checkRequestsComplete = () => {
+      if (pendingDone && requestsDone) {
+        this.loadingProgress.requests = true;
+        this.checkLoadingComplete();
+      }
+    };
+
     // Load pending count
     this.overseerrService.getPendingCount().subscribe({
       next: (response) => {
         this.pendingRequestsCount = response.pending;
+        pendingDone = true;
+        checkRequestsComplete();
       },
       error: () => {
         // Overseerr might not be configured
+        pendingDone = true;
+        checkRequestsComplete();
       }
     });
 
@@ -1002,9 +1071,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.homeService.getRequests({ take: 10 }).subscribe({
       next: (response) => {
         this.requests = response.results;
+        requestsDone = true;
+        checkRequestsComplete();
       },
       error: () => {
         this.requests = [];
+        requestsDone = true;
+        checkRequestsComplete();
       }
     });
   }

@@ -30,12 +30,77 @@
   <div class="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6">
     @if (isLoading) {
       <div class="flex items-center justify-center h-64">
-        <div class="text-center">
-          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p class="text-gray-400">Loading...</p>
+        <div class="w-full max-w-xs">
+          <!-- Progress bar -->
+          <div class="h-1.5 bg-dark-700 rounded-full overflow-hidden mb-4">
+            <div class="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full transition-all duration-500 ease-out"
+                 [style.width.%]="loadingPercent"></div>
+          </div>
+          
+          <!-- Loading steps -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              @if (loadingProgress.main) {
+                <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              } @else {
+                <svg class="w-4 h-4 text-primary-500 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              }
+              <span class="text-sm" [class]="loadingProgress.main ? 'text-gray-500' : 'text-gray-300'">Streams & Activity</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              @if (loadingProgress.shortcuts) {
+                <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              } @else if (loadingProgress.main) {
+                <svg class="w-4 h-4 text-primary-500 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              } @else {
+                <div class="w-4 h-4 rounded-full border-2 border-dark-600 flex-shrink-0"></div>
+              }
+              <span class="text-sm" [class]="loadingProgress.shortcuts ? 'text-gray-500' : loadingProgress.main ? 'text-gray-300' : 'text-gray-600'">Services</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              @if (loadingProgress.calendar) {
+                <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              } @else if (loadingProgress.shortcuts) {
+                <svg class="w-4 h-4 text-primary-500 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              } @else {
+                <div class="w-4 h-4 rounded-full border-2 border-dark-600 flex-shrink-0"></div>
+              }
+              <span class="text-sm" [class]="loadingProgress.calendar ? 'text-gray-500' : loadingProgress.shortcuts ? 'text-gray-300' : 'text-gray-600'">Calendar</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              @if (loadingProgress.requests) {
+                <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              } @else if (loadingProgress.calendar) {
+                <svg class="w-4 h-4 text-primary-500 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              } @else {
+                <div class="w-4 h-4 rounded-full border-2 border-dark-600 flex-shrink-0"></div>
+              }
+              <span class="text-sm" [class]="loadingProgress.requests ? 'text-gray-500' : loadingProgress.calendar ? 'text-gray-300' : 'text-gray-600'">Requests</span>
+            </div>
+          </div>
         </div>
       </div>
     } @else {

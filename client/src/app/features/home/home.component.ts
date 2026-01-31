@@ -57,6 +57,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   requestsWidgetTab: 'pending' | 'all' = 'pending';
   calendarDays = 7;
   shortcutsExpanded = false; // Hidden by default on mobile
+  
+  // Activity Modal
+  showActivityModal = false;
+  modalActivities: RecentActivity[] = [];
+  modalActivityType: ActivityTab = 'watched';
+  modalOffset = 0;
+  modalLimit = 20;
+  modalHasMore = false;
+  isLoadingModalActivity = false;
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -1035,6 +1044,96 @@ export class HomeComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Failed to decline request:', error);
       }
+    });
+  }
+
+  // ===== Activity Modal Methods =====
+
+  /**
+   * Open the activity modal
+   */
+  openActivityModal(): void {
+    this.showActivityModal = true;
+    this.modalActivityType = this.activeActivityTab;
+    this.modalOffset = 0;
+    this.modalActivities = [];
+    this.loadModalActivity();
+  }
+
+  /**
+   * Close the activity modal
+   */
+  closeActivityModal(): void {
+    this.showActivityModal = false;
+    this.modalActivities = [];
+  }
+
+  /**
+   * Set modal activity tab and reload
+   */
+  setModalActivityTab(tab: ActivityTab): void {
+    if (this.modalActivityType === tab) return;
+    this.modalActivityType = tab;
+    this.modalOffset = 0;
+    this.modalActivities = [];
+    this.loadModalActivity();
+  }
+
+  /**
+   * Load activity for modal
+   */
+  private loadModalActivity(): void {
+    this.isLoadingModalActivity = true;
+    
+    this.homeService.getActivity(this.modalLimit, this.modalOffset, this.modalActivityType).subscribe({
+      next: (response) => {
+        this.modalActivities = response.activities;
+        this.modalHasMore = response.hasMore;
+        this.modalOffset = response.activities.length;
+        this.isLoadingModalActivity = false;
+      },
+      error: (error) => {
+        console.error('Failed to load modal activity:', error);
+        this.isLoadingModalActivity = false;
+      }
+    });
+  }
+
+  /**
+   * Load more activity items in modal
+   */
+  loadMoreModalActivity(): void {
+    if (this.isLoadingModalActivity || !this.modalHasMore) return;
+
+    this.isLoadingModalActivity = true;
+
+    this.homeService.getActivity(this.modalLimit, this.modalOffset, this.modalActivityType).subscribe({
+      next: (response) => {
+        this.modalActivities = [...this.modalActivities, ...response.activities];
+        this.modalHasMore = response.hasMore;
+        this.modalOffset += response.activities.length;
+        this.isLoadingModalActivity = false;
+      },
+      error: (error) => {
+        console.error('Failed to load more modal activity:', error);
+        this.isLoadingModalActivity = false;
+      }
+    });
+  }
+
+  /**
+   * Get filtered modal activity (same filtering logic as widget)
+   */
+  get filteredModalActivity(): RecentActivity[] {
+    return this.modalActivities.filter(a => {
+      // For watched tab, filter out items currently streaming
+      if (this.modalActivityType === 'watched' && this.streaming.length > 0) {
+        const isCurrentlyStreaming = this.streaming.some(session => {
+          return a.media.ratingKey === session.media.ratingKey && a.user === session.user.name;
+        });
+        if (isCurrentlyStreaming) return false;
+      }
+      return true;
     });
   }
 }

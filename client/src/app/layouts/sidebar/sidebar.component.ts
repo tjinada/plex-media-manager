@@ -25,7 +25,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { path: '/shows', label: 'TV Shows', icon: 'tv' },
     { path: '/storage', label: 'Storage', icon: 'storage' },
     { path: '/wanted', label: 'Wanted', icon: 'wanted' },
-    { path: '/watch-history', label: 'Watch History', icon: 'watch-history' },
+    { path: '/watch-history', label: 'Library Analyzer', icon: 'watch-history' },
     { path: '/compatibility', label: 'Compatibility', icon: 'compatibility' },
     { path: '/transcoding', label: 'Transcoding', icon: 'transcoding' },
     { path: '/settings', label: 'Settings', icon: 'settings' }

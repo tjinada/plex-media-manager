@@ -340,6 +340,8 @@ class TautulliSyncService {
       parentRatingKey: data.parentRatingKey,
       grandparentRatingKey: data.grandparentRatingKey,
       mediaTitle: data.mediaTitle,
+      seasonNumber: data.seasonNumber,
+      episodeNumber: data.episodeNumber,
       viewedAt: data.viewedAt,
       startedAt: data.startedAt,
       stoppedAt: data.stoppedAt,

@@ -218,6 +218,9 @@ class TautulliService {
       mediaTitle: record.full_title || record.title,
       parentRatingKey: record.parent_rating_key?.toString(),
       grandparentRatingKey: record.grandparent_rating_key?.toString(),
+      // Episode-specific info
+      seasonNumber: record.parent_media_index ? parseInt(record.parent_media_index) : undefined,
+      episodeNumber: record.media_index ? parseInt(record.media_index) : undefined,
       
       // Timing
       viewedAt: record.date ? new Date(record.date * 1000) : null,

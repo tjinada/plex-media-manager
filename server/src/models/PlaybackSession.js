@@ -116,6 +116,9 @@ const playbackSessionSchema = new mongoose.Schema({
   parentRatingKey: String,
   grandparentRatingKey: String,
   mediaTitle: String,
+  // Episode-specific info
+  seasonNumber: Number,
+  episodeNumber: Number,
   
   // When
   viewedAt: {

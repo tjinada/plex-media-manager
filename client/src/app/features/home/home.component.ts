@@ -309,18 +309,13 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!matchesTab) return false;
 
       // For watched tab, filter out items that are currently streaming
+      // Only hide the SPECIFIC content being watched, not all history for that show
       if (this.activeActivityTab === 'watched' && this.streaming.length > 0) {
         const isCurrentlyStreaming = this.streaming.some(session => {
-          // Match by media title and user
-          const activityTitle = a.media.type === 'episode' 
-            ? a.media.showTitle 
-            : a.media.title;
-          const sessionTitle = session.media.type === 'episode'
-            ? session.media.showTitle
-            : session.media.title;
-          
-          // Check if same content by same user
-          return activityTitle === sessionTitle && a.user === session.user.name;
+          // Match by ratingKey (unique content identifier) and user
+          // This ensures only the exact episode/movie being watched is hidden,
+          // not all history for the same show
+          return a.media.ratingKey === session.media.ratingKey && a.user === session.user.name;
         });
         
         if (isCurrentlyStreaming) return false;

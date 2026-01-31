@@ -470,8 +470,9 @@ class HomeAggregatorService {
     const activities = [];
 
     try {
-      // Determine how many items to fetch per type when fetching 'all'
-      const perTypeLimit = type === 'all' ? Math.ceil(limit / 2) : limit;
+      // When fetching a specific type, use the full limit
+      // When fetching 'all', use a reasonable per-type limit for the initial combined view
+      const perTypeLimit = type === 'all' ? Math.ceil(limit * 0.75) : limit;
 
       // Get watch history from PlaybackSession
       if (type === 'all' || type === 'watched') {
@@ -508,7 +509,7 @@ class HomeAggregatorService {
 
         watchedSessions.forEach(session => {
           // Get media info based on media type
-          let thumb, title, year, showTitle;
+          let thumb, title, year, showTitle, seasonEpisode;
           if (session.mediaType === 'movie') {
             const movie = movieMap.get(session.ratingKey);
             thumb = movie?.thumbUrl;
@@ -520,6 +521,18 @@ class HomeAggregatorService {
             title = session.mediaTitle;
             showTitle = show?.title;
             year = show?.year;
+            
+            // Try to extract season/episode from mediaTitle if it contains "S##E##" pattern
+            // or use stored seasonNumber/episodeNumber if available
+            if (session.seasonNumber !== undefined && session.episodeNumber !== undefined) {
+              seasonEpisode = `S${String(session.seasonNumber).padStart(2, '0')}E${String(session.episodeNumber).padStart(2, '0')}`;
+            } else {
+              // Try to extract from mediaTitle (format: "Show Name - S01E02 - Episode Title")
+              const match = session.mediaTitle?.match(/S(\d+)E(\d+)/i);
+              if (match) {
+                seasonEpisode = `S${match[1].padStart(2, '0')}E${match[2].padStart(2, '0')}`;
+              }
+            }
           }
 
           // Calculate watch progress/status
@@ -554,6 +567,7 @@ class HomeAggregatorService {
               title: title || session.mediaTitle || 'Unknown',
               year,
               showTitle,
+              seasonEpisode,
               thumb,
               ratingKey: session.ratingKey
             },

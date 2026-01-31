@@ -637,7 +637,14 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-xs text-white truncate font-medium">
-                        @if (activity.media.type === 'episode' && activity.media.showTitle) { {{ activity.media.showTitle }} } @else { {{ activity.media.title }} }
+                        @if (activity.media.type === 'episode' && activity.media.showTitle) {
+                          {{ activity.media.showTitle }}
+                          @if (activity.media.seasonEpisode) {
+                            <span class="text-gray-400 font-normal"> • {{ activity.media.seasonEpisode }}</span>
+                          }
+                        } @else {
+                          {{ activity.media.title }}
+                        }
                       </p>
                       <p class="text-xs text-gray-500 truncate">
                         @if (activity.type === 'watched' && activity.user) { {{ activity.user }} • }

@@ -8,6 +8,7 @@ const TautulliConfig = require('../models/TautulliConfig');
 const PlaybackSession = require('../models/PlaybackSession');
 const Movie = require('../models/Movie');
 const TVShow = require('../models/TVShow');
+const Episode = require('../models/Episode');
 const PlexServer = require('../models/PlexServer');
 
 class HomeAggregatorService {
@@ -491,21 +492,30 @@ class HomeAggregatorService {
         const showRatingKeys = watchedSessions
           .filter(s => s.mediaType === 'episode' && s.grandparentRatingKey)
           .map(s => s.grandparentRatingKey);
+        // Collect episode rating keys where season/episode numbers are missing
+        const episodeRatingKeys = watchedSessions
+          .filter(s => s.mediaType === 'episode' && s.ratingKey && 
+                  (s.seasonNumber === undefined || s.episodeNumber === undefined))
+          .map(s => s.ratingKey);
 
-        // Look up thumbs and info from Movie and TVShow collections
+        // Look up thumbs and info from Movie, TVShow, and Episode collections
         // Note: plexId in our DB corresponds to ratingKey from Plex/Tautulli
-        const [movies, shows] = await Promise.all([
+        const [movies, shows, episodes] = await Promise.all([
           movieRatingKeys.length > 0
             ? Movie.find({ plexId: { $in: movieRatingKeys } }, { plexId: 1, thumbUrl: 1, title: 1, year: 1 }).lean()
             : [],
           showRatingKeys.length > 0
             ? TVShow.find({ plexId: { $in: showRatingKeys } }, { plexId: 1, thumbUrl: 1, title: 1, year: 1 }).lean()
+            : [],
+          episodeRatingKeys.length > 0
+            ? Episode.find({ plexId: { $in: episodeRatingKeys } }, { plexId: 1, seasonNumber: 1, episodeNumber: 1 }).lean()
             : []
         ]);
 
         // Create lookup maps using plexId
         const movieMap = new Map(movies.map(m => [m.plexId, m]));
         const showMap = new Map(shows.map(s => [s.plexId, s]));
+        const episodeMap = new Map(episodes.map(e => [e.plexId, e]));
 
         watchedSessions.forEach(session => {
           // Get media info based on media type
@@ -522,15 +532,14 @@ class HomeAggregatorService {
             showTitle = show?.title;
             year = show?.year;
             
-            // Try to extract season/episode from mediaTitle if it contains "S##E##" pattern
-            // or use stored seasonNumber/episodeNumber if available
+            // Get season/episode numbers - check stored values first, then lookup from Episode collection
             if (session.seasonNumber !== undefined && session.episodeNumber !== undefined) {
               seasonEpisode = `S${String(session.seasonNumber).padStart(2, '0')}E${String(session.episodeNumber).padStart(2, '0')}`;
             } else {
-              // Try to extract from mediaTitle (format: "Show Name - S01E02 - Episode Title")
-              const match = session.mediaTitle?.match(/S(\d+)E(\d+)/i);
-              if (match) {
-                seasonEpisode = `S${match[1].padStart(2, '0')}E${match[2].padStart(2, '0')}`;
+              // Look up from Episode collection
+              const episode = episodeMap.get(session.ratingKey);
+              if (episode && episode.seasonNumber !== undefined && episode.episodeNumber !== undefined) {
+                seasonEpisode = `S${String(episode.seasonNumber).padStart(2, '0')}E${String(episode.episodeNumber).padStart(2, '0')}`;
               }
             }
           }

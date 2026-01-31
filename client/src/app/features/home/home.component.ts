@@ -63,7 +63,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   modalActivities: RecentActivity[] = [];
   modalActivityType: ActivityTab = 'watched';
   modalOffset = 0;
-  modalLimit = 20;
+  modalLimit = 50;
   modalHasMore = false;
   isLoadingModalActivity = false;
 
@@ -1135,5 +1135,19 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
       return true;
     });
+  }
+
+  /**
+   * Handle modal scroll for infinite loading
+   */
+  onModalScroll(event: Event): void {
+    const element = event.target as HTMLElement;
+    const threshold = 200; // pixels from bottom to trigger load
+    
+    const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+    
+    if (distanceFromBottom < threshold && !this.isLoadingModalActivity && this.modalHasMore) {
+      this.loadMoreModalActivity();
+    }
   }
 }

@@ -304,7 +304,7 @@ export class ShowsComponent implements OnInit, OnDestroy {
 
     this.compatibilityService.searchEpisode(episode.id).subscribe({
       next: (response: EpisodeSearchResponse) => {
-        this.searchResults = response.results;
+        this.searchResults = this.sortReleasesByScore(response.results);
         this.searchExternalUrl = response.sonarrUrl;
         this.searchLoading = false;
       },
@@ -371,6 +371,10 @@ export class ShowsComponent implements OnInit, OnDestroy {
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  private sortReleasesByScore(releases: SearchResult[]): SearchResult[] {
+    return [...releases].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
   }
 
   get pageNumbers(): number[] {

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { TranscodingService } from '../../core/services/transcoding.service';
+import { CompatibilityService } from '../../core/services/compatibility.service';
 import {
   TranscodingSummary,
   DecisionOverTime,
@@ -17,6 +18,7 @@ import {
   TimePeriod,
   CodecMediaItem
 } from '../../core/models/transcoding.model';
+import { SearchResult, MovieSearchResponse, EpisodeSearchResponse } from '../../core/models/compatibility.model';
 
 @Component({
   selector: 'app-transcoding',
@@ -186,7 +188,18 @@ export class TranscodingComponent implements OnInit {
     }
   };
 
-  constructor(private transcodingService: TranscodingService) {}
+  // Interactive search modal state
+  showSearchModal = false;
+  searchLoading = false;
+  searchError: string | null = null;
+  searchResults: SearchResult[] = [];
+  searchTitle = '';
+  searchItemType: 'movie' | 'episode' = 'movie';
+  searchExternalUrl: string | null = null;
+  downloadingGuid: string | null = null;
+  downloadedGuids: Set<string> = new Set();
+
+  constructor(private transcodingService: TranscodingService, private compatibilityService: CompatibilityService) {}
 
   ngOnInit(): void {
     this.loadUsers();

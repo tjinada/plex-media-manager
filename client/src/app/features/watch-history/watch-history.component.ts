@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { WatchHistoryService } from '@core/services';
+import { WatchHistoryService, CompatibilityService } from '@core/services';
 import {
   WatchHistoryAnalysis,
   StaleMovie,
   StaleEpisode,
   StaleShow,
-  Pagination
+  Pagination,
+  SearchResult,
+  MovieSearchResponse,
+  EpisodeSearchResponse
 } from '@core/models';
 
 @Component({
@@ -55,7 +58,21 @@ export class WatchHistoryComponent implements OnInit {
   showsPagination: Pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
   showsLoading = false;
 
-  constructor(private watchHistoryService: WatchHistoryService) {}
+  // Search modal state
+  showSearchModal = false;
+  searchLoading = false;
+  searchError: string | null = null;
+  searchResults: SearchResult[] = [];
+  searchTitle = '';
+  searchItemType: 'movie' | 'episode' = 'movie';
+  searchExternalUrl: string | null = null;
+  downloadingGuid: string | null = null;
+  downloadedGuids: Set<string> = new Set();
+
+  constructor(
+    private watchHistoryService: WatchHistoryService,
+    private compatibilityService: CompatibilityService
+  ) {}
 
   ngOnInit(): void {
     this.loadAnalysis();
@@ -234,5 +251,78 @@ export class WatchHistoryComponent implements OnInit {
       never: e.neverWatched,
       total: e.totalItems
     };
+  }
+
+  // ===== Interactive Search Modal Methods =====
+
+  openMovieSearch(movie: StaleMovie): void {
+    this.searchTitle = `${movie.title} (${movie.year})`;
+    this.searchItemType = 'movie';
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.showSearchModal = true;
+    this.searchLoading = true;
+
+    this.compatibilityService.searchMovie(movie.id).subscribe({
+      next: (response: MovieSearchResponse) => {
+        this.searchResults = this.sortReleasesByScore(response.results);
+        this.searchExternalUrl = response.radarrUrl;
+        this.searchLoading = false;
+      },
+      error: (err) => {
+        this.searchError = err.error?.error || err.error?.suggestion || 'Failed to search. Make sure the movie is in Radarr.';
+        this.searchLoading = false;
+      }
+    });
+  }
+
+  closeSearchModal(): void {
+    this.showSearchModal = false;
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.downloadedGuids.clear();
+  }
+
+  downloadRelease(result: SearchResult): void {
+    this.downloadingGuid = result.guid;
+
+    const download$ = this.searchItemType === 'movie'
+      ? this.compatibilityService.downloadMovieRelease(result.guid, result.indexerId)
+      : this.compatibilityService.downloadEpisodeRelease(result.guid, result.indexerId);
+
+    download$.subscribe({
+      next: () => {
+        this.downloadingGuid = null;
+        this.downloadedGuids.add(result.guid);
+      },
+      error: (err) => {
+        this.downloadingGuid = null;
+        alert(err.error?.error || 'Failed to download');
+      }
+    });
+  }
+
+  openExternalUrl(): void {
+    if (this.searchExternalUrl) {
+      window.open(this.searchExternalUrl, '_blank');
+    }
+  }
+
+  isDownloaded(guid: string): boolean {
+    return this.downloadedGuids.has(guid);
+  }
+
+  formatAge(age: number): string {
+    if (age === 0) return 'Today';
+    if (age === 1) return '1 day';
+    if (age < 30) return `${age} days`;
+    if (age < 365) return `${Math.floor(age / 30)} months`;
+    return `${Math.floor(age / 365)} years`;
+  }
+
+  private sortReleasesByScore(releases: SearchResult[]): SearchResult[] {
+    return [...releases].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
   }
 }

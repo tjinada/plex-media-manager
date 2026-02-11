@@ -116,7 +116,7 @@ export class CompatibilityComponent implements OnInit {
     if (issue.itemType === 'movie') {
       this.compatibilityService.searchMovie(issue.itemId).subscribe({
         next: (response: MovieSearchResponse) => {
-          this.searchResults = response.results;
+          this.searchResults = this.sortResultsByScore(response.results);
           this.searchExternalUrl = response.radarrUrl;
           this.searchLoading = false;
         },
@@ -128,7 +128,7 @@ export class CompatibilityComponent implements OnInit {
     } else {
       this.compatibilityService.searchEpisode(issue.itemId).subscribe({
         next: (response: EpisodeSearchResponse) => {
-          this.searchResults = response.results;
+          this.searchResults = this.sortResultsByScore(response.results);
           this.searchExternalUrl = response.sonarrUrl;
           this.searchLoading = false;
         },
@@ -200,6 +200,10 @@ export class CompatibilityComponent implements OnInit {
 
   isDownloaded(guid: string): boolean {
     return this.downloadedGuids.has(guid);
+  }
+
+  private sortResultsByScore(results: SearchResult[]): SearchResult[] {
+    return [...results].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
   }
 
   formatAge(age: number): string {

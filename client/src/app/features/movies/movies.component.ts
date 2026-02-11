@@ -239,7 +239,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
 
     this.compatibilityService.searchMovie(movie.id).subscribe({
       next: (response: MovieSearchResponse) => {
-        this.searchResults = response.results;
+        this.searchResults = this.sortReleasesByScore(response.results);
         this.searchExternalUrl = response.radarrUrl;
         this.searchLoading = false;
       },
@@ -306,6 +306,10 @@ export class MoviesComponent implements OnInit, OnDestroy {
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  private sortReleasesByScore(releases: SearchResult[]): SearchResult[] {
+    return [...releases].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
   }
 
   get pageNumbers(): number[] {

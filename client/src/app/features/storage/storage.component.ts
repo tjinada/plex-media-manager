@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { StatsService } from '@core/services';
-import { StorageStats, TopMovie, TopEpisode, ShowStorage } from '@core/models';
+import { StatsService, CompatibilityService } from '@core/services';
+import { StorageStats, TopMovie, TopEpisode, ShowStorage, SearchResult, MovieSearchResponse, EpisodeSearchResponse } from '@core/models';
 
 type SortField = 'title' | 'fileSize' | 'resolution' | 'videoCodec';
 type SortOrder = 'asc' | 'desc';
@@ -32,7 +32,18 @@ export class StorageComponent implements OnInit {
   episodeSortField: SortField = 'fileSize';
   episodeSortOrder: SortOrder = 'desc';
 
-  constructor(private statsService: StatsService) {}
+  // Search modal state
+  showSearchModal = false;
+  searchLoading = false;
+  searchError: string | null = null;
+  searchResults: SearchResult[] = [];
+  searchTitle = '';
+  searchItemType: 'movie' | 'episode' = 'movie';
+  searchExternalUrl: string | null = null;
+  downloadingGuid: string | null = null;
+  downloadedGuids: Set<string> = new Set();
+
+  constructor(private statsService: StatsService, private compatibilityService: CompatibilityService) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -177,5 +188,100 @@ export class StorageComponent implements OnInit {
       'Unknown': 'bg-gray-500'
     };
     return colors[resolution] || 'bg-gray-500';
+  }
+
+  // Interactive Search
+  openMovieSearch(movie: TopMovie): void {
+    this.searchTitle = `${movie.title} (${movie.year})`;
+    this.searchItemType = 'movie';
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.showSearchModal = true;
+    this.searchLoading = true;
+    this.downloadedGuids.clear();
+
+    this.compatibilityService.searchMovie(movie.id).subscribe({
+      next: (response: MovieSearchResponse) => {
+        this.searchResults = this.sortResultsByScore(response.results);
+        this.searchExternalUrl = response.radarrUrl;
+        this.searchLoading = false;
+      },
+      error: (err) => {
+        this.searchError = err.error?.error || err.error?.suggestion || 'Failed to search';
+        this.searchLoading = false;
+      }
+    });
+  }
+
+  openEpisodeSearch(episode: TopEpisode): void {
+    this.searchTitle = `${episode.showTitle} - S${episode.seasonNumber.toString().padStart(2, '0')}E${episode.episodeNumber.toString().padStart(2, '0')}`;
+    this.searchItemType = 'episode';
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.showSearchModal = true;
+    this.searchLoading = true;
+    this.downloadedGuids.clear();
+
+    this.compatibilityService.searchEpisode(episode.id).subscribe({
+      next: (response: EpisodeSearchResponse) => {
+        this.searchResults = this.sortResultsByScore(response.results);
+        this.searchExternalUrl = response.sonarrUrl;
+        this.searchLoading = false;
+      },
+      error: (err) => {
+        this.searchError = err.error?.error || err.error?.suggestion || 'Failed to search';
+        this.searchLoading = false;
+      }
+    });
+  }
+
+  closeSearchModal(): void {
+    this.showSearchModal = false;
+    this.searchResults = [];
+    this.searchError = null;
+    this.searchExternalUrl = null;
+    this.downloadedGuids.clear();
+  }
+
+  downloadRelease(result: SearchResult): void {
+    this.downloadingGuid = result.guid;
+    const download$ = this.searchItemType === 'movie'
+      ? this.compatibilityService.downloadMovieRelease(result.guid, result.indexerId)
+      : this.compatibilityService.downloadEpisodeRelease(result.guid, result.indexerId);
+
+    download$.subscribe({
+      next: () => {
+        this.downloadingGuid = null;
+        this.downloadedGuids.add(result.guid);
+      },
+      error: (err) => {
+        this.downloadingGuid = null;
+        alert(err.error?.error || 'Failed to download');
+      }
+    });
+  }
+
+  openExternalUrl(): void {
+    if (this.searchExternalUrl) {
+      window.open(this.searchExternalUrl, '_blank');
+    }
+  }
+
+  isDownloaded(guid: string): boolean {
+    return this.downloadedGuids.has(guid);
+  }
+
+  formatAge(age: number): string {
+    if (age === 0) return 'Today';
+    if (age === 1) return '1 day';
+    if (age < 30) return `${age} days`;
+    if (age < 365) return `${Math.floor(age / 30)} months`;
+    return `${Math.floor(age / 365)} years`;
+  }
+
+  private sortResultsByScore(results: SearchResult[]): SearchResult[] {
+    return [...results].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
   }
 }

@@ -369,7 +369,7 @@ export class WantedComponent implements OnInit {
 
       this.radarrService.getSearchResults(this.searchModalId).subscribe({
         next: (response) => {
-          this.searchResults = response.releases;
+          this.searchResults = this.sortReleasesByScore(response.releases);
           this.isSearching = false;
         },
         error: (error: { error?: { message?: string } }) => {
@@ -389,7 +389,7 @@ export class WantedComponent implements OnInit {
 
       this.sonarrService.getSearchResults(this.searchModalId).subscribe({
         next: (response) => {
-          this.searchResults = response.releases;
+          this.searchResults = this.sortReleasesByScore(response.releases);
           this.isSearching = false;
         },
         error: (error: { error?: { message?: string } }) => {
@@ -426,6 +426,10 @@ export class WantedComponent implements OnInit {
         }
       });
     }
+  }
+
+  private sortReleasesByScore(releases: Release[]): Release[] {
+    return [...releases].sort((a, b) => b.qualityWeight - a.qualityWeight);
   }
 
   // Legacy trigger search (for backwards compatibility)

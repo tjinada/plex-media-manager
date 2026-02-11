@@ -429,7 +429,6 @@
                   <p class="text-sm text-gray-200 break-words leading-snug">{{ result.title }}</p>
                   <div class="flex flex-wrap gap-1.5 mt-2">
                     <span class="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 font-medium">{{ result.quality }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-primary-600/15 text-primary-400 font-semibold">Score: {{ result.qualityWeight }}</span>
                     @if (result.customFormatScore && result.customFormatScore !== 0) {
                       <span class="text-xs px-2 py-0.5 rounded" [ngClass]="result.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">CF {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}</span>
                     }

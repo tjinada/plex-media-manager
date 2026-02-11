@@ -282,6 +282,6 @@ export class StorageComponent implements OnInit {
   }
 
   private sortResultsByScore(results: SearchResult[]): SearchResult[] {
-    return [...results].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
+    return [...results].sort((a, b) => (b.customFormatScore || 0) - (a.customFormatScore || 0));
   }
 }

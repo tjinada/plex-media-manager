@@ -429,7 +429,7 @@ export class WantedComponent implements OnInit {
   }
 
   private sortReleasesByScore(releases: Release[]): Release[] {
-    return [...releases].sort((a, b) => b.qualityWeight - a.qualityWeight);
+    return [...releases].sort((a, b) => (b.customFormatScore || 0) - (a.customFormatScore || 0));
   }
 
   // Legacy trigger search (for backwards compatibility)

@@ -678,7 +678,6 @@
                     <!-- Metadata Pills -->
                     <div class="flex flex-wrap gap-1.5 mt-2">
                       <span class="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 font-medium">{{ release.quality }}</span>
-                      <span class="text-xs px-2 py-0.5 rounded bg-primary-600/15 text-primary-400 font-semibold">Score: {{ release.qualityWeight }}</span>
                       @if (release.customFormatScore && release.customFormatScore !== 0) {
                         <span class="text-xs px-2 py-0.5 rounded"
                           [ngClass]="release.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">

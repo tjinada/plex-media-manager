@@ -374,7 +374,7 @@ export class ShowsComponent implements OnInit, OnDestroy {
   }
 
   private sortReleasesByScore(releases: SearchResult[]): SearchResult[] {
-    return [...releases].sort((a, b) => (b.qualityWeight || 0) - (a.qualityWeight || 0));
+    return [...releases].sort((a, b) => (b.customFormatScore || 0) - (a.customFormatScore || 0));
   }
 
   get pageNumbers(): number[] {

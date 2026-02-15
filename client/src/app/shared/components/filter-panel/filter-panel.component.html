@@ -1,13 +1,13 @@
 <!-- Mobile Filter Button -->
 <button 
   (click)="toggleMobile()"
-  class="md:hidden fixed bottom-24 right-4 z-40 bg-primary-600 text-white p-3 rounded-full shadow-lg hover:bg-primary-500 transition-colors">
-  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  class="md:hidden fixed bottom-24 right-4 z-40 bg-primary-600 active:bg-primary-700 text-white p-3 rounded-full shadow-lg transition-colors">
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
           d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
   </svg>
   @if (activeFilterCount > 0) {
-    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
       {{ activeFilterCount }}
     </span>
   }
@@ -15,15 +15,12 @@
 
 <!-- Mobile Overlay -->
 @if (isMobileOpen) {
-  <div 
-    class="md:hidden fixed inset-0 bg-black/50 z-40"
-    (click)="closeMobile()">
-  </div>
+  <div class="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40" (click)="closeMobile()"></div>
 }
 
 <!-- Filter Panel -->
 <aside 
-  class="bg-dark-900 border-r border-dark-700 h-full overflow-y-auto transition-all duration-300"
+  class="bg-[#0a0a12] h-full overflow-y-auto transition-all duration-300"
   [class.w-64]="!isCollapsed"
   [class.w-14]="isCollapsed"
   [class.fixed]="isMobileOpen"
@@ -31,50 +28,52 @@
   [class.left-0]="isMobileOpen"
   [class.z-50]="isMobileOpen"
   [class.hidden]="!isMobileOpen"
-  [class.md:block]="true">
+  [class.md:block]="true"
+  [class.border-r]="true"
+  [class.border-white/5]="true">
   
   <!-- Header -->
-  <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+  <div class="px-4 py-3 border-b border-white/[0.04] flex items-center justify-between">
     @if (!isCollapsed) {
       <div class="flex items-center gap-2">
-        <h2 class="font-semibold text-gray-100">Filters</h2>
+        <h2 class="text-[14px] font-bold text-white">Filters</h2>
         @if (activeFilterCount > 0) {
-          <span class="bg-primary-600/20 text-primary-400 text-xs px-2 py-0.5 rounded-full">
+          <span class="bg-primary-500/10 text-primary-300 text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             {{ activeFilterCount }}
           </span>
         }
       </div>
     }
     
-    <!-- Desktop Collapse Button -->
+    <!-- Desktop Collapse -->
     <button 
       (click)="toggleCollapse()"
-      class="hidden md:flex p-1 text-gray-400 hover:text-gray-200 hover:bg-dark-800 rounded transition-colors">
-      <svg class="w-5 h-5 transition-transform" [class.rotate-180]="isCollapsed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      class="hidden md:flex p-1.5 text-gray-500 active:text-gray-300 active:bg-white/[0.06] rounded-lg transition-colors">
+      <svg class="w-4 h-4 transition-transform" [class.rotate-180]="isCollapsed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
       </svg>
     </button>
 
-    <!-- Mobile Close Button -->
+    <!-- Mobile Close -->
     <button 
       (click)="closeMobile()"
-      class="md:hidden p-1 text-gray-400 hover:text-gray-200 hover:bg-dark-800 rounded transition-colors">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      class="md:hidden p-1.5 text-gray-500 active:text-gray-300 active:bg-white/[0.06] rounded-lg transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
   </div>
 
   @if (!isCollapsed) {
-    <div class="p-4 space-y-6">
-      <!-- Resolution Filter -->
+    <div class="p-4 space-y-4">
+      <!-- Resolution -->
       @if (config.showResolution) {
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Resolution</label>
+          <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Resolution</label>
           <select
             [ngModel]="filters.resolution || ''"
             (ngModelChange)="onFilterChange('resolution', $event || undefined)"
-            class="input-field w-full">
+            class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
             <option value="">All Resolutions</option>
             @for (option of resolutionOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -83,14 +82,14 @@
         </div>
       }
 
-      <!-- Aspect Ratio Filter -->
+      <!-- Aspect Ratio -->
       @if (config.showAspectRatio) {
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Aspect Ratio</label>
+          <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Aspect Ratio</label>
           <select
             [ngModel]="filters.aspectRatio || ''"
             (ngModelChange)="onFilterChange('aspectRatio', $event || undefined)"
-            class="input-field w-full">
+            class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
             <option value="">All Aspect Ratios</option>
             @for (option of aspectRatioOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -99,14 +98,14 @@
         </div>
       }
 
-      <!-- Video Codec Filter -->
+      <!-- Video Codec -->
       @if (config.showVideoCodec) {
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Video Codec</label>
+          <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Video Codec</label>
           <select 
             [ngModel]="filters.videoCodec || ''"
             (ngModelChange)="onFilterChange('videoCodec', $event || undefined)"
-            class="input-field w-full">
+            class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
             <option value="">All Codecs</option>
             @for (option of videoCodecOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -115,14 +114,14 @@
         </div>
       }
 
-      <!-- Audio Codec Filter -->
+      <!-- Audio Codec -->
       @if (config.showAudioCodec) {
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Audio Codec</label>
+          <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Audio Codec</label>
           <select 
             [ngModel]="filters.audioCodec || ''"
             (ngModelChange)="onFilterChange('audioCodec', $event || undefined)"
-            class="input-field w-full">
+            class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
             <option value="">All Audio</option>
             @for (option of audioCodecOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -131,14 +130,14 @@
         </div>
       }
 
-      <!-- Container Filter -->
+      <!-- Container -->
       @if (config.showContainer) {
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Container</label>
+          <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Container</label>
           <select 
             [ngModel]="filters.container || ''"
             (ngModelChange)="onFilterChange('container', $event || undefined)"
-            class="input-field w-full">
+            class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
             <option value="">All Containers</option>
             @for (option of containerOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -147,10 +146,10 @@
         </div>
       }
 
-      <!-- File Size Filter -->
+      <!-- File Size -->
       @if (config.showFileSize) {
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-3">File Size</label>
+          <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">File Size</label>
           <app-range-slider
             [min]="0"
             [max]="maxFileSizeGB"
@@ -163,20 +162,20 @@
         </div>
       }
 
-      <!-- Clear Filters Button -->
+      <!-- Clear -->
       @if (hasActiveFilters) {
         <button 
           (click)="onClearFilters()"
-          class="w-full py-2 px-4 text-sm text-gray-400 hover:text-gray-200 hover:bg-dark-800 rounded-lg transition-colors border border-dark-700">
+          class="w-full py-2 px-4 text-[13px] font-medium text-gray-500 active:text-gray-300 bg-white/[0.04] active:bg-white/[0.06] rounded-xl transition-colors">
           Clear All Filters
         </button>
       }
     </div>
   } @else {
-    <!-- Collapsed State - Icon Only -->
+    <!-- Collapsed -->
     <div class="p-2 space-y-2">
       <button 
-        class="w-full p-2 text-gray-400 hover:text-gray-200 hover:bg-dark-800 rounded transition-colors"
+        class="relative w-full p-2 text-gray-500 active:text-gray-300 active:bg-white/[0.06] rounded-lg transition-colors"
         title="Filters"
         (click)="toggleCollapse()">
         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +183,7 @@
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
         </svg>
         @if (activeFilterCount > 0) {
-          <span class="absolute top-0 right-0 bg-primary-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+          <span class="absolute top-0 right-0 bg-primary-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
             {{ activeFilterCount }}
           </span>
         }

@@ -149,7 +149,7 @@
             </div>
             <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
               @for (show of byShow; track show.id; let i = $index) {
-                <div class="flex items-center justify-between px-3.5 py-2.5 active:bg-white/[0.03] transition-colors" [class.border-t]="i > 0" [class.border-white/[0.03]]="i > 0">
+                <div class="flex items-center justify-between px-3.5 py-2.5 active:bg-white/[0.03] transition-colors" [ngClass]="i > 0 ? 'border-t border-white/5' : ''">
                   <div class="flex items-center gap-2.5 min-w-0 flex-1">
                     <span class="text-gray-600 text-[12px] w-5 flex-shrink-0 tabular-nums">{{ i + 1 }}</span>
                     <div class="min-w-0">

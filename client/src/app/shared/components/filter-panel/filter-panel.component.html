@@ -20,7 +20,7 @@
 
 <!-- Filter Panel -->
 <aside 
-  class="bg-[#0a0a12] h-full overflow-y-auto transition-all duration-300"
+  class="bg-[#0a0a12] h-full overflow-y-auto transition-all duration-300 border-r border-white/5"
   [class.w-64]="!isCollapsed"
   [class.w-14]="isCollapsed"
   [class.fixed]="isMobileOpen"
@@ -28,9 +28,7 @@
   [class.left-0]="isMobileOpen"
   [class.z-50]="isMobileOpen"
   [class.hidden]="!isMobileOpen"
-  [class.md:block]="true"
-  [class.border-r]="true"
-  [class.border-white/5]="true">
+  [class.md:block]="true">
   
   <!-- Header -->
   <div class="px-4 py-3 border-b border-white/[0.04] flex items-center justify-between">

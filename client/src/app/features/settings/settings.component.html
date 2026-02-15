@@ -48,8 +48,8 @@
           <div class="px-4 py-3 border-t border-white/[0.04]">
             <div class="flex items-center justify-between">
               <div><h3 class="text-[13px] font-semibold text-gray-200">Auto-Sync</h3><p class="text-[11px] text-gray-600">Automatically sync at regular intervals</p></div>
-              <button (click)="toggleAutoSync()" [disabled]="savingAutoSync" class="relative inline-flex h-[26px] w-[46px] items-center rounded-full transition-colors" [class.bg-primary-600]="autoSyncEnabled" [class.bg-white/10]="!autoSyncEnabled">
-                <span class="inline-block h-[20px] w-[20px] transform rounded-full bg-white transition-transform shadow-sm" [ngClass]="autoSyncEnabled ? 'translate-x-6' : 'translate-x-0.5'"></span>
+              <button (click)="toggleAutoSync()" [disabled]="savingAutoSync" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" [ngClass]="autoSyncEnabled ? 'bg-primary-600' : 'bg-white/10'">
+                <span class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm" [ngClass]="autoSyncEnabled ? 'translate-x-5' : 'translate-x-0.5'"></span>
               </button>
             </div>
             @if (autoSyncEnabled) {
@@ -134,7 +134,7 @@
           <div class="px-4 py-3 border-t border-white/[0.04]">
             <div class="flex items-center justify-between">
               <div><h3 class="text-[13px] font-semibold text-gray-200">Real-time Sync</h3><p class="text-[11px] text-gray-600">Automatically sync new playback sessions</p></div>
-              <button (click)="toggleTautulliSync()" [disabled]="savingTautulliSync" class="relative inline-flex h-[26px] w-[46px] items-center rounded-full transition-colors" [class.bg-primary-600]="tautulliSyncEnabled" [class.bg-white/10]="!tautulliSyncEnabled"><span class="inline-block h-[20px] w-[20px] transform rounded-full bg-white transition-transform shadow-sm" [ngClass]="tautulliSyncEnabled ? 'translate-x-6' : 'translate-x-0.5'"></span></button>
+              <button (click)="toggleTautulliSync()" [disabled]="savingTautulliSync" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" [ngClass]="tautulliSyncEnabled ? 'bg-primary-600' : 'bg-white/10'"><span class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm" [ngClass]="tautulliSyncEnabled ? 'translate-x-5' : 'translate-x-0.5'"></span></button>
             </div>
             @if (tautulliSyncEnabled) {
               <div class="flex items-center gap-2 mt-2.5"><label class="text-[12px] text-gray-500 font-medium">Sync every:</label><select [(ngModel)]="tautulliSyncInterval" (change)="saveTautulliSyncSettings()" [disabled]="savingTautulliSync" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-1.5 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">@for (option of tautulliSyncOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (savingTautulliSync) { <svg class="animate-spin h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> }</div>

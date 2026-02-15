@@ -1,61 +1,29 @@
 <div class="h-full flex flex-col">
-  <!-- Fixed Header Section -->
-  <div class="flex-shrink-0 p-4 md:p-6 lg:p-8 pb-0">
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Storage Insights</h1>
-      <p class="text-gray-400 mt-1">Analyze your media library storage usage</p>
-    </div>
+  <!-- Header -->
+  <div class="flex-shrink-0 px-4 md:px-6 pt-3 pb-1">
+    <h1 class="text-[28px] font-bold text-white tracking-tight">Storage Insights</h1>
+    <p class="text-gray-500 text-sm -mt-0.5">Analyze your media library storage usage</p>
 
     @if (!isLoading) {
       <!-- Media Type Toggle -->
-      <div class="flex gap-1 bg-dark-800 rounded-lg p-1 w-fit mb-4">
-        <button 
-          (click)="setMediaTab('movies')"
-          [class]="mediaTab === 'movies' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-gray-200'"
-          class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">
-          Movies
-        </button>
-        <button 
-          (click)="setMediaTab('tv')"
-          [class]="mediaTab === 'tv' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-gray-200'"
-          class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">
-          TV Shows
-        </button>
+      <div class="flex bg-white/[0.04] rounded-xl p-0.5 w-fit mt-3">
+        <button (click)="setMediaTab('movies')" class="px-3.5 py-2 rounded-[10px] text-[13px] font-medium transition-colors" [class]="mediaTab === 'movies' ? 'bg-white/10 text-white' : 'text-gray-500'">Movies</button>
+        <button (click)="setMediaTab('tv')" class="px-3.5 py-2 rounded-[10px] text-[13px] font-medium transition-colors" [class]="mediaTab === 'tv' ? 'bg-white/10 text-white' : 'text-gray-500'">TV Shows</button>
       </div>
 
-      <!-- Compact Summary Card -->
-      <div class="card p-4 mb-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <!-- Total Storage -->
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                 [class]="mediaTab === 'movies' ? 'bg-blue-600/20' : 'bg-purple-600/20'">
-              @if (mediaTab === 'movies') {
-                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                </svg>
-              } @else {
-                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              }
-            </div>
-            <div>
-              <p class="text-xl font-bold text-gray-100">{{ formatBytes(getCurrentStorage()) }}</p>
-              <p class="text-xs text-gray-400">{{ mediaTab === 'movies' ? 'Movies' : 'TV Episodes' }}</p>
-            </div>
+      <!-- Summary -->
+      <div class="rounded-2xl bg-white/[0.03] p-3.5 mt-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p class="text-[28px] font-bold text-white leading-none tracking-tight">{{ formatBytes(getCurrentStorage()) }}</p>
+            <p class="text-[12px] text-gray-500 mt-1 font-medium">{{ mediaTab === 'movies' ? 'Movies' : 'TV Episodes' }}</p>
           </div>
-          
-          <!-- Resolution Breakdown - Inline -->
-          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <div class="flex flex-wrap gap-x-3.5 gap-y-1">
             @for (resolution of getCurrentResolutionKeys(); track resolution) {
-              <div class="flex items-center gap-1.5">
-                <div class="w-2 h-2 rounded-full {{ getResolutionColor(resolution) }}"></div>
-                <span class="text-gray-400">{{ resolution }}:</span>
-                <span class="text-gray-200">{{ formatBytes(getCurrentResolutionStorage(resolution)) }}</span>
+              <div class="flex items-center gap-1.5 text-[12px]">
+                <div class="w-1.5 h-1.5 rounded-full {{ getResolutionColor(resolution) }}"></div>
+                <span class="text-gray-500">{{ resolution }}:</span>
+                <span class="text-gray-300 font-medium tabular-nums">{{ formatBytes(getCurrentResolutionStorage(resolution)) }}</span>
               </div>
             }
           </div>
@@ -64,90 +32,57 @@
     }
   </div>
 
-  <!-- Scrollable Content Section -->
-  <div class="flex-1 overflow-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+  <!-- Scrollable Content -->
+  <div class="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6">
     @if (isLoading) {
-      <div class="flex items-center justify-center h-64">
-        <div class="text-center">
-          <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p class="text-gray-400">Loading storage data...</p>
-        </div>
-      </div>
+      <div class="flex items-center justify-center h-64"><svg class="animate-spin h-7 w-7 text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
     } @else {
-      <div class="space-y-6">
-        <!-- Movies Tab Content -->
+      <div class="flex flex-col gap-3.5 pt-3">
+        <!-- Movies Tab -->
         @if (mediaTab === 'movies') {
-          <div class="card p-4 md:p-6">
-            <h3 class="text-lg font-semibold text-gray-100 mb-4">Top 20 Largest Movies</h3>
-            
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[13px] font-semibold text-gray-500">Top 20 Largest Movies</span>
+            </div>
             <!-- Desktop Table -->
-            <div class="hidden md:block overflow-x-auto">
+            <div class="hidden md:block rounded-2xl bg-white/[0.03] overflow-hidden">
               <table class="w-full">
-                <thead>
-                  <tr class="text-left text-xs text-gray-500 uppercase border-b border-dark-700">
-                    <th class="pb-3 pr-4 cursor-pointer hover:text-gray-300" (click)="sortMovies('title')">
-                      Title {{ getSortIcon('title', movieSortField, movieSortOrder) }}
-                    </th>
-                    <th class="pb-3 pr-4 w-20">Year</th>
-                    <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortMovies('resolution')">
-                      Resolution {{ getSortIcon('resolution', movieSortField, movieSortOrder) }}
-                    </th>
-                    <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortMovies('videoCodec')">
-                      Codec {{ getSortIcon('videoCodec', movieSortField, movieSortOrder) }}
-                    </th>
-                    <th class="pb-3 w-28 text-right cursor-pointer hover:text-gray-300" (click)="sortMovies('fileSize')">
-                      Size {{ getSortIcon('fileSize', movieSortField, movieSortOrder) }}
-                    </th>
-                    <th class="pb-3 w-12"></th>
-                  </tr>
-                </thead>
+                <thead><tr class="border-b border-white/[0.04]">
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="sortMovies('title')">Title {{ getSortIcon('title', movieSortField, movieSortOrder) }}</th>
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold w-20">Year</th>
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold w-24 cursor-pointer" (click)="sortMovies('resolution')">Resolution {{ getSortIcon('resolution', movieSortField, movieSortOrder) }}</th>
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold w-24 cursor-pointer" (click)="sortMovies('videoCodec')">Codec {{ getSortIcon('videoCodec', movieSortField, movieSortOrder) }}</th>
+                  <th class="px-3.5 py-3 text-right text-[12px] text-gray-500 font-semibold w-28 cursor-pointer" (click)="sortMovies('fileSize')">Size {{ getSortIcon('fileSize', movieSortField, movieSortOrder) }}</th>
+                  <th class="px-3.5 py-3 w-12"></th>
+                </tr></thead>
                 <tbody>
                   @for (movie of topMovies; track movie.id; let i = $index) {
-                    <tr class="border-b border-dark-700 last:border-0 hover:bg-dark-800">
-                      <td class="py-3 pr-4">
-                        <div class="flex items-center gap-3">
-                          <span class="text-gray-500 text-sm w-5">{{ i + 1 }}</span>
-                          <span class="text-gray-200">{{ movie.title }}</span>
-                        </div>
-                      </td>
-                      <td class="py-3 pr-4 text-gray-400">{{ movie.year }}</td>
-                      <td class="py-3 pr-4">
-                        <span class="badge" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'" [class.badge-yellow]="movie.resolution === '720p'">
-                          {{ movie.resolution }}
-                        </span>
-                      </td>
-                      <td class="py-3 pr-4">
-                        <span class="badge badge-purple">{{ movie.videoCodec }}</span>
-                      </td>
-                      <td class="py-3 text-right text-gray-100 font-medium">{{ formatBytes(movie.fileSize) }}</td>
-                      <td class="py-3 text-right">
-                        <button (click)="openMovieSearch(movie)" class="p-1.5 hover:bg-dark-700 rounded-lg transition-colors text-gray-400 hover:text-primary-400" title="Interactive Search">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </button>
-                      </td>
+                    <tr class="border-t border-white/[0.03] active:bg-white/[0.03] transition-colors">
+                      <td class="px-3.5 py-3"><div class="flex items-center gap-2.5"><span class="text-gray-600 text-[12px] w-5 tabular-nums">{{ i + 1 }}</span><span class="text-[13px] text-gray-200 font-medium">{{ movie.title }}</span></div></td>
+                      <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ movie.year }}</td>
+                      <td class="px-3.5 py-3"><span class="badge" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'" [class.badge-yellow]="movie.resolution === '720p'">{{ movie.resolution }}</span></td>
+                      <td class="px-3.5 py-3"><span class="badge badge-purple">{{ movie.videoCodec }}</span></td>
+                      <td class="px-3.5 py-3 text-right text-[13px] text-gray-200 font-semibold tabular-nums">{{ formatBytes(movie.fileSize) }}</td>
+                      <td class="px-3.5 py-3 text-right"><button (click)="openMovieSearch(movie)" class="p-1.5 rounded-lg active:bg-white/[0.08] transition-colors text-gray-500" title="Interactive Search"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button></td>
                     </tr>
                   }
                 </tbody>
               </table>
             </div>
-
             <!-- Mobile Cards -->
-            <div class="md:hidden space-y-3">
+            <div class="md:hidden space-y-1.5">
               @for (movie of topMovies; track movie.id; let i = $index) {
-                <div class="p-3 bg-dark-800 rounded-lg" (click)="openMovieSearch(movie)">
+                <div class="rounded-2xl bg-white/[0.03] px-3.5 py-3 active:bg-white/[0.05] transition-colors cursor-pointer" (click)="openMovieSearch(movie)">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
-                      <p class="text-gray-200 font-medium truncate">{{ i + 1 }}. {{ movie.title }}</p>
-                      <p class="text-xs text-gray-500 mt-1">{{ movie.year }}</p>
-                      <div class="flex gap-2 mt-2">
+                      <p class="text-[13px] text-gray-200 font-medium truncate">{{ i + 1 }}. {{ movie.title }}</p>
+                      <p class="text-[11px] text-gray-600 mt-0.5">{{ movie.year }}</p>
+                      <div class="flex gap-1.5 mt-1.5">
                         <span class="badge badge-sm" [class.badge-teal]="movie.resolution === '4K'" [class.badge-blue]="movie.resolution === '1080p'">{{ movie.resolution }}</span>
                         <span class="badge badge-sm badge-purple">{{ movie.videoCodec }}</span>
                       </div>
                     </div>
-                    <span class="text-gray-100 font-medium whitespace-nowrap">{{ formatBytes(movie.fileSize) }}</span>
+                    <span class="text-[13px] text-gray-200 font-semibold whitespace-nowrap tabular-nums">{{ formatBytes(movie.fileSize) }}</span>
                   </div>
                 </div>
               }
@@ -155,75 +90,52 @@
           </div>
         }
 
-        <!-- TV Tab Content -->
+        <!-- TV Tab -->
         @if (mediaTab === 'tv') {
           <!-- Top 20 Largest Episodes -->
-          <div class="card p-4 md:p-6">
-            <h3 class="text-lg font-semibold text-gray-100 mb-4">Top 20 Largest Episodes</h3>
-            
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[13px] font-semibold text-gray-500">Top 20 Largest Episodes</span>
+            </div>
             <!-- Desktop Table -->
-            <div class="hidden md:block overflow-x-auto">
+            <div class="hidden md:block rounded-2xl bg-white/[0.03] overflow-hidden">
               <table class="w-full">
-                <thead>
-                  <tr class="text-left text-xs text-gray-500 uppercase border-b border-dark-700">
-                    <th class="pb-3 pr-4">Show</th>
-                    <th class="pb-3 pr-4 w-24">Episode</th>
-                    <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortEpisodes('resolution')">
-                      Resolution {{ getSortIcon('resolution', episodeSortField, episodeSortOrder) }}
-                    </th>
-                    <th class="pb-3 pr-4 w-24 cursor-pointer hover:text-gray-300" (click)="sortEpisodes('videoCodec')">
-                      Codec {{ getSortIcon('videoCodec', episodeSortField, episodeSortOrder) }}
-                    </th>
-                    <th class="pb-3 w-28 text-right cursor-pointer hover:text-gray-300" (click)="sortEpisodes('fileSize')">
-                      Size {{ getSortIcon('fileSize', episodeSortField, episodeSortOrder) }}
-                    </th>
-                    <th class="pb-3 w-12"></th>
-                  </tr>
-                </thead>
+                <thead><tr class="border-b border-white/[0.04]">
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold">Show</th>
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold w-24">Episode</th>
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold w-24 cursor-pointer" (click)="sortEpisodes('resolution')">Resolution {{ getSortIcon('resolution', episodeSortField, episodeSortOrder) }}</th>
+                  <th class="px-3.5 py-3 text-left text-[12px] text-gray-500 font-semibold w-24 cursor-pointer" (click)="sortEpisodes('videoCodec')">Codec {{ getSortIcon('videoCodec', episodeSortField, episodeSortOrder) }}</th>
+                  <th class="px-3.5 py-3 text-right text-[12px] text-gray-500 font-semibold w-28 cursor-pointer" (click)="sortEpisodes('fileSize')">Size {{ getSortIcon('fileSize', episodeSortField, episodeSortOrder) }}</th>
+                  <th class="px-3.5 py-3 w-12"></th>
+                </tr></thead>
                 <tbody>
                   @for (episode of topEpisodes; track episode.id; let i = $index) {
-                    <tr class="border-b border-dark-700 last:border-0 hover:bg-dark-800">
-                      <td class="py-3 pr-4">
-                        <div class="flex items-center gap-3">
-                          <span class="text-gray-500 text-sm w-5">{{ i + 1 }}</span>
-                          <span class="text-gray-200">{{ episode.showTitle }}</span>
-                        </div>
-                      </td>
-                      <td class="py-3 pr-4 text-gray-400">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</td>
-                      <td class="py-3 pr-4">
-                        <span class="badge" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'" [class.badge-yellow]="episode.resolution === '720p'">
-                          {{ episode.resolution }}
-                        </span>
-                      </td>
-                      <td class="py-3 pr-4">
-                        <span class="badge badge-purple">{{ episode.videoCodec }}</span>
-                      </td>
-                      <td class="py-3 text-right text-gray-100 font-medium">{{ formatBytes(episode.fileSize) }}</td>
-                      <td class="py-3 text-right">
-                        <button (click)="openEpisodeSearch(episode)" class="p-1.5 hover:bg-dark-700 rounded-lg transition-colors text-gray-400 hover:text-primary-400" title="Interactive Search">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </button>
-                      </td>
+                    <tr class="border-t border-white/[0.03] active:bg-white/[0.03] transition-colors">
+                      <td class="px-3.5 py-3"><div class="flex items-center gap-2.5"><span class="text-gray-600 text-[12px] w-5 tabular-nums">{{ i + 1 }}</span><span class="text-[13px] text-gray-200 font-medium">{{ episode.showTitle }}</span></div></td>
+                      <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</td>
+                      <td class="px-3.5 py-3"><span class="badge" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'" [class.badge-yellow]="episode.resolution === '720p'">{{ episode.resolution }}</span></td>
+                      <td class="px-3.5 py-3"><span class="badge badge-purple">{{ episode.videoCodec }}</span></td>
+                      <td class="px-3.5 py-3 text-right text-[13px] text-gray-200 font-semibold tabular-nums">{{ formatBytes(episode.fileSize) }}</td>
+                      <td class="px-3.5 py-3 text-right"><button (click)="openEpisodeSearch(episode)" class="p-1.5 rounded-lg active:bg-white/[0.08] transition-colors text-gray-500" title="Interactive Search"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button></td>
                     </tr>
                   }
                 </tbody>
               </table>
             </div>
-
             <!-- Mobile Cards -->
-            <div class="md:hidden space-y-3">
+            <div class="md:hidden space-y-1.5">
               @for (episode of topEpisodes; track episode.id; let i = $index) {
-                <div class="p-3 bg-dark-800 rounded-lg" (click)="openEpisodeSearch(episode)">
+                <div class="rounded-2xl bg-white/[0.03] px-3.5 py-3 active:bg-white/[0.05] transition-colors cursor-pointer" (click)="openEpisodeSearch(episode)">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
-                      <p class="text-gray-200 font-medium truncate">{{ i + 1 }}. {{ episode.showTitle }}</p>
-                      <p class="text-xs text-gray-500 mt-1">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</p>
-                      <div class="flex gap-2 mt-2">
+                      <p class="text-[13px] text-gray-200 font-medium truncate">{{ i + 1 }}. {{ episode.showTitle }}</p>
+                      <p class="text-[11px] text-gray-600 mt-0.5">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</p>
+                      <div class="flex gap-1.5 mt-1.5">
                         <span class="badge badge-sm" [class.badge-teal]="episode.resolution === '4K'" [class.badge-blue]="episode.resolution === '1080p'">{{ episode.resolution }}</span>
                         <span class="badge badge-sm badge-purple">{{ episode.videoCodec }}</span>
                       </div>
                     </div>
-                    <span class="text-gray-100 font-medium whitespace-nowrap">{{ formatBytes(episode.fileSize) }}</span>
+                    <span class="text-[13px] text-gray-200 font-semibold whitespace-nowrap tabular-nums">{{ formatBytes(episode.fileSize) }}</span>
                   </div>
                 </div>
               }
@@ -231,22 +143,24 @@
           </div>
 
           <!-- Storage by Show -->
-          <div class="card p-4 md:p-6">
-            <h3 class="text-lg font-semibold text-gray-100 mb-4">Storage by TV Show</h3>
-            <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[13px] font-semibold text-gray-500">Storage by TV Show</span>
+            </div>
+            <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
               @for (show of byShow; track show.id; let i = $index) {
-                <div class="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <span class="text-gray-500 text-sm w-5 flex-shrink-0">{{ i + 1 }}</span>
+                <div class="flex items-center justify-between px-3.5 py-2.5 active:bg-white/[0.03] transition-colors" [class.border-t]="i > 0" [class.border-white/[0.03]]="i > 0">
+                  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <span class="text-gray-600 text-[12px] w-5 flex-shrink-0 tabular-nums">{{ i + 1 }}</span>
                     <div class="min-w-0">
-                      <p class="text-gray-200 truncate">{{ show.title }}</p>
-                      <p class="text-xs text-gray-500">{{ show.episodeCount }} episodes</p>
+                      <p class="text-[13px] text-gray-200 font-medium truncate">{{ show.title }}</p>
+                      <p class="text-[11px] text-gray-600">{{ show.episodeCount }} episodes</p>
                     </div>
                   </div>
-                  <span class="text-gray-100 font-medium whitespace-nowrap ml-4">{{ formatBytes(show.totalSize) }}</span>
+                  <span class="text-[13px] text-gray-200 font-semibold whitespace-nowrap ml-3 tabular-nums">{{ formatBytes(show.totalSize) }}</span>
                 </div>
               } @empty {
-                <p class="text-gray-500 text-center py-4">No TV shows found</p>
+                <div class="p-6 text-center text-gray-600 text-[13px]">No TV shows found</div>
               }
             </div>
           </div>
@@ -258,87 +172,70 @@
 
 <!-- Interactive Search Modal -->
 @if (showSearchModal) {
-  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeSearchModal()">
-    <div class="bg-dark-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
-      <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center" (click)="closeSearchModal()">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative bg-[#0d0d14] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" (click)="$event.stopPropagation()">
+      <div class="flex justify-center pt-2 pb-1 sm:hidden"><div class="w-9 h-1 rounded-full bg-white/20"></div></div>
+      <div class="px-4 py-3 flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-semibold text-gray-100">Interactive Search</h2>
-          <p class="text-sm text-gray-400">{{ searchTitle }}</p>
+          <h2 class="text-[17px] font-bold text-white">Interactive Search</h2>
+          <p class="text-[13px] text-gray-500">{{ searchTitle }}</p>
         </div>
         <div class="flex items-center gap-2">
           @if (searchExternalUrl) {
-            <button (click)="openExternalUrl()" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-lg transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-              Open in {{ searchItemType === 'movie' ? 'Radarr' : 'Sonarr' }}
+            <button (click)="openExternalUrl()" class="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-lg transition-colors font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              {{ searchItemType === 'movie' ? 'Radarr' : 'Sonarr' }}
             </button>
           }
-          <button (click)="closeSearchModal()" class="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-dark-700 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+          <button (click)="closeSearchModal()" class="p-1.5 rounded-lg active:bg-white/10 transition-colors text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
       </div>
-      <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
+      <div class="flex-1 overflow-y-auto">
         @if (searchError) {
           <div class="p-8 text-center">
-            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <p class="text-red-400 font-medium">{{ searchError }}</p>
-            <p class="text-sm text-gray-500 mt-2">Make sure the item is added to {{ searchItemType === 'movie' ? 'Radarr' : 'Sonarr' }}</p>
+            <svg class="w-10 h-10 mx-auto mb-3 text-red-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-red-400 font-semibold text-[14px]">{{ searchError }}</p>
+            <p class="text-gray-600 text-[12px] mt-1.5">Make sure the item is added to {{ searchItemType === 'movie' ? 'Radarr' : 'Sonarr' }}</p>
           </div>
         } @else if (searchLoading) {
-          <div class="flex items-center justify-center h-64">
-            <div class="text-center">
-              <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              <p class="text-gray-400">Searching indexers for releases...</p>
-              <p class="text-xs text-gray-500 mt-1">This may take up to 2 minutes</p>
-            </div>
+          <div class="flex flex-col items-center justify-center h-64">
+            <svg class="animate-spin h-7 w-7 text-primary-500 mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-gray-500 text-[13px]">Searching indexers...</p>
+            <p class="text-gray-600 text-[11px] mt-1">This may take up to 2 minutes</p>
           </div>
         } @else if (searchResults.length === 0) {
-          <div class="p-8 text-center text-gray-500">
-            <p>No releases found</p>
-            <p class="text-sm mt-1">Try again later or check your indexers</p>
+          <div class="p-8 text-center">
+            <svg class="w-10 h-10 mx-auto mb-3 text-gray-600/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-gray-500 text-[14px]">No releases found</p>
+            <p class="text-gray-600 text-[12px] mt-1">Try again later or check your indexers</p>
           </div>
         } @else {
-          <div class="px-4 py-2.5 text-xs text-gray-500 border-b border-dark-700">
-            <span class="text-gray-400 font-medium">{{ searchResults.length }} releases</span> · sorted by score
-          </div>
-          <div class="divide-y divide-dark-700">
+          <div class="px-4 py-2 text-[12px] text-gray-600 border-b border-white/[0.04]"><span class="text-gray-400 font-semibold">{{ searchResults.length }} releases</span> · sorted by score</div>
+          <div>
             @for (result of searchResults; track result.guid) {
-              <div class="flex items-start gap-3 px-4 py-3 hover:bg-dark-800/50 transition-colors">
+              <div class="flex items-start gap-3 px-4 py-3 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors">
                 <div class="flex-shrink-0 pt-0.5">
                   @if (isDownloaded(result.guid)) {
-                    <div class="w-9 h-9 flex items-center justify-center">
-                      <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                    </div>
+                    <div class="w-8 h-8 flex items-center justify-center"><svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
                   } @else {
-                    <button (click)="downloadRelease(result)" [disabled]="downloadingGuid === result.guid"
-                      class="w-9 h-9 flex items-center justify-center text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      [ngClass]="{ 'bg-orange-600 hover:bg-orange-700': result.rejected, 'bg-primary-600 hover:bg-primary-700': !result.rejected }"
-                      [title]="result.rejected ? 'Force download (rejected by profile)' : 'Download'">
-                      @if (downloadingGuid === result.guid) {
-                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                      } @else {
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                      }
+                    <button (click)="downloadRelease(result)" [disabled]="downloadingGuid === result.guid" class="w-8 h-8 flex items-center justify-center text-white rounded-lg transition-colors disabled:opacity-40" [class]="result.rejected ? 'bg-orange-600 active:bg-orange-700' : 'bg-primary-600 active:bg-primary-700'" [title]="result.rejected ? 'Force download (rejected)' : 'Download'">
+                      @if (downloadingGuid === result.guid) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      } @else { <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> }
                     </button>
                   }
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm text-gray-200 break-words leading-snug">{{ result.title }}</p>
-                  <div class="flex flex-wrap gap-1.5 mt-2">
-                    <span class="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 font-medium">{{ result.quality }}</span>
-                    @if (result.customFormatScore && result.customFormatScore !== 0) {
-                      <span class="text-xs px-2 py-0.5 rounded" [ngClass]="result.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">CF {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}</span>
-                    }
-                    <span class="text-xs px-2 py-0.5 rounded bg-dark-700 text-gray-400">{{ formatBytes(result.size) }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-dark-700 text-gray-500">{{ result.indexer }}</span>
-                    @if (result.protocol === 'torrent') {
-                      <span class="text-xs px-2 py-0.5 rounded bg-dark-700"><span class="text-green-400">{{ result.seeders }}</span><span class="text-gray-600">/</span><span class="text-red-400">{{ result.leechers }}</span></span>
-                    }
-                    <span class="text-xs px-2 py-0.5 rounded bg-dark-700 text-gray-500">{{ formatAge(result.age) }}</span>
+                  <p class="text-[13px] text-gray-300 break-words leading-snug font-medium">{{ result.title }}</p>
+                  <div class="flex flex-wrap gap-1 mt-1.5">
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-300 font-bold">{{ result.quality }}</span>
+                    @if (result.customFormatScore && result.customFormatScore !== 0) { <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold" [class]="result.customFormatScore > 0 ? 'bg-green-500/10 text-green-300' : 'bg-red-500/10 text-red-300'">CF {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}</span> }
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-gray-400 font-medium">{{ formatBytes(result.size) }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-gray-500">{{ result.indexer }}</span>
+                    @if (result.protocol === 'torrent') { <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06]"><span class="text-green-400">{{ result.seeders }}</span><span class="text-gray-600">/</span><span class="text-red-400">{{ result.leechers }}</span></span> }
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-gray-500">{{ formatAge(result.age) }}</span>
                   </div>
-                  @if (result.rejected && result.rejections && result.rejections.length > 0) {
-                    <p class="text-xs text-red-400 mt-1.5">{{ result.rejections[0] }}</p>
-                  }
+                  @if (result.rejected && result.rejections && result.rejections.length > 0) { <p class="text-[11px] text-red-400/80 mt-1">{{ result.rejections[0] }}</p> }
                 </div>
               </div>
             }

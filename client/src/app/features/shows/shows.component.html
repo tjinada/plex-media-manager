@@ -10,230 +10,117 @@
 
   <!-- Main Content -->
   <div class="flex-1 flex flex-col h-full min-w-0">
-    <!-- Fixed Header Section -->
-    <div class="flex-shrink-0 p-4 md:p-6 lg:p-8 pb-0">
-      <!-- Header with Tabs -->
-      <div class="mb-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-100">TV Shows</h1>
-            <p class="text-gray-400 mt-1">
-              @if (viewMode === 'shows') {
-                {{ pagination.total }} shows in your library
-              } @else {
-                {{ pagination.total }} episodes in your library
-              }
-            </p>
-          </div>
-          
-          <!-- View Mode Tabs -->
-          <div class="flex bg-dark-800 rounded-lg p-1">
-            <button 
-              (click)="onViewModeChange('shows')"
-              class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
-              [class.bg-primary-600]="viewMode === 'shows'"
-              [class.text-white]="viewMode === 'shows'"
-              [class.text-gray-400]="viewMode !== 'shows'"
-              [class.hover:text-gray-200]="viewMode !== 'shows'">
-              By Show
-            </button>
-            <button 
-              (click)="onViewModeChange('episodes')"
-              class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
-              [class.bg-primary-600]="viewMode === 'episodes'"
-              [class.text-white]="viewMode === 'episodes'"
-              [class.text-gray-400]="viewMode !== 'episodes'"
-              [class.hover:text-gray-200]="viewMode !== 'episodes'">
-              All Episodes
-            </button>
-          </div>
+    <!-- Header -->
+    <div class="flex-shrink-0 px-4 md:px-6 pt-3 pb-1">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+        <div>
+          <h1 class="text-[28px] font-bold text-white tracking-tight">TV Shows</h1>
+          <p class="text-gray-500 text-sm -mt-0.5">
+            @if (viewMode === 'shows') { {{ pagination.total }} shows in your library } @else { {{ pagination.total }} episodes in your library }
+          </p>
+        </div>
+        <!-- View Mode Toggle -->
+        <div class="flex bg-white/[0.04] rounded-xl p-0.5">
+          <button (click)="onViewModeChange('shows')" class="px-3.5 py-2 text-[13px] font-medium rounded-[10px] transition-colors" [class]="viewMode === 'shows' ? 'bg-white/10 text-white' : 'text-gray-500'">By Show</button>
+          <button (click)="onViewModeChange('episodes')" class="px-3.5 py-2 text-[13px] font-medium rounded-[10px] transition-colors" [class]="viewMode === 'episodes' ? 'bg-white/10 text-white' : 'text-gray-500'">All Episodes</button>
         </div>
       </div>
-
-      <!-- Search Bar -->
-      <div class="mb-6">
+      <div class="mb-3">
         <div class="relative max-w-md">
-          <input 
-            type="text"
-            [value]="searchQuery"
-            (input)="onSearchInput($event)"
-            [placeholder]="viewMode === 'shows' ? 'Search TV shows...' : 'Search episodes...'"
-            class="input-field pl-10 w-full">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <input type="text" [value]="searchQuery" (input)="onSearchInput($event)" [placeholder]="viewMode === 'shows' ? 'Search TV shows...' : 'Search episodes...'" class="w-full bg-white/[0.04] border-0 rounded-xl pl-10 pr-9 py-2.5 text-[14px] text-gray-200 placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500/50">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           @if (searchQuery) {
-            <button 
-              (click)="clearSearch()"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <button (click)="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 active:text-gray-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
           }
         </div>
       </div>
     </div>
 
-    <!-- Scrollable Content Section -->
-    <div class="flex-1 overflow-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6">
       @if (isLoading) {
-        <!-- Loading State -->
-        <div class="flex items-center justify-center h-64">
-          <div class="text-center">
-            <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-gray-400">Loading {{ viewMode === 'shows' ? 'TV shows' : 'episodes' }}...</p>
-          </div>
-        </div>
+        <div class="flex items-center justify-center h-64"><svg class="animate-spin h-7 w-7 text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
       } @else if (viewMode === 'shows' && shows.length === 0) {
-        <!-- Empty State - Shows -->
-        <div class="card p-8 text-center">
-          <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+        <div class="rounded-2xl bg-white/[0.03] p-8 text-center mt-4">
+          <div class="w-14 h-14 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
           </div>
-          <h2 class="text-xl font-semibold text-gray-100 mb-2">No TV Shows Found</h2>
-          <p class="text-gray-400">
-            @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec) {
-              No shows match your filters. Try adjusting your search criteria.
-            } @else {
-              Your TV show library is empty. Sync your Plex library to see shows here.
-            }
+          <h2 class="text-lg font-bold text-white mb-1.5">No TV Shows Found</h2>
+          <p class="text-gray-500 text-sm">
+            @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec) { No shows match your filters. Try adjusting your search criteria. } @else { Your TV show library is empty. Sync your Plex library to see shows here. }
           </p>
         </div>
       } @else if (viewMode === 'episodes' && episodes.length === 0) {
-        <!-- Empty State - Episodes -->
-        <div class="card p-8 text-center">
-          <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-            </svg>
+        <div class="rounded-2xl bg-white/[0.03] p-8 text-center mt-4">
+          <div class="w-14 h-14 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
           </div>
-          <h2 class="text-xl font-semibold text-gray-100 mb-2">No Episodes Found</h2>
-          <p class="text-gray-400">
-            @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec) {
-              No episodes match your filters. Try adjusting your search criteria.
-            } @else {
-              No episodes in your library. Sync your Plex library to see episodes here.
-            }
+          <h2 class="text-lg font-bold text-white mb-1.5">No Episodes Found</h2>
+          <p class="text-gray-500 text-sm">
+            @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec) { No episodes match your filters. Try adjusting your search criteria. } @else { No episodes in your library. Sync your Plex library to see episodes here. }
           </p>
         </div>
       } @else if (viewMode === 'shows') {
         <!-- Shows View -->
-        
+
         <!-- Mobile: Card Grid -->
-        <div class="md:hidden grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div class="md:hidden grid grid-cols-2 sm:grid-cols-3 gap-2.5">
           @for (show of shows; track show.id) {
-            <div 
-              (click)="onShowClick(show)"
-              class="card-hover overflow-hidden cursor-pointer">
-              <div class="aspect-[2/3] bg-dark-800 relative">
-                <img 
-                  [src]="getImageUrl(show.posterUrl)"
-                  [alt]="show.title"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  (error)="onImageError($event)">
+            <div (click)="onShowClick(show)" class="rounded-2xl bg-white/[0.03] overflow-hidden cursor-pointer active:scale-[0.97] transition-transform">
+              <div class="aspect-[2/3] bg-white/[0.02] relative">
+                <img [src]="getImageUrl(show.posterUrl)" [alt]="show.title" class="w-full h-full object-cover" loading="lazy" (error)="onImageError($event)">
                 @if (show.dominantResolution) {
-                  <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-medium"
-                        [ngClass]="getResolutionClass(show.dominantResolution)">
-                    {{ show.dominantResolution }}
-                  </span>
+                  <span class="absolute top-2 right-2 px-1.5 py-0.5 rounded-md text-[10px] font-bold" [ngClass]="getResolutionClass(show.dominantResolution)">{{ show.dominantResolution }}</span>
                 }
               </div>
-              <div class="p-3">
-                <h3 class="font-medium text-gray-100 text-sm truncate">{{ show.title }}</h3>
-                <p class="text-xs text-gray-500">
-                  {{ show.seasonCount }} {{ show.seasonCount === 1 ? 'Season' : 'Seasons' }} · 
-                  {{ show.episodeCount }} {{ show.episodeCount === 1 ? 'Episode' : 'Episodes' }}
-                </p>
+              <div class="px-2.5 py-2">
+                <h3 class="font-semibold text-gray-200 text-[13px] truncate">{{ show.title }}</h3>
+                <p class="text-[11px] text-gray-600">{{ show.seasonCount }} {{ show.seasonCount === 1 ? 'Season' : 'Seasons' }} · {{ show.episodeCount }} Eps</p>
               </div>
             </div>
           }
         </div>
 
         <!-- Desktop: Table -->
-        <div class="hidden md:block card overflow-hidden">
+        <div class="hidden md:block rounded-2xl bg-white/[0.03] overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-dark-800">
-                <tr>
-                  <th class="text-left p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                      (click)="onSort('title')">
-                    <div class="flex items-center gap-2">
-                      Title
-                      @if (sortField === 'title') {
-                        <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                        </svg>
-                      }
-                    </div>
+              <thead>
+                <tr class="border-b border-white/[0.04]">
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="onSort('title')">
+                    <div class="flex items-center gap-1.5">Title @if (sortField === 'title') { <svg class="w-3.5 h-3.5" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg> }</div>
                   </th>
-                  <th class="text-left p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                      (click)="onSort('year')">
-                    <div class="flex items-center gap-2">
-                      Year
-                      @if (sortField === 'year') {
-                        <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                        </svg>
-                      }
-                    </div>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="onSort('year')">
+                    <div class="flex items-center gap-1.5">Year @if (sortField === 'year') { <svg class="w-3.5 h-3.5" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg> }</div>
                   </th>
-                  <th class="text-center p-4 text-gray-400 font-medium">Seasons</th>
-                  <th class="text-center p-4 text-gray-400 font-medium">Episodes</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Resolution</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Video</th>
-                  <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                      (click)="onSort('totalFileSize')">
-                    <div class="flex items-center gap-2 justify-end">
-                      Total Size
-                      @if (sortField === 'totalFileSize') {
-                        <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                        </svg>
-                      }
-                    </div>
+                  <th class="text-center px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Seasons</th>
+                  <th class="text-center px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Episodes</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Resolution</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Video</th>
+                  <th class="text-right px-3.5 py-3 text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="onSort('totalFileSize')">
+                    <div class="flex items-center gap-1.5 justify-end">Total Size @if (sortField === 'totalFileSize') { <svg class="w-3.5 h-3.5" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg> }</div>
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-dark-700">
+              <tbody>
                 @for (show of shows; track show.id) {
-                  <tr 
-                    (click)="onShowClick(show)"
-                    class="hover:bg-dark-800/50 transition-colors cursor-pointer">
-                    <td class="p-4">
+                  <tr (click)="onShowClick(show)" class="border-t border-white/[0.03] active:bg-white/[0.03] transition-colors cursor-pointer">
+                    <td class="px-3.5 py-3">
                       <div class="flex items-center gap-3">
-                        <img 
-                          [src]="getImageUrl(show.posterUrl)"
-                          [alt]="show.title"
-                          class="w-10 h-14 object-cover rounded"
-                          loading="lazy"
-                          (error)="onImageError($event)">
-                        <span class="text-gray-100 font-medium">{{ show.title }}</span>
+                        <img [src]="getImageUrl(show.posterUrl)" [alt]="show.title" class="w-9 h-[52px] object-cover rounded-lg" loading="lazy" (error)="onImageError($event)">
+                        <span class="text-[13px] text-gray-200 font-medium">{{ show.title }}</span>
                       </div>
                     </td>
-                    <td class="p-4 text-gray-400">{{ show.year || '-' }}</td>
-                    <td class="p-4 text-gray-400 text-center">{{ show.seasonCount || 0 }}</td>
-                    <td class="p-4 text-gray-400 text-center">{{ show.episodeCount || 0 }}</td>
-                    <td class="p-4">
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ show.year || '-' }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500 text-center">{{ show.seasonCount || 0 }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500 text-center">{{ show.episodeCount || 0 }}</td>
+                    <td class="px-3.5 py-3">
                       @if (show.dominantResolution) {
-                        <span class="px-2 py-1 rounded text-xs font-medium"
-                              [ngClass]="getResolutionClass(show.dominantResolution)">
-                          {{ show.dominantResolution }}
-                        </span>
-                      } @else {
-                        <span class="text-gray-500">-</span>
-                      }
+                        <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" [ngClass]="getResolutionClass(show.dominantResolution)">{{ show.dominantResolution }}</span>
+                      } @else { <span class="text-gray-600">-</span> }
                     </td>
-                    <td class="p-4 text-gray-400">{{ show.dominantVideoCodec || '-' }}</td>
-                    <td class="p-4 text-gray-400 text-right">{{ formatFileSize(show.totalFileSize) }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ show.dominantVideoCodec || '-' }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-400 text-right tabular-nums">{{ formatFileSize(show.totalFileSize) }}</td>
                   </tr>
                 }
               </tbody>
@@ -242,41 +129,27 @@
         </div>
       } @else {
         <!-- Episodes View -->
-        
+
         <!-- Mobile: Card List -->
-        <div class="md:hidden space-y-3">
+        <div class="md:hidden space-y-2">
           @for (episode of episodes; track episode.id) {
-            <div class="card p-4 cursor-pointer hover:bg-dark-800/50 transition-colors relative">
+            <div class="rounded-2xl bg-white/[0.03] p-3.5 active:bg-white/[0.05] transition-colors cursor-pointer relative">
               <div class="flex justify-between items-start gap-3" (click)="onEpisodeClick(episode)">
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm text-primary-400 font-medium">{{ episode.showTitle }}</p>
-                  <h3 class="text-gray-100 font-medium truncate">
-                    {{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }} - {{ episode.title }}
-                  </h3>
-                  <div class="flex flex-wrap gap-2 mt-2">
-                    @if (episode.resolution) {
-                      <span class="text-xs px-2 py-0.5 rounded" [ngClass]="getResolutionClass(episode.resolution)">
-                        {{ episode.resolution }}
-                      </span>
-                    }
-                    @if (episode.videoCodec) {
-                      <span class="text-xs text-gray-500">{{ episode.videoCodec }}</span>
-                    }
+                  <p class="text-[12px] text-primary-400 font-semibold">{{ episode.showTitle }}</p>
+                  <h3 class="text-[14px] text-gray-200 font-semibold truncate">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }} - {{ episode.title }}</h3>
+                  <div class="flex flex-wrap gap-1.5 mt-1.5">
+                    @if (episode.resolution) { <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold" [ngClass]="getResolutionClass(episode.resolution)">{{ episode.resolution }}</span> }
+                    @if (episode.videoCodec) { <span class="text-[11px] text-gray-600">{{ episode.videoCodec }}</span> }
                   </div>
                 </div>
-                <div class="text-right flex-shrink-0 flex flex-col items-end gap-2">
+                <div class="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                   <div>
-                    <p class="text-gray-100 font-medium">{{ formatFileSize(episode.fileSize) }}</p>
-                    <p class="text-xs text-gray-500">{{ formatDuration(episode.duration) }}</p>
+                    <p class="text-[14px] text-gray-200 font-semibold tabular-nums">{{ formatFileSize(episode.fileSize) }}</p>
+                    <p class="text-[11px] text-gray-600">{{ formatDuration(episode.duration) }}</p>
                   </div>
-                  <!-- Search Button -->
-                  <button 
-                    (click)="openSearch(episode, $event)"
-                    class="p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-                    title="Interactive Search">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                  <button (click)="openSearch(episode, $event)" class="p-1.5 bg-primary-600 active:bg-primary-700 text-white rounded-lg transition-colors" title="Interactive Search">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                   </button>
                 </div>
               </div>
@@ -285,74 +158,42 @@
         </div>
 
         <!-- Desktop: Table -->
-        <div class="hidden md:block card overflow-hidden">
+        <div class="hidden md:block rounded-2xl bg-white/[0.03] overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-dark-800">
-                <tr>
-                  <th class="text-left p-4 text-gray-400 font-medium">Show</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Episode</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Title</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Resolution</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Video</th>
-                  <th class="text-left p-4 text-gray-400 font-medium">Audio</th>
-                  <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                      (click)="onSort('media.fileSize')">
-                    <div class="flex items-center gap-2 justify-end">
-                      Size
-                      @if (sortField === 'media.fileSize') {
-                        <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                        </svg>
-                      }
-                    </div>
+              <thead>
+                <tr class="border-b border-white/[0.04]">
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Show</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Episode</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Title</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Resolution</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Video</th>
+                  <th class="text-left px-3.5 py-3 text-[12px] text-gray-500 font-semibold">Audio</th>
+                  <th class="text-right px-3.5 py-3 text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="onSort('media.fileSize')">
+                    <div class="flex items-center gap-1.5 justify-end">Size @if (sortField === 'media.fileSize') { <svg class="w-3.5 h-3.5" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg> }</div>
                   </th>
-                  <th class="text-right p-4 text-gray-400 font-medium cursor-pointer hover:text-gray-200"
-                      (click)="onSort('media.duration')">
-                    <div class="flex items-center gap-2 justify-end">
-                      Duration
-                      @if (sortField === 'media.duration') {
-                        <svg class="w-4 h-4" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                        </svg>
-                      }
-                    </div>
+                  <th class="text-right px-3.5 py-3 text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="onSort('media.duration')">
+                    <div class="flex items-center gap-1.5 justify-end">Duration @if (sortField === 'media.duration') { <svg class="w-3.5 h-3.5" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg> }</div>
                   </th>
-                  <th class="w-20 p-4"></th>
+                  <th class="w-16 px-3.5 py-3"></th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-dark-700">
+              <tbody>
                 @for (episode of episodes; track episode.id) {
-                  <tr 
-                    (click)="onEpisodeClick(episode)"
-                    class="hover:bg-dark-800/50 transition-colors cursor-pointer">
-                    <td class="p-4 text-primary-400 font-medium">{{ episode.showTitle }}</td>
-                    <td class="p-4 text-gray-400 font-mono text-sm">
-                      {{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}
+                  <tr (click)="onEpisodeClick(episode)" class="border-t border-white/[0.03] active:bg-white/[0.03] transition-colors cursor-pointer">
+                    <td class="px-3.5 py-3 text-[13px] text-primary-400 font-medium">{{ episode.showTitle }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500 font-mono">{{ formatEpisodeCode(episode.seasonNumber, episode.episodeNumber) }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-200">{{ episode.title }}</td>
+                    <td class="px-3.5 py-3">
+                      @if (episode.resolution) { <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" [ngClass]="getResolutionClass(episode.resolution)">{{ episode.resolution }}</span> } @else { <span class="text-gray-600">-</span> }
                     </td>
-                    <td class="p-4 text-gray-100">{{ episode.title }}</td>
-                    <td class="p-4">
-                      @if (episode.resolution) {
-                        <span class="px-2 py-1 rounded text-xs font-medium"
-                              [ngClass]="getResolutionClass(episode.resolution)">
-                          {{ episode.resolution }}
-                        </span>
-                      } @else {
-                        <span class="text-gray-500">-</span>
-                      }
-                    </td>
-                    <td class="p-4 text-gray-400">{{ episode.videoCodec || '-' }}</td>
-                    <td class="p-4 text-gray-400">{{ episode.audioCodec || '-' }}</td>
-                    <td class="p-4 text-gray-100 text-right font-medium">{{ formatFileSize(episode.fileSize) }}</td>
-                    <td class="p-4 text-gray-400 text-right">{{ formatDuration(episode.duration) }}</td>
-                    <td class="p-4">
-                      <button 
-                        (click)="openSearch(episode, $event)"
-                        class="p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-                        title="Interactive Search">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ episode.videoCodec || '-' }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ episode.audioCodec || '-' }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-200 text-right font-semibold tabular-nums">{{ formatFileSize(episode.fileSize) }}</td>
+                    <td class="px-3.5 py-3 text-[13px] text-gray-500 text-right">{{ formatDuration(episode.duration) }}</td>
+                    <td class="px-3.5 py-3">
+                      <button (click)="openSearch(episode, $event)" class="p-1.5 bg-primary-600 active:bg-primary-700 text-white rounded-lg transition-colors" title="Interactive Search">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                       </button>
                     </td>
                   </tr>
@@ -365,36 +206,16 @@
 
       <!-- Pagination -->
       @if (pagination.totalPages > 1) {
-        <div class="mt-6 flex justify-center">
-          <nav class="flex items-center gap-1">
-            <button 
-              (click)="onPageChange(currentPage - 1)"
-              [disabled]="currentPage === 1"
-              class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
+        <div class="mt-4 flex justify-center">
+          <nav class="flex items-center gap-0.5">
+            <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="p-2 rounded-lg text-gray-500 active:bg-white/[0.06] disabled:opacity-30 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            
             @for (page of pageNumbers; track page) {
-              <button 
-                (click)="onPageChange(page)"
-                class="min-w-[40px] h-10 rounded-lg font-medium transition-colors"
-                [class.bg-primary-600]="page === currentPage"
-                [class.text-white]="page === currentPage"
-                [class.text-gray-400]="page !== currentPage"
-                [class.hover:bg-dark-800]="page !== currentPage">
-                {{ page }}
-              </button>
+              <button (click)="onPageChange(page)" class="min-w-[36px] h-9 rounded-lg text-[13px] font-semibold transition-colors" [class]="page === currentPage ? 'bg-primary-600 text-white' : 'text-gray-500 active:bg-white/[0.06]'">{{ page }}</button>
             }
-            
-            <button 
-              (click)="onPageChange(currentPage + 1)"
-              [disabled]="currentPage === pagination.totalPages"
-              class="p-2 rounded-lg text-gray-400 hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
+            <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === pagination.totalPages" class="p-2 rounded-lg text-gray-500 active:bg-white/[0.06] disabled:opacity-30 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
           </nav>
         </div>
@@ -405,128 +226,81 @@
 
 <!-- Search Modal -->
 @if (showSearchModal) {
-  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeSearch()">
-    <div class="bg-dark-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
-      <!-- Modal Header -->
-      <div class="p-4 border-b border-dark-700 flex items-center justify-between">
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center" (click)="closeSearch()">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative bg-[#0d0d14] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" (click)="$event.stopPropagation()">
+      <div class="flex justify-center pt-2 pb-1 sm:hidden"><div class="w-9 h-1 rounded-full bg-white/20"></div></div>
+      <div class="px-4 py-3 flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-semibold text-gray-100">Interactive Search</h2>
-          <p class="text-sm text-gray-400">{{ getSearchTitle() }}</p>
+          <h2 class="text-[17px] font-bold text-white">Interactive Search</h2>
+          <p class="text-[13px] text-gray-500">{{ getSearchTitle() }}</p>
         </div>
         <div class="flex items-center gap-2">
           @if (searchExternalUrl) {
-            <button 
-              (click)="openExternalUrl()"
-              class="flex items-center gap-2 px-3 py-1.5 text-sm bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-lg transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              Open in Sonarr
+            <button (click)="openExternalUrl()" class="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-lg transition-colors font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              Sonarr
             </button>
           }
-          <button 
-            (click)="closeSearch()"
-            class="p-2 text-gray-400 hover:text-gray-200 rounded-lg hover:bg-dark-700 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <button (click)="closeSearch()" class="p-1.5 rounded-lg active:bg-white/10 transition-colors text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
       </div>
 
-      <!-- Modal Content -->
-      <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
+      <div class="flex-1 overflow-y-auto">
         @if (searchLoading) {
-          <div class="flex items-center justify-center h-64">
-            <div class="text-center">
-              <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <p class="text-gray-400">Searching indexers for releases...</p>
-              <p class="text-xs text-gray-500 mt-1">This may take up to 2 minutes</p>
-            </div>
+          <div class="flex flex-col items-center justify-center h-64">
+            <svg class="animate-spin h-7 w-7 text-primary-500 mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-gray-500 text-[13px]">Searching indexers...</p>
+            <p class="text-gray-600 text-[11px] mt-1">This may take up to 2 minutes</p>
           </div>
         } @else if (searchError) {
           <div class="p-8 text-center">
-            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p class="text-red-400 font-medium">{{ searchError }}</p>
-            <p class="text-sm text-gray-500 mt-2">Make sure the episode is added to Sonarr</p>
+            <svg class="w-10 h-10 mx-auto mb-3 text-red-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-red-400 font-semibold text-[14px]">{{ searchError }}</p>
+            <p class="text-gray-600 text-[12px] mt-1.5">Make sure the episode is added to Sonarr</p>
           </div>
         } @else if (searchResults.length === 0) {
-          <div class="p-8 text-center text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p>No releases found</p>
-            <p class="text-sm mt-1">Try again later or check your indexers</p>
+          <div class="p-8 text-center">
+            <svg class="w-10 h-10 mx-auto mb-3 text-gray-600/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-gray-500 text-[14px]">No releases found</p>
+            <p class="text-gray-600 text-[12px] mt-1">Try again later or check your indexers</p>
           </div>
         } @else {
-          <!-- Results Count -->
-          <div class="px-4 py-2.5 text-xs text-gray-500 border-b border-dark-700">
-            <span class="text-gray-400 font-medium">{{ searchResults.length }} releases</span> · sorted by score
+          <div class="px-4 py-2 text-[12px] text-gray-600 border-b border-white/[0.04]">
+            <span class="text-gray-400 font-semibold">{{ searchResults.length }} releases</span> · sorted by score
           </div>
-
-          <!-- Results List -->
-          <div class="divide-y divide-dark-700">
+          <div>
             @for (result of searchResults; track result.guid) {
-              <div class="flex items-start gap-3 px-4 py-3 hover:bg-dark-800/50 transition-colors">
-                <!-- Download Button -->
+              <div class="flex items-start gap-3 px-4 py-3 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors">
                 <div class="flex-shrink-0 pt-0.5">
                   @if (isDownloaded(result.guid)) {
-                    <div class="w-9 h-9 flex items-center justify-center">
-                      <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
+                    <div class="w-8 h-8 flex items-center justify-center"><svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
                   } @else {
-                    <button 
-                      (click)="downloadRelease(result, $event)"
-                      [disabled]="downloadingGuid === result.guid"
-                      class="w-9 h-9 flex items-center justify-center text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      [ngClass]="{
-                        'bg-orange-600 hover:bg-orange-700': result.rejected,
-                        'bg-primary-600 hover:bg-primary-700': !result.rejected
-                      }"
-                      [title]="result.rejected ? 'Force download (rejected by profile)' : 'Download'">
+                    <button (click)="downloadRelease(result, $event)" [disabled]="downloadingGuid === result.guid" class="w-8 h-8 flex items-center justify-center text-white rounded-lg transition-colors disabled:opacity-40" [class]="result.rejected ? 'bg-orange-600 active:bg-orange-700' : 'bg-primary-600 active:bg-primary-700'" [title]="result.rejected ? 'Force download (rejected)' : 'Download'">
                       @if (downloadingGuid === result.guid) {
-                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                        <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                       } @else {
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                       }
                     </button>
                   }
                 </div>
-
-                <!-- Release Info -->
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm text-gray-200 break-words leading-snug">{{ result.title }}</p>
-                  <div class="flex flex-wrap gap-1.5 mt-2">
-                    <span class="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 font-medium">{{ result.quality }}</span>
+                  <p class="text-[13px] text-gray-300 break-words leading-snug font-medium">{{ result.title }}</p>
+                  <div class="flex flex-wrap gap-1 mt-1.5">
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-300 font-bold">{{ result.quality }}</span>
                     @if (result.customFormatScore && result.customFormatScore !== 0) {
-                      <span class="text-xs px-2 py-0.5 rounded"
-                        [ngClass]="result.customFormatScore > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'">
-                        CF {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}
-                      </span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold" [class]="result.customFormatScore > 0 ? 'bg-green-500/10 text-green-300' : 'bg-red-500/10 text-red-300'">CF {{ result.customFormatScore > 0 ? '+' : '' }}{{ result.customFormatScore }}</span>
                     }
-                    <span class="text-xs px-2 py-0.5 rounded bg-dark-700 text-gray-400">{{ formatBytes(result.size) }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-dark-700 text-gray-500">{{ result.indexer }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-gray-400 font-medium">{{ formatBytes(result.size) }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-gray-500">{{ result.indexer }}</span>
                     @if (result.protocol === 'torrent') {
-                      <span class="text-xs px-2 py-0.5 rounded bg-dark-700">
-                        <span class="text-green-400">{{ result.seeders }}</span><span class="text-gray-600">/</span><span class="text-red-400">{{ result.leechers }}</span>
-                      </span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06]"><span class="text-green-400">{{ result.seeders }}</span><span class="text-gray-600">/</span><span class="text-red-400">{{ result.leechers }}</span></span>
                     }
-                    <span class="text-xs px-2 py-0.5 rounded bg-dark-700 text-gray-500">{{ formatAge(result.age) }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-gray-500">{{ formatAge(result.age) }}</span>
                   </div>
                   @if (result.rejected && result.rejections && result.rejections.length > 0) {
-                    <p class="text-xs text-red-400 mt-1.5">{{ result.rejections[0] }}</p>
+                    <p class="text-[11px] text-red-400/80 mt-1">{{ result.rejections[0] }}</p>
                   }
                 </div>
               </div>

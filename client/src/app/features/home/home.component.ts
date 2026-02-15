@@ -4,6 +4,8 @@ import { RouterLink, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HomeService, WebSocketService, PlexService, OverseerrService } from '@core/services';
 import { OverseerrRequest } from '@core/services/overseerr.service';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
+import { PullToRefreshDirective } from '@shared/directives/pull-to-refresh.directive';
 import {
   StreamingSession,
   DownloadItem,
@@ -11,50 +13,49 @@ import {
   RecentActivity,
   WebSocketStatus,
   CalendarItem,
+  CalendarResponse,
   ServiceShortcut
 } from '@core/models';
 
 type ActivityTab = 'watched' | 'downloaded' | 'added';
 type DownloadFilter = 'all' | 'movies' | 'tv' | 'nzbget' | 'qbittorrent';
 
-// Track session timing for live updates
 interface SessionTiming {
   baseElapsedMs: number;
   lastUpdateTime: number;
-  lastServerProgress: number; // Track server progress to detect seeks
+  lastServerProgress: number;
 }
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, SkeletonComponent, PullToRefreshDirective],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  // Data
+  // Data from service observables
   streaming: StreamingSession[] = [];
   downloads: DownloadItem[] = [];
   stats: QuickStats | null = null;
   recentActivity: RecentActivity[] = [];
   shortcuts: ServiceShortcut[] = [];
-  calendarItems: CalendarItem[] = [];
-  calendarGrouped: { [date: string]: CalendarItem[] } = {};
+  calendarData: CalendarResponse | null = null;
   requests: OverseerrRequest[] = [];
   pendingRequestsCount = 0;
 
+  // Per-section loading flags
+  streamingLoading = false;
+  downloadsLoading = false;
+  statsLoading = false;
+  activityLoading = false;
+  shortcutsLoading = false;
+  calendarLoading = false;
+  requestsLoading = false;
+
   // UI State
-  isLoading = true;
-  loadingProgress = {
-    main: false,
-    shortcuts: false,
-    calendar: false,
-    requests: false
-  };
   connectionStatus: WebSocketStatus = { connected: false, reconnecting: false };
   activeActivityTab: ActivityTab = 'watched';
   activeDownloadFilter: DownloadFilter = 'all';
-  activityOffset = 0;
-  activityLimit = 10;
   hasMoreActivity = false;
   isLoadingMoreActivity = false;
   streamingViewMode: 'compact' | 'detailed' = 'compact';
@@ -62,8 +63,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   downloadWidgetTab: 'queue' | 'history' = 'queue';
   requestsWidgetTab: 'pending' | 'all' = 'pending';
   calendarDays = 7;
-  shortcutsExpanded = false; // Hidden by default on mobile
-  
+  shortcutsExpanded = false;
+
   // Activity Modal
   showActivityModal = false;
   modalActivities: RecentActivity[] = [];
@@ -73,13 +74,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   modalHasMore = false;
   isLoadingModalActivity = false;
 
-  // Subscriptions
   private subscriptions: Subscription[] = [];
-
-  // Live timer tracking
   private sessionTimings: Map<string, SessionTiming> = new Map();
   private timerInterval: any = null;
-  currentTime: number = Date.now(); // Used to trigger updates
+  currentTime: number = Date.now();
 
   constructor(
     private homeService: HomeService,
@@ -90,12 +88,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadInitialData();
-    this.loadShortcuts();
-    this.loadCalendar();
-    this.loadRequests();
+    this.subscribeToService();
     this.setupWebSocket();
     this.startLiveTimer();
+    this.homeService.refreshAll();
   }
 
   ngOnDestroy(): void {
@@ -104,1123 +100,256 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.stopLiveTimer();
   }
 
-  /**
-   * Load initial data via REST API
-   */
-  private loadInitialData(): void {
-    this.isLoading = true;
-    this.loadingProgress.main = false;
-
-    this.homeService.getHomeData().subscribe({
-      next: (data) => {
-        this.streaming = data.streaming;
-        this.downloads = data.downloads;
-        this.stats = data.stats;
-        this.recentActivity = data.recentActivity;
-        this.hasMoreActivity = data.recentActivity.length >= this.activityLimit;
-        this.loadingProgress.main = true;
-        this.checkLoadingComplete();
-        this.updateSessionTimings(data.streaming);
-      },
-      error: (error) => {
-        console.error('Failed to load home data:', error);
-        this.loadingProgress.main = true;
-        this.checkLoadingComplete();
-      }
-    });
+  private subscribeToService(): void {
+    this.subscriptions.push(
+      this.homeService.streaming$.subscribe(data => { this.streaming = data; this.updateSessionTimings(data); }),
+      this.homeService.downloads$.subscribe(data => this.downloads = data),
+      this.homeService.stats$.subscribe(data => this.stats = data),
+      this.homeService.activity$.subscribe(data => { this.recentActivity = data; this.hasMoreActivity = data.length >= 10; }),
+      this.homeService.shortcuts$.subscribe(data => this.shortcuts = data),
+      this.homeService.calendar$.subscribe(data => this.calendarData = data),
+      this.homeService.requests$.subscribe(data => this.requests = data),
+      this.homeService.pendingCount$.subscribe(count => this.pendingRequestsCount = count),
+      this.homeService.streamingLoading$.subscribe(v => this.streamingLoading = v),
+      this.homeService.downloadsLoading$.subscribe(v => this.downloadsLoading = v),
+      this.homeService.statsLoading$.subscribe(v => this.statsLoading = v),
+      this.homeService.activityLoading$.subscribe(v => this.activityLoading = v),
+      this.homeService.shortcutsLoading$.subscribe(v => this.shortcutsLoading = v),
+      this.homeService.calendarLoading$.subscribe(v => this.calendarLoading = v),
+      this.homeService.requestsLoading$.subscribe(v => this.requestsLoading = v)
+    );
   }
 
-  /**
-   * Check if all loading is complete
-   */
-  private checkLoadingComplete(): void {
-    const { main, shortcuts, calendar, requests } = this.loadingProgress;
-    if (main && shortcuts && calendar && requests) {
-      this.isLoading = false;
-    }
-  }
+  onPullRefresh(): void { this.homeService.refreshAll(); }
 
-  /**
-   * Get loading progress percentage
-   */
-  get loadingPercent(): number {
-    const { main, shortcuts, calendar, requests } = this.loadingProgress;
-    let count = 0;
-    if (main) count++;
-    if (shortcuts) count++;
-    if (calendar) count++;
-    if (requests) count++;
-    return Math.round((count / 4) * 100);
-  }
-
-  /**
-   * Get current loading step label
-   */
-  get loadingLabel(): string {
-    const { main, shortcuts, calendar, requests } = this.loadingProgress;
-    if (!main) return 'Loading streams & activity...';
-    if (!shortcuts) return 'Loading services...';
-    if (!calendar) return 'Loading calendar...';
-    if (!requests) return 'Loading requests...';
-    return 'Complete';
-  }
-
-  /**
-   * Setup WebSocket connection and subscriptions
-   */
   private setupWebSocket(): void {
-    // Connect to WebSocket
     this.wsService.connect();
-
-    // Subscribe to connection status
     this.subscriptions.push(
-      this.wsService.status$.subscribe(status => {
-        this.connectionStatus = status;
-      })
-    );
-
-    // Subscribe to streaming updates
-    this.subscriptions.push(
-      this.wsService.streaming$.subscribe(sessions => {
-        if (sessions.length > 0 || this.streaming.length > 0) {
-          this.streaming = sessions;
-          this.updateSessionTimings(sessions);
-        }
-      })
-    );
-
-    // Subscribe to download updates
-    this.subscriptions.push(
-      this.wsService.downloads$.subscribe(downloads => {
-        if (downloads.length > 0 || this.downloads.length > 0) {
-          this.downloads = downloads;
-        }
-      })
-    );
-
-    // Subscribe to stats updates
-    this.subscriptions.push(
-      this.wsService.stats$.subscribe(stats => {
-        if (stats) {
-          this.stats = stats;
-        }
-      })
-    );
-
-    // Subscribe to new activity
-    this.subscriptions.push(
-      this.wsService.newActivity$.subscribe(activity => {
-        // Prepend new activity to the list
-        this.recentActivity = [activity, ...this.recentActivity.slice(0, this.activityLimit - 1)];
-      })
-    );
-
-    // Subscribe to activity refresh (triggered when Tautulli syncs new data)
-    this.subscriptions.push(
-      this.wsService.activityRefresh$.subscribe(() => {
-        // Reload activity data for current tab
-        this.loadActivity();
-      })
+      this.wsService.status$.subscribe(status => this.connectionStatus = status),
+      this.wsService.streaming$.subscribe(sessions => { if (sessions.length > 0 || this.streaming.length > 0) this.homeService.updateStreaming(sessions); }),
+      this.wsService.downloads$.subscribe(downloads => { if (downloads.length > 0 || this.downloads.length > 0) this.homeService.updateDownloads(downloads); }),
+      this.wsService.stats$.subscribe(stats => { if (stats) this.homeService.updateStats(stats); }),
+      this.wsService.newActivity$.subscribe(activity => this.homeService.prependActivity(activity)),
+      this.wsService.activityRefresh$.subscribe(() => this.homeService.refreshActivity(10, 0, this.activeActivityTab === 'watched' ? 'watched' : this.activeActivityTab === 'downloaded' ? 'downloaded' : 'added'))
     );
   }
 
-  /**
-   * Change activity tab and reload data
-   */
-  setActivityTab(tab: ActivityTab): void {
-    if (this.activeActivityTab === tab) return;
+  // Computed properties
+  get calendarGrouped(): { [date: string]: CalendarItem[] } { return this.calendarData?.grouped || {}; }
+  get calendarDates(): string[] { return Object.keys(this.calendarGrouped).sort(); }
+  get hasStreamingData(): boolean { return this.streaming.length > 0; }
+  get hasStatsData(): boolean { return this.stats !== null; }
+  get hasDownloadsData(): boolean { return this.downloads.length > 0; }
+  get hasActivityData(): boolean { return this.recentActivity.length > 0; }
+  get hasShortcutsData(): boolean { return this.shortcuts.length > 0; }
+  get hasCalendarData(): boolean { return this.calendarData !== null && this.calendarDates.length > 0; }
+  get hasRequestsData(): boolean { return this.requests.length > 0; }
 
-    this.activeActivityTab = tab;
-    this.activityOffset = 0;
-    this.loadActivity();
-  }
+  // Skeleton states: show only when loading AND no cached data
+  get showStreamingSkeleton(): boolean { return this.streamingLoading && !this.hasStreamingData && !this.homeService.hasLoadedOnce; }
+  get showStatsSkeleton(): boolean { return this.statsLoading && !this.hasStatsData; }
+  get showDownloadsSkeleton(): boolean { return this.downloadsLoading && !this.hasDownloadsData && !this.homeService.hasLoadedOnce; }
+  get showActivitySkeleton(): boolean { return this.activityLoading && !this.hasActivityData; }
+  get showShortcutsSkeleton(): boolean { return this.shortcutsLoading && !this.hasShortcutsData; }
+  get showCalendarSkeleton(): boolean { return this.calendarLoading && !this.hasCalendarData; }
+  get showRequestsSkeleton(): boolean { return this.requestsLoading && !this.hasRequestsData; }
 
-  /**
-   * Load activity for current tab
-   */
-  private loadActivity(): void {
-    const type = this.activeActivityTab === 'watched' ? 'watched' :
-                 this.activeActivityTab === 'downloaded' ? 'downloaded' : 'added';
+  // Activity
+  setActivityTab(tab: ActivityTab): void { if (this.activeActivityTab === tab) return; this.activeActivityTab = tab; this.homeService.refreshActivity(10, 0, tab); }
 
-    this.homeService.getActivity(this.activityLimit, 0, type).subscribe({
-      next: (response) => {
-        this.recentActivity = response.activities;
-        this.hasMoreActivity = response.hasMore;
-        this.activityOffset = response.activities.length;
-      },
-      error: (error) => {
-        console.error('Failed to load activity:', error);
-      }
-    });
-  }
-
-  /**
-   * Load more activity items
-   */
   loadMoreActivity(): void {
     if (this.isLoadingMoreActivity || !this.hasMoreActivity) return;
-
     this.isLoadingMoreActivity = true;
-    const type = this.activeActivityTab === 'watched' ? 'watched' :
-                 this.activeActivityTab === 'downloaded' ? 'downloaded' : 'added';
-
-    this.homeService.getActivity(this.activityLimit, this.activityOffset, type).subscribe({
-      next: (response) => {
-        this.recentActivity = [...this.recentActivity, ...response.activities];
-        this.hasMoreActivity = response.hasMore;
-        this.activityOffset += response.activities.length;
-        this.isLoadingMoreActivity = false;
-      },
-      error: (error) => {
-        console.error('Failed to load more activity:', error);
-        this.isLoadingMoreActivity = false;
-      }
+    this.homeService.getActivity(10, this.recentActivity.length, this.activeActivityTab).subscribe({
+      next: (response) => { this.recentActivity = [...this.recentActivity, ...response.activities]; this.hasMoreActivity = response.hasMore; this.isLoadingMoreActivity = false; },
+      error: () => { this.isLoadingMoreActivity = false; }
     });
   }
 
-  /**
-   * Set download filter
-   */
-  setDownloadFilter(filter: DownloadFilter): void {
-    this.activeDownloadFilter = filter;
-  }
+  // Downloads
+  setDownloadFilter(filter: DownloadFilter): void { this.activeDownloadFilter = filter; }
 
-  /**
-   * Toggle streaming view mode
-   */
-  toggleStreamingView(): void {
-    this.streamingViewMode = this.streamingViewMode === 'compact' ? 'detailed' : 'compact';
-    this.expandedSessionKey = null;
-  }
-
-  /**
-   * Toggle shortcuts visibility on mobile
-   */
-  toggleShortcuts(): void {
-    this.shortcutsExpanded = !this.shortcutsExpanded;
-  }
-
-  /**
-   * Toggle expanded state for a session (compact mode)
-   */
-  toggleSessionExpand(sessionKey: string, event: Event): void {
-    event.stopPropagation();
-    this.expandedSessionKey = this.expandedSessionKey === sessionKey ? null : sessionKey;
-  }
-
-  /**
-   * Check if session is expanded
-   */
-  isSessionExpanded(sessionKey: string): boolean {
-    return this.expandedSessionKey === sessionKey;
-  }
-
-  /**
-   * Get filtered downloads based on active filter
-   */
   get filteredDownloads(): DownloadItem[] {
-    if (this.activeDownloadFilter === 'all') {
-      return this.downloads;
-    }
-
+    if (this.activeDownloadFilter === 'all') return this.downloads;
     return this.downloads.filter(d => {
       switch (this.activeDownloadFilter) {
-        case 'movies':
-          return d.type === 'movie';
-        case 'tv':
-          return d.type === 'episode' || d.type === 'season';
-        case 'nzbget':
-          return d.source === 'nzbget';
-        case 'qbittorrent':
-          return d.source === 'qbittorrent';
-        default:
-          return true;
+        case 'movies': return d.type === 'movie';
+        case 'tv': return d.type === 'episode' || d.type === 'season';
+        case 'nzbget': return d.source === 'nzbget';
+        case 'qbittorrent': return d.source === 'qbittorrent';
+        default: return true;
       }
     });
   }
 
-  /**
-   * Get filtered activity based on active tab
-   * For 'watched' tab: excludes items currently being streamed
-   */
   get filteredActivity(): RecentActivity[] {
     return this.recentActivity.filter(a => {
-      // Filter by tab type
-      const matchesTab = (() => {
-        switch (this.activeActivityTab) {
-          case 'watched':
-            return a.type === 'watched';
-          case 'downloaded':
-            return a.type === 'downloaded';
-          case 'added':
-            return a.type === 'added';
-          default:
-            return true;
-        }
-      })();
-
+      const matchesTab = this.activeActivityTab === 'watched' ? a.type === 'watched' : this.activeActivityTab === 'downloaded' ? a.type === 'downloaded' : a.type === 'added';
       if (!matchesTab) return false;
-
-      // For watched tab, filter out items that are currently streaming
-      // Only hide the SPECIFIC content being watched, not all history for that show
       if (this.activeActivityTab === 'watched' && this.streaming.length > 0) {
-        const isCurrentlyStreaming = this.streaming.some(session => {
-          // Match by ratingKey (unique content identifier) and user
-          // This ensures only the exact episode/movie being watched is hidden,
-          // not all history for the same show
-          return a.media.ratingKey === session.media.ratingKey && a.user === session.user.name;
-        });
-        
-        if (isCurrentlyStreaming) return false;
+        if (this.streaming.some(s => a.media.ratingKey === s.media.ratingKey && a.user === s.user.name)) return false;
       }
-
       return true;
     });
   }
 
-  /**
-   * Calculate total download speed
-   */
-  get totalDownloadSpeed(): number {
-    return this.downloads.reduce((sum, d) => sum + (d.speed || 0), 0);
-  }
+  get totalDownloadSpeed(): number { return this.downloads.reduce((sum, d) => sum + (d.speed || 0), 0); }
+  get activeDownloads(): number { return this.downloads.filter(d => d.status === 'downloading').length; }
+  get queuedDownloads(): number { return this.downloads.filter(d => d.status === 'queued').length; }
+  get downloadClientQueue(): DownloadItem[] { return this.downloads.filter(d => (d.source === 'nzbget' || d.source === 'qbittorrent') && (d.status === 'downloading' || d.status === 'queued' || d.status === 'paused') && d.progress < 100).slice(0, 5); }
+  get downloadClientHistory(): DownloadItem[] { return this.downloads.filter(d => (d.source === 'nzbget' || d.source === 'qbittorrent') && (d.status === 'seeding' || d.status === 'importing' || d.status === 'extracting' || d.status === 'completed' || d.status === 'failed' || d.progress >= 100)).slice(0, 5); }
+  get downloadClientActiveCount(): number { return this.downloads.filter(d => (d.source === 'nzbget' || d.source === 'qbittorrent') && d.status === 'downloading').length; }
+  get downloadClientSpeed(): number { return this.downloads.filter(d => d.source === 'nzbget' || d.source === 'qbittorrent').reduce((sum, d) => sum + (d.speed || 0), 0); }
 
-  /**
-   * Get active download count
-   */
-  get activeDownloads(): number {
-    return this.downloads.filter(d => d.status === 'downloading').length;
-  }
+  // Streaming
+  toggleStreamingView(): void { this.streamingViewMode = this.streamingViewMode === 'compact' ? 'detailed' : 'compact'; this.expandedSessionKey = null; }
+  toggleShortcuts(): void { this.shortcutsExpanded = !this.shortcutsExpanded; }
+  toggleSessionExpand(sessionKey: string, event: Event): void { event.stopPropagation(); this.expandedSessionKey = this.expandedSessionKey === sessionKey ? null : sessionKey; }
+  isSessionExpanded(sessionKey: string): boolean { return this.expandedSessionKey === sessionKey; }
 
-  /**
-   * Get queued download count
-   */
-  get queuedDownloads(): number {
-    return this.downloads.filter(d => d.status === 'queued').length;
-  }
+  // Formatting helpers
+  formatBytes(bytes: number): string { if (!bytes || bytes === 0) return '0 B'; const k = 1024; const sizes = ['B', 'KB', 'MB', 'GB', 'TB']; const i = Math.floor(Math.log(bytes) / Math.log(k)); return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]; }
+  formatSpeed(bytesPerSec: number): string { return this.formatBytes(bytesPerSec) + '/s'; }
 
-  /**
-   * Get active downloads from NZBGet and qBittorrent only (for widget queue tab)
-   * Excludes completed items (progress >= 100)
-   */
-  get downloadClientQueue(): DownloadItem[] {
-    return this.downloads
-      .filter(d => 
-        (d.source === 'nzbget' || d.source === 'qbittorrent') &&
-        (d.status === 'downloading' || d.status === 'queued' || d.status === 'paused') &&
-        d.progress < 100
-      )
-      .slice(0, 5);
-  }
-
-  /**
-   * Get completed/seeding downloads from NZBGet and qBittorrent (for widget history tab)
-   * Note: 'seeding' = torrent finished downloading, 'importing' = being processed by arr
-   */
-  get downloadClientHistory(): DownloadItem[] {
-    return this.downloads
-      .filter(d => 
-        (d.source === 'nzbget' || d.source === 'qbittorrent') &&
-        (d.status === 'seeding' || d.status === 'importing' || d.status === 'extracting' || d.status === 'completed' || d.status === 'failed' || d.progress >= 100)
-      )
-      .slice(0, 5);
-  }
-
-  /**
-   * Get count of active downloads from download clients
-   */
-  get downloadClientActiveCount(): number {
-    return this.downloads.filter(d => 
-      (d.source === 'nzbget' || d.source === 'qbittorrent') &&
-      d.status === 'downloading'
-    ).length;
-  }
-
-  /**
-   * Get total speed from download clients only
-   */
-  get downloadClientSpeed(): number {
-    return this.downloads
-      .filter(d => d.source === 'nzbget' || d.source === 'qbittorrent')
-      .reduce((sum, d) => sum + (d.speed || 0), 0);
-  }
-
-  /**
-   * Format bytes to human readable
-   */
-  formatBytes(bytes: number): string {
-    if (!bytes || bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
-
-  /**
-   * Format speed (bytes/s) to human readable
-   */
-  formatSpeed(bytesPerSec: number): string {
-    return this.formatBytes(bytesPerSec) + '/s';
-  }
-
-  /**
-   * Format relative time
-   */
   formatRelativeTime(date: Date | string): string {
-    const now = new Date();
-    const then = new Date(date);
-    const diffMs = now.getTime() - then.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
-
+    const now = new Date(); const then = new Date(date); const diffMs = now.getTime() - then.getTime(); const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now'; if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60); if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24); if (diffDays === 1) return 'Yesterday'; if (diffDays < 7) return `${diffDays}d ago`;
     return then.toLocaleDateString();
   }
 
-  /**
-   * Format request date and time for display
-   * Shows: "Jan 15, 2025 at 3:42 PM"
-   */
-  formatRequestDateTime(date: Date | string): string {
-    const then = new Date(date);
-    const dateStr = then.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-    const timeStr = then.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true
-    });
-    return `${dateStr} at ${timeStr}`;
-  }
+  formatRequestDateTime(date: Date | string): string { const then = new Date(date); return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' + then.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
+  getPlaybackDecisionClass(decision: string): string { switch (decision) { case 'directplay': return 'text-primary-400'; case 'transcode': return 'text-amber-400'; case 'copy': return 'text-blue-400'; default: return 'text-gray-400'; } }
+  getPlaybackDecisionLabel(decision: string): string { switch (decision) { case 'directplay': return 'Direct Play'; case 'transcode': return 'Transcode'; case 'copy': return 'Direct Stream'; default: return decision; } }
+  getDownloadStatusClass(status: string): string { switch (status) { case 'downloading': return 'bg-primary-500'; case 'seeding': return 'bg-blue-500'; case 'queued': return 'bg-gray-500'; case 'paused': return 'bg-yellow-500'; case 'error': return 'bg-red-500'; default: return 'bg-gray-500'; } }
+  getProgressWidth(progress: number): string { return `${Math.min(100, Math.max(0, progress))}%`; }
+  trackBySession(index: number, session: StreamingSession): string { return session.sessionKey; }
+  trackByDownload(index: number, download: DownloadItem): string { return download.id; }
+  trackByActivity(index: number, activity: RecentActivity): string { return activity.id; }
+  getImageUrl(path: string | undefined): string { return this.plexService.getImageUrl(path); }
+  getSessionPoster(session: StreamingSession): string { return session.media.type === 'episode' && session.media.grandparentThumb ? this.plexService.getImageUrl(session.media.grandparentThumb) : this.plexService.getImageUrl(session.media.thumb); }
+  getActivityImageUrl(url: string | undefined): string { if (!url) return ''; if (url.startsWith('http://') || url.startsWith('https://')) return url; return this.plexService.getImageUrl(url); }
 
-  /**
-   * Get playback decision color class
-   */
-  getPlaybackDecisionClass(decision: string): string {
-    switch (decision) {
-      case 'directplay':
-        return 'text-primary-400';
-      case 'transcode':
-        return 'text-amber-400';
-      case 'copy':
-        return 'text-blue-400';
-      default:
-        return 'text-gray-400';
-    }
-  }
-
-  /**
-   * Get playback decision label
-   */
-  getPlaybackDecisionLabel(decision: string): string {
-    switch (decision) {
-      case 'directplay':
-        return 'Direct Play';
-      case 'transcode':
-        return 'Transcode';
-      case 'copy':
-        return 'Direct Stream';
-      default:
-        return decision;
-    }
-  }
-
-  /**
-   * Get download status color class
-   */
-  getDownloadStatusClass(status: string): string {
-    switch (status) {
-      case 'downloading':
-        return 'bg-primary-500';
-      case 'seeding':
-        return 'bg-blue-500';
-      case 'queued':
-        return 'bg-gray-500';
-      case 'paused':
-        return 'bg-yellow-500';
-      case 'error':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  }
-
-  /**
-   * Get progress bar width style
-   */
-  getProgressWidth(progress: number): string {
-    return `${Math.min(100, Math.max(0, progress))}%`;
-  }
-
-  /**
-   * Track by function for streaming sessions
-   */
-  trackBySession(index: number, session: StreamingSession): string {
-    return session.sessionKey;
-  }
-
-  /**
-   * Track by function for downloads
-   */
-  trackByDownload(index: number, download: DownloadItem): string {
-    return download.id;
-  }
-
-  /**
-   * Track by function for activity
-   */
-  trackByActivity(index: number, activity: RecentActivity): string {
-    return activity.id;
-  }
-
-  /**
-   * Get proxied image URL for Plex thumbnails
-   */
-  getImageUrl(path: string | undefined): string {
-    return this.plexService.getImageUrl(path);
-  }
-
-  /**
-   * Get the best poster for a streaming session
-   * For episodes: uses show poster (grandparentThumb) if available
-   * For movies: uses movie poster (thumb)
-   */
-  getSessionPoster(session: StreamingSession): string {
-    // For episodes, prefer the show poster (grandparentThumb)
-    if (session.media.type === 'episode' && session.media.grandparentThumb) {
-      return this.plexService.getImageUrl(session.media.grandparentThumb);
-    }
-    // Fall back to episode/movie thumb
-    return this.plexService.getImageUrl(session.media.thumb);
-  }
-
-  /**
-   * Get image URL for activity items - handles both Plex paths and external URLs
-   */
-  getActivityImageUrl(url: string | undefined): string {
-    if (!url) return '';
-    // If it's already a full URL (from Radarr/Sonarr), use it directly
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    // Otherwise, proxy through Plex
-    return this.plexService.getImageUrl(url);
-  }
-
-  /**
-   * Format duration in milliseconds to HH:MM:SS or MM:SS
-   */
   formatDuration(ms: number): string {
-    if (!ms || ms <= 0) return '0:00';
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
+    if (!ms || ms <= 0) return '0:00'; const totalSeconds = Math.floor(ms / 1000); const hours = Math.floor(totalSeconds / 3600); const minutes = Math.floor((totalSeconds % 3600) / 60); const seconds = totalSeconds % 60;
+    if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Start live timer for updating play times
-   */
-  private startLiveTimer(): void {
-    this.timerInterval = setInterval(() => {
-      this.currentTime = Date.now();
-    }, 1000);
-  }
+  // Live timer
+  private startLiveTimer(): void { this.timerInterval = setInterval(() => { this.currentTime = Date.now(); }, 1000); }
+  private stopLiveTimer(): void { if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; } }
 
-  /**
-   * Stop live timer
-   */
-  private stopLiveTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-  }
-
-  /**
-   * Update session timings when new data arrives
-   */
   private updateSessionTimings(sessions: StreamingSession[]): void {
     const now = Date.now();
-    
-    // Update timings for each session
     sessions.forEach(session => {
       const serverElapsedMs = (session.playback.progress / 100) * session.playback.duration;
-      this.sessionTimings.set(session.sessionKey, {
-        baseElapsedMs: serverElapsedMs,
-        lastUpdateTime: now,
-        lastServerProgress: session.playback.progress
-      });
+      this.sessionTimings.set(session.sessionKey, { baseElapsedMs: serverElapsedMs, lastUpdateTime: now, lastServerProgress: session.playback.progress });
     });
-
-    // Clean up old sessions that no longer exist
     const currentKeys = new Set(sessions.map(s => s.sessionKey));
-    this.sessionTimings.forEach((_, key) => {
-      if (!currentKeys.has(key)) {
-        this.sessionTimings.delete(key);
-      }
-    });
+    this.sessionTimings.forEach((_, key) => { if (!currentKeys.has(key)) this.sessionTimings.delete(key); });
   }
 
-  /**
-   * Get elapsed time from progress percentage and duration (live updating)
-   * Detects seek events by comparing current session progress with stored progress
-   */
-  getElapsedTime(session: StreamingSession): string {
-    return this.formatDuration(this.getCurrentElapsedMs(session));
-  }
+  getElapsedTime(session: StreamingSession): string { return this.formatDuration(this.getCurrentElapsedMs(session)); }
 
-  /**
-   * Get current elapsed time in milliseconds with seek detection
-   * This is the core timing logic used by all time-related methods
-   */
   private getCurrentElapsedMs(session: StreamingSession): number {
     const timing = this.sessionTimings.get(session.sessionKey);
     const serverElapsedMs = (session.playback.progress / 100) * session.playback.duration;
-    
-    if (!timing) {
+    if (!timing) return serverElapsedMs;
+    if (Math.abs(session.playback.progress - timing.lastServerProgress) > 0.15) {
+      this.sessionTimings.set(session.sessionKey, { baseElapsedMs: serverElapsedMs, lastUpdateTime: this.currentTime, lastServerProgress: session.playback.progress });
       return serverElapsedMs;
     }
-
-    // Check if server progress has changed (user seeked or new WebSocket data)
-    // If progress differs by more than 0.15%, snap to server value
-    // For a 2.5 hour movie, 0.15% = ~13 seconds - catches most seeks
-    const progressDiff = Math.abs(session.playback.progress - timing.lastServerProgress);
-    if (progressDiff > 0.15) {
-      // Server progress changed - update timing immediately
-      this.sessionTimings.set(session.sessionKey, {
-        baseElapsedMs: serverElapsedMs,
-        lastUpdateTime: this.currentTime,
-        lastServerProgress: session.playback.progress
-      });
-      return serverElapsedMs;
-    }
-
     let elapsedMs = timing.baseElapsedMs;
-
-    // Only add time delta if session is playing
-    if (session.playback.state === 'playing') {
-      const timeSinceUpdate = this.currentTime - timing.lastUpdateTime;
-      elapsedMs += timeSinceUpdate;
-    }
-
-    // Don't exceed duration
+    if (session.playback.state === 'playing') elapsedMs += this.currentTime - timing.lastUpdateTime;
     return Math.min(elapsedMs, session.playback.duration);
   }
 
-  /**
-   * Get total duration formatted
-   */
-  getTotalTime(session: StreamingSession): string {
-    return this.formatDuration(session.playback.duration);
-  }
+  getTotalTime(session: StreamingSession): string { return this.formatDuration(session.playback.duration); }
+  formatBandwidth(kbps: number | undefined): string { if (!kbps || kbps <= 0) return ''; if (kbps >= 1000) return `${(kbps / 1000).toFixed(1)} Mbps`; return `${Math.round(kbps)} Kbps`; }
 
-  /**
-   * Format bandwidth to human readable (Mbps/Kbps)
-   */
-  formatBandwidth(kbps: number | undefined): string {
-    if (!kbps || kbps <= 0) return '';
-    if (kbps >= 1000) {
-      return `${(kbps / 1000).toFixed(1)} Mbps`;
-    }
-    return `${Math.round(kbps)} Kbps`;
-  }
-
-  /**
-   * Get transcode summary for display
-   */
   getTranscodeSummary(session: StreamingSession): string {
     if (!session.transcoding) return '';
-    
     const parts: string[] = [];
-    
-    // Video decision
-    if (session.transcoding.videoDecision === 'transcode') {
-      parts.push('Video: Transcode');
-    } else if (session.transcoding.videoDecision === 'copy') {
-      parts.push('Video: Direct Stream');
-    }
-    
-    // Audio decision
-    if (session.transcoding.audioDecision === 'transcode') {
-      parts.push('Audio: Transcode');
-    } else if (session.transcoding.audioDecision === 'copy') {
-      parts.push('Audio: Direct Stream');
-    }
-    
+    if (session.transcoding.videoDecision === 'transcode') parts.push('Video: Transcode'); else if (session.transcoding.videoDecision === 'copy') parts.push('Video: Direct Stream');
+    if (session.transcoding.audioDecision === 'transcode') parts.push('Audio: Transcode'); else if (session.transcoding.audioDecision === 'copy') parts.push('Audio: Direct Stream');
     return parts.join(' • ');
   }
 
-  /**
-   * Get hardware acceleration info
-   */
-  getHwAccelInfo(session: StreamingSession): string {
-    if (!session.transcoding) return '';
-    
-    const parts: string[] = [];
-    if (session.transcoding.hwDecode) parts.push('HW Decode');
-    if (session.transcoding.hwEncode) parts.push('HW Encode');
-    
-    return parts.length > 0 ? parts.join(' + ') : 'Software';
-  }
+  getHwAccelInfo(session: StreamingSession): string { if (!session.transcoding) return ''; const parts: string[] = []; if (session.transcoding.hwDecode) parts.push('HW Decode'); if (session.transcoding.hwEncode) parts.push('HW Encode'); return parts.length > 0 ? parts.join(' + ') : 'Software'; }
+  getTranscodeSpeed(session: StreamingSession): string { if (!session.transcoding?.speed) return ''; return `${session.transcoding.speed.toFixed(1)}x`; }
+  getPlaybackStateClass(state: string): string { switch (state) { case 'playing': return 'text-green-400'; case 'paused': return 'text-yellow-400'; case 'buffering': return 'text-blue-400'; default: return 'text-gray-400'; } }
+  getRemainingTime(session: StreamingSession): string { return this.formatDuration(Math.max(0, session.playback.duration - this.getCurrentElapsedMs(session))); }
+  getETA(session: StreamingSession): string { const remainingMs = Math.max(0, session.playback.duration - this.getCurrentElapsedMs(session)); return new Date(Date.now() + remainingMs).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  getSessionDuration(session: StreamingSession): string { if (!session.playback.startedAt) return ''; const mins = Math.floor((Date.now() - new Date(session.playback.startedAt).getTime()) / 60000); if (mins < 60) return `${mins}m`; return `${Math.floor(mins / 60)}h ${mins % 60}m`; }
+  isQualityDowngraded(session: StreamingSession): boolean { if (!session.sourceQuality || !session.streamQuality) return false; return session.sourceQuality.resolution !== session.streamQuality.resolution; }
+  getQualityComparison(session: StreamingSession): string { if (!session.sourceQuality || !session.streamQuality) return ''; if (session.sourceQuality.resolution === session.streamQuality.resolution) return ''; return `${session.sourceQuality.resolution} → ${session.streamQuality.resolution}`; }
+  getStreamHealth(session: StreamingSession): 'good' | 'warning' | 'poor' { if (session.playback.state === 'buffering') return 'poor'; if (!session.transcoding?.speed) return 'good'; if (session.transcoding.speed >= 2.0) return 'good'; if (session.transcoding.speed >= 1.0) return 'warning'; return 'poor'; }
+  getStreamHealthClass(session: StreamingSession): string { const h = this.getStreamHealth(session); return h === 'good' ? 'bg-green-500' : h === 'warning' ? 'bg-yellow-500' : 'bg-red-500'; }
 
-  /**
-   * Get transcode speed display
-   */
-  getTranscodeSpeed(session: StreamingSession): string {
-    if (!session.transcoding?.speed) return '';
-    return `${session.transcoding.speed.toFixed(1)}x`;
-  }
-
-  /**
-   * Get playback state icon class
-   */
-  getPlaybackStateClass(state: string): string {
-    switch (state) {
-      case 'playing': return 'text-green-400';
-      case 'paused': return 'text-yellow-400';
-      case 'buffering': return 'text-blue-400';
-      default: return 'text-gray-400';
-    }
-  }
-
-  /**
-   * Get remaining time
-   */
-  getRemainingTime(session: StreamingSession): string {
-    const elapsedMs = this.getCurrentElapsedMs(session);
-    const remaining = Math.max(0, session.playback.duration - elapsedMs);
-    return this.formatDuration(remaining);
-  }
-
-  /**
-   * Get ETA (end time)
-   */
-  getETA(session: StreamingSession): string {
-    const elapsedMs = this.getCurrentElapsedMs(session);
-    const remainingMs = Math.max(0, session.playback.duration - elapsedMs);
-    const endTime = new Date(Date.now() + remainingMs);
-    
-    return endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  }
-
-  /**
-   * Get session duration (how long they've been watching)
-   */
-  getSessionDuration(session: StreamingSession): string {
-    if (!session.playback.startedAt) return '';
-    const started = new Date(session.playback.startedAt).getTime();
-    const duration = Date.now() - started;
-    
-    const mins = Math.floor(duration / 60000);
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    return `${hours}h ${mins % 60}m`;
-  }
-
-  /**
-   * Check if quality is being downgraded
-   */
-  isQualityDowngraded(session: StreamingSession): boolean {
-    if (!session.sourceQuality || !session.streamQuality) return false;
-    return session.sourceQuality.resolution !== session.streamQuality.resolution;
-  }
-
-  /**
-   * Get quality comparison string
-   */
-  getQualityComparison(session: StreamingSession): string {
-    if (!session.sourceQuality || !session.streamQuality) return '';
-    if (session.sourceQuality.resolution === session.streamQuality.resolution) return '';
-    return `${session.sourceQuality.resolution} → ${session.streamQuality.resolution}`;
-  }
-
-  /**
-   * Get stream health status based on transcode speed
-   */
-  getStreamHealth(session: StreamingSession): 'good' | 'warning' | 'poor' {
-    if (session.playback.state === 'buffering') return 'poor';
-    if (!session.transcoding?.speed) return 'good';
-    
-    if (session.transcoding.speed >= 2.0) return 'good';
-    if (session.transcoding.speed >= 1.0) return 'warning';
-    return 'poor';
-  }
-
-  /**
-   * Get stream health color class
-   */
-  getStreamHealthClass(session: StreamingSession): string {
-    const health = this.getStreamHealth(session);
-    switch (health) {
-      case 'good': return 'bg-green-500';
-      case 'warning': return 'bg-yellow-500';
-      case 'poor': return 'bg-red-500';
-    }
-  }
-
-  /**
-   * Get device/platform icon name
-   */
   getDeviceIcon(session: StreamingSession): string {
-    const platform = (session.player.platform || '').toLowerCase();
-    const product = (session.player.product || '').toLowerCase();
-    const device = (session.player.device || '').toLowerCase();
-    
-    // Apple devices
-    if (platform.includes('ios') || product.includes('iphone')) return 'iphone';
-    if (platform.includes('tvos') || product.includes('apple tv')) return 'appletv';
-    if (platform.includes('macos') || platform.includes('osx')) return 'mac';
-    
-    // Android
-    if (platform.includes('android')) {
-      if (product.includes('tv') || device.includes('tv')) return 'androidtv';
-      return 'android';
-    }
-    
-    // Smart TVs
-    if (platform.includes('roku')) return 'roku';
-    if (platform.includes('fire') || product.includes('fire')) return 'firetv';
-    if (platform.includes('samsung') || platform.includes('tizen')) return 'smarttv';
-    if (platform.includes('lg') || platform.includes('webos')) return 'smarttv';
-    if (platform.includes('chromecast')) return 'chromecast';
-    
-    // Consoles
-    if (platform.includes('playstation') || platform.includes('ps4') || platform.includes('ps5')) return 'playstation';
-    if (platform.includes('xbox')) return 'xbox';
-    
-    // Desktop
-    if (platform.includes('windows')) return 'windows';
-    if (platform.includes('linux')) return 'linux';
-    
-    // Web
-    if (product.includes('web') || platform.includes('chrome') || platform.includes('firefox') || platform.includes('safari')) return 'web';
-    
+    const p = (session.player.platform || '').toLowerCase(); const pr = (session.player.product || '').toLowerCase(); const d = (session.player.device || '').toLowerCase();
+    if (p.includes('ios') || pr.includes('iphone')) return 'iphone'; if (p.includes('tvos') || pr.includes('apple tv')) return 'appletv'; if (p.includes('macos') || p.includes('osx')) return 'mac';
+    if (p.includes('android')) return pr.includes('tv') || d.includes('tv') ? 'androidtv' : 'android';
+    if (p.includes('roku')) return 'roku'; if (p.includes('fire') || pr.includes('fire')) return 'firetv'; if (p.includes('samsung') || p.includes('tizen') || p.includes('lg') || p.includes('webos')) return 'smarttv';
+    if (p.includes('chromecast')) return 'chromecast'; if (p.includes('playstation') || p.includes('ps4') || p.includes('ps5')) return 'playstation'; if (p.includes('xbox')) return 'xbox';
+    if (p.includes('windows')) return 'windows'; if (p.includes('linux')) return 'linux'; if (pr.includes('web') || p.includes('chrome') || p.includes('firefox') || p.includes('safari')) return 'web';
     return 'device';
   }
 
-  /**
-   * Format audio channels display
-   */
-  formatAudioChannels(channels: string | undefined): string {
-    if (!channels) return '';
-    
-    // Handle common formats
-    if (channels.includes('7.1')) return '7.1';
-    if (channels.includes('5.1')) return '5.1';
-    if (channels.includes('stereo') || channels === '2') return '2.0';
-    if (channels.includes('mono') || channels === '1') return '1.0';
-    
-    return channels;
-  }
+  formatAudioChannels(channels: string | undefined): string { if (!channels) return ''; if (channels.includes('7.1')) return '7.1'; if (channels.includes('5.1')) return '5.1'; if (channels.includes('stereo') || channels === '2') return '2.0'; if (channels.includes('mono') || channels === '1') return '1.0'; return channels; }
 
-  /**
-   * Navigate to media detail page
-   */
   navigateToMedia(session: StreamingSession, event: Event): void {
-    event.stopPropagation();
-    if (!session.media.ratingKey) return;
-    
-    if (session.media.type === 'movie') {
-      // Need to find the movie ID from ratingKey
-      // For now, we'll search - in future could have a lookup endpoint
-      this.router.navigate(['/movies'], { queryParams: { search: session.media.title } });
-    } else {
-      this.router.navigate(['/shows'], { queryParams: { search: session.media.showTitle || session.media.title } });
-    }
+    event.stopPropagation(); if (!session.media.ratingKey) return;
+    if (session.media.type === 'movie') this.router.navigate(['/movies'], { queryParams: { search: session.media.title } });
+    else this.router.navigate(['/shows'], { queryParams: { search: session.media.showTitle || session.media.title } });
   }
 
-  // ===== Shortcuts Methods =====
+  openShortcut(shortcut: ServiceShortcut): void { if (shortcut.url) window.open(shortcut.url, '_blank'); }
 
-  /**
-   * Load service shortcuts
-   */
-  private loadShortcuts(): void {
-    this.loadingProgress.shortcuts = false;
-    this.homeService.getShortcuts().subscribe({
-      next: (response) => {
-        this.shortcuts = response.shortcuts;
-        this.loadingProgress.shortcuts = true;
-        this.checkLoadingComplete();
-      },
-      error: (error) => {
-        console.error('Failed to load shortcuts:', error);
-        this.loadingProgress.shortcuts = true;
-        this.checkLoadingComplete();
-      }
-    });
-  }
+  // Calendar
+  formatCalendarDate(dateStr: string): string { const date = new Date(dateStr + 'T00:00:00'); const today = new Date(); today.setHours(0, 0, 0, 0); const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1); if (date.getTime() === today.getTime()) return 'Today'; if (date.getTime() === tomorrow.getTime()) return 'Tomorrow'; return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+  formatAirTime(item: CalendarItem): string { const dateStr = item.airDate || item.releaseDate; if (!dateStr) return ''; return new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); }
 
-  /**
-   * Open shortcut in new tab
-   */
-  openShortcut(shortcut: ServiceShortcut): void {
-    if (shortcut.url) {
-      window.open(shortcut.url, '_blank');
-    }
-  }
+  // Requests
+  getOverseerrPosterUrl(posterPath: string | undefined): string { if (!posterPath) return ''; return `https://image.tmdb.org/t/p/w92${posterPath}`; }
+  approveRequest(request: OverseerrRequest, event: Event): void { event.stopPropagation(); this.overseerrService.approveRequest(request.id).subscribe({ next: () => this.homeService.refreshRequests(), error: (e) => console.error('Failed to approve:', e) }); }
+  declineRequest(request: OverseerrRequest, event: Event): void { event.stopPropagation(); this.overseerrService.declineRequest(request.id).subscribe({ next: () => this.homeService.refreshRequests(), error: (e) => console.error('Failed to decline:', e) }); }
 
-  // ===== Calendar Methods =====
+  // Activity Modal
+  openActivityModal(): void { this.showActivityModal = true; this.modalActivityType = this.activeActivityTab; this.modalOffset = 0; this.modalActivities = []; this.loadModalActivity(); }
+  closeActivityModal(): void { this.showActivityModal = false; this.modalActivities = []; }
+  setModalActivityTab(tab: ActivityTab): void { if (this.modalActivityType === tab) return; this.modalActivityType = tab; this.modalOffset = 0; this.modalActivities = []; this.loadModalActivity(); }
 
-  /**
-   * Load calendar data
-   */
-  private loadCalendar(): void {
-    this.loadingProgress.calendar = false;
-    this.homeService.getCalendar(this.calendarDays).subscribe({
-      next: (response) => {
-        this.calendarItems = response.items;
-        this.calendarGrouped = response.grouped;
-        this.loadingProgress.calendar = true;
-        this.checkLoadingComplete();
-      },
-      error: (error) => {
-        console.error('Failed to load calendar:', error);
-        this.loadingProgress.calendar = true;
-        this.checkLoadingComplete();
-      }
-    });
-  }
-
-  /**
-   * Get calendar dates for display
-   */
-  get calendarDates(): string[] {
-    return Object.keys(this.calendarGrouped).sort();
-  }
-
-  /**
-   * Format calendar date for display
-   */
-  formatCalendarDate(dateStr: string): string {
-    const date = new Date(dateStr + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    if (date.getTime() === today.getTime()) {
-      return 'Today';
-    } else if (date.getTime() === tomorrow.getTime()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    }
-  }
-
-  /**
-   * Format air time for calendar item
-   */
-  formatAirTime(item: CalendarItem): string {
-    const dateStr = item.airDate || item.releaseDate;
-    if (!dateStr) return '';
-    
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  }
-
-  // ===== Requests Methods =====
-
-  /**
-   * Load Overseerr requests
-   */
-  private loadRequests(): void {
-    this.loadingProgress.requests = false;
-    let pendingDone = false;
-    let requestsDone = false;
-
-    const checkRequestsComplete = () => {
-      if (pendingDone && requestsDone) {
-        this.loadingProgress.requests = true;
-        this.checkLoadingComplete();
-      }
-    };
-
-    // Load pending count
-    this.overseerrService.getPendingCount().subscribe({
-      next: (response) => {
-        this.pendingRequestsCount = response.pending;
-        pendingDone = true;
-        checkRequestsComplete();
-      },
-      error: () => {
-        // Overseerr might not be configured
-        pendingDone = true;
-        checkRequestsComplete();
-      }
-    });
-
-    // Load all requests (no status filter)
-    this.homeService.getRequests({ take: 10 }).subscribe({
-      next: (response) => {
-        this.requests = response.results;
-        requestsDone = true;
-        checkRequestsComplete();
-      },
-      error: () => {
-        this.requests = [];
-        requestsDone = true;
-        checkRequestsComplete();
-      }
-    });
-  }
-
-  /**
-   * Get Overseerr poster URL
-   */
-  getOverseerrPosterUrl(posterPath: string | undefined): string {
-    if (!posterPath) return '';
-    return `https://image.tmdb.org/t/p/w92${posterPath}`;
-  }
-
-  /**
-   * Approve request
-   */
-  approveRequest(request: OverseerrRequest, event: Event): void {
-    event.stopPropagation();
-    this.overseerrService.approveRequest(request.id).subscribe({
-      next: () => {
-        this.loadRequests();
-      },
-      error: (error) => {
-        console.error('Failed to approve request:', error);
-      }
-    });
-  }
-
-  /**
-   * Decline request
-   */
-  declineRequest(request: OverseerrRequest, event: Event): void {
-    event.stopPropagation();
-    this.overseerrService.declineRequest(request.id).subscribe({
-      next: () => {
-        this.loadRequests();
-      },
-      error: (error) => {
-        console.error('Failed to decline request:', error);
-      }
-    });
-  }
-
-  // ===== Activity Modal Methods =====
-
-  /**
-   * Open the activity modal
-   */
-  openActivityModal(): void {
-    this.showActivityModal = true;
-    this.modalActivityType = this.activeActivityTab;
-    this.modalOffset = 0;
-    this.modalActivities = [];
-    this.loadModalActivity();
-  }
-
-  /**
-   * Close the activity modal
-   */
-  closeActivityModal(): void {
-    this.showActivityModal = false;
-    this.modalActivities = [];
-  }
-
-  /**
-   * Set modal activity tab and reload
-   */
-  setModalActivityTab(tab: ActivityTab): void {
-    if (this.modalActivityType === tab) return;
-    this.modalActivityType = tab;
-    this.modalOffset = 0;
-    this.modalActivities = [];
-    this.loadModalActivity();
-  }
-
-  /**
-   * Load activity for modal
-   */
   private loadModalActivity(): void {
     this.isLoadingModalActivity = true;
-    
     this.homeService.getActivity(this.modalLimit, this.modalOffset, this.modalActivityType).subscribe({
-      next: (response) => {
-        this.modalActivities = response.activities;
-        this.modalHasMore = response.hasMore;
-        this.modalOffset = response.activities.length;
-        this.isLoadingModalActivity = false;
-      },
-      error: (error) => {
-        console.error('Failed to load modal activity:', error);
-        this.isLoadingModalActivity = false;
-      }
+      next: (response) => { this.modalActivities = response.activities; this.modalHasMore = response.hasMore; this.modalOffset = response.activities.length; this.isLoadingModalActivity = false; },
+      error: () => { this.isLoadingModalActivity = false; }
     });
   }
 
-  /**
-   * Load more activity items in modal
-   */
   loadMoreModalActivity(): void {
     if (this.isLoadingModalActivity || !this.modalHasMore) return;
-
     this.isLoadingModalActivity = true;
-
     this.homeService.getActivity(this.modalLimit, this.modalOffset, this.modalActivityType).subscribe({
-      next: (response) => {
-        this.modalActivities = [...this.modalActivities, ...response.activities];
-        this.modalHasMore = response.hasMore;
-        this.modalOffset += response.activities.length;
-        this.isLoadingModalActivity = false;
-      },
-      error: (error) => {
-        console.error('Failed to load more modal activity:', error);
-        this.isLoadingModalActivity = false;
-      }
+      next: (response) => { this.modalActivities = [...this.modalActivities, ...response.activities]; this.modalHasMore = response.hasMore; this.modalOffset += response.activities.length; this.isLoadingModalActivity = false; },
+      error: () => { this.isLoadingModalActivity = false; }
     });
   }
 
-  /**
-   * Get filtered modal activity (same filtering logic as widget)
-   */
   get filteredModalActivity(): RecentActivity[] {
     return this.modalActivities.filter(a => {
-      // For watched tab, filter out items currently streaming
       if (this.modalActivityType === 'watched' && this.streaming.length > 0) {
-        const isCurrentlyStreaming = this.streaming.some(session => {
-          return a.media.ratingKey === session.media.ratingKey && a.user === session.user.name;
-        });
-        if (isCurrentlyStreaming) return false;
+        if (this.streaming.some(s => a.media.ratingKey === s.media.ratingKey && a.user === s.user.name)) return false;
       }
       return true;
     });
   }
 
-  /**
-   * Handle modal scroll for infinite loading
-   */
   onModalScroll(event: Event): void {
-    const element = event.target as HTMLElement;
-    const threshold = 200; // pixels from bottom to trigger load
-    
-    const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
-    
-    if (distanceFromBottom < threshold && !this.isLoadingModalActivity && this.modalHasMore) {
-      this.loadMoreModalActivity();
-    }
+    const el = event.target as HTMLElement;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 200 && !this.isLoadingModalActivity && this.modalHasMore) this.loadMoreModalActivity();
   }
 }

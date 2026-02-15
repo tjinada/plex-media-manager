@@ -1,163 +1,128 @@
 <div class="h-full flex flex-col">
-  <!-- Fixed Header Section -->
-  <div class="flex-shrink-0 p-4 md:p-6 pb-0">
-    <div class="mb-3 flex items-center justify-between">
+  <!-- Header -->
+  <div class="flex-shrink-0 px-4 md:px-6 pt-3 pb-1">
+    <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-100">Home</h1>
-        <p class="text-gray-400 text-sm">What's happening right now</p>
+        <h1 class="text-[28px] font-bold text-white tracking-tight">Home</h1>
+        <p class="text-gray-500 text-sm -mt-0.5">What's happening right now</p>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="relative flex h-2.5 w-2.5">
-          @if (connectionStatus.connected) {
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 animate-pulse-glow"></span>
-          } @else if (connectionStatus.reconnecting) {
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
-          } @else {
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gray-500"></span>
-          }
-        </span>
-        <span class="text-sm font-medium" [class]="connectionStatus.connected ? 'text-green-400' : connectionStatus.reconnecting ? 'text-yellow-400' : 'text-gray-500'">
-          {{ connectionStatus.connected ? 'Live' : connectionStatus.reconnecting ? 'Reconnecting...' : 'Offline' }}
-        </span>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5">
+          <span class="relative flex h-[7px] w-[7px]">
+            @if (connectionStatus.connected) {
+              <span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50 animate-ping"></span>
+              <span class="relative inline-flex rounded-full h-[7px] w-[7px] bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.6)]"></span>
+            } @else if (connectionStatus.reconnecting) {
+              <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-50 animate-ping"></span>
+              <span class="relative inline-flex rounded-full h-[7px] w-[7px] bg-yellow-500"></span>
+            } @else {
+              <span class="relative inline-flex rounded-full h-[7px] w-[7px] bg-gray-600"></span>
+            }
+          </span>
+          <span class="text-[13px] font-medium" [class]="connectionStatus.connected ? 'text-green-400' : connectionStatus.reconnecting ? 'text-yellow-400' : 'text-gray-600'">
+            {{ connectionStatus.connected ? 'Live' : connectionStatus.reconnecting ? 'Reconnecting...' : 'Offline' }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Scrollable Content with Pull-to-Refresh -->
-  <div class="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6"
-       appPullToRefresh (refresh)="onPullRefresh()">
-    <div class="space-y-4">
+  <!-- Scrollable Content -->
+  <div class="flex-1 overflow-auto px-4 md:px-6 pb-4 md:pb-6" appPullToRefresh (refresh)="onPullRefresh()">
+    <div class="flex flex-col gap-3.5 pt-2">
 
-      <!-- SHORTCUTS -->
+      <!-- SERVICES — Horizontal scroll chips -->
       @if (hasShortcutsData) {
-        <div>
-          <button (click)="toggleShortcuts()" class="lg:hidden w-full flex items-center justify-between p-3 rounded-xl bg-dark-800/50 border border-white/10 hover:bg-dark-700/50 transition-colors mb-2">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-              <span class="text-sm font-medium text-gray-300">Services</span>
-              <span class="text-xs text-gray-500">({{ shortcuts.length }})</span>
-            </div>
-            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" [class.rotate-180]="shortcutsExpanded" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <div [class]="shortcutsExpanded ? 'grid' : 'hidden lg:grid'" class="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
-            @for (shortcut of shortcuts; track shortcut.id) {
-              <button (click)="openShortcut(shortcut)" class="group relative flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-300 hover:scale-105" [class]="!shortcut.connected ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'" [ngClass]="{'bg-gradient-to-br from-yellow-500/20 to-orange-500/10 hover:from-yellow-500/30 hover:to-orange-500/20 ring-1 ring-yellow-500/20 hover:ring-yellow-500/40': shortcut.icon === 'plex','bg-gradient-to-br from-green-500/20 to-emerald-500/10 hover:from-green-500/30 hover:to-emerald-500/20 ring-1 ring-green-500/20 hover:ring-green-500/40': shortcut.icon === 'nzbget','bg-gradient-to-br from-amber-500/20 to-yellow-500/10 hover:from-amber-500/30 hover:to-yellow-500/20 ring-1 ring-amber-500/20 hover:ring-amber-500/40': shortcut.icon === 'radarr','bg-gradient-to-br from-sky-500/20 to-blue-500/10 hover:from-sky-500/30 hover:to-blue-500/20 ring-1 ring-sky-500/20 hover:ring-sky-500/40': shortcut.icon === 'sonarr','bg-gradient-to-br from-purple-500/20 to-violet-500/10 hover:from-purple-500/30 hover:to-violet-500/20 ring-1 ring-purple-500/20 hover:ring-purple-500/40': shortcut.icon === 'overseerr','bg-gradient-to-br from-orange-500/20 to-red-500/10 hover:from-orange-500/30 hover:to-red-500/20 ring-1 ring-orange-500/20 hover:ring-orange-500/40': shortcut.icon === 'tautulli','bg-gradient-to-br from-blue-500/20 to-indigo-500/10 hover:from-blue-500/30 hover:to-indigo-500/20 ring-1 ring-blue-500/20 hover:ring-blue-500/40': shortcut.icon === 'qbittorrent'}">
-                @if (shortcut.connected) { <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-500 ring-2 ring-green-500/30"></span> }
-                <div class="w-8 h-8 flex items-center justify-center">
-                  @switch (shortcut.icon) {
-                    @case ('plex') { <svg class="w-7 h-7 text-yellow-500 group-hover:text-yellow-400 transition-colors drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.643 2H4v20l7.643-10z"/><path d="M20 2h-4.286L8.071 12 15.714 22H20l-7.643-10z"/></svg> }
-                    @case ('nzbget') { <svg class="w-7 h-7 text-green-500 group-hover:text-green-400 transition-colors drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> }
-                    @case ('radarr') { <svg class="w-7 h-7 text-amber-500 group-hover:text-amber-400 transition-colors drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><circle cx="12" cy="12" r="5"/></svg> }
-                    @case ('sonarr') { <svg class="w-7 h-7 text-sky-500 group-hover:text-sky-400 transition-colors drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><circle cx="12" cy="12" r="5"/></svg> }
-                    @case ('overseerr') { <svg class="w-7 h-7 text-purple-500 group-hover:text-purple-400 transition-colors drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> }
-                    @case ('tautulli') { <svg class="w-7 h-7 text-orange-500 group-hover:text-orange-400 transition-colors drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg> }
-                    @case ('qbittorrent') { <svg class="w-7 h-7 text-blue-500 group-hover:text-blue-400 transition-colors drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg> }
-                    @default { <svg class="w-7 h-7 text-gray-400 group-hover:text-gray-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg> }
-                  }
-                </div>
-                <span class="text-xs font-medium text-gray-300 group-hover:text-white transition-colors truncate max-w-full">{{ shortcut.name }}</span>
-                <svg class="absolute bottom-1.5 right-1.5 w-3 h-3 text-gray-600 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-              </button>
-            }
-          </div>
+        <div class="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1 scrollbar-none">
+          @for (shortcut of shortcuts; track shortcut.id) {
+            <button (click)="openShortcut(shortcut)" class="relative flex items-center gap-1.5 px-3 py-[7px] rounded-[10px] bg-white/[0.03] active:scale-95 active:bg-white/[0.07] transition-all flex-shrink-0" [class]="!shortcut.connected ? 'opacity-40' : ''">
+              @if (shortcut.connected) { <span class="absolute top-[5px] right-[5px] w-[5px] h-[5px] rounded-full bg-green-500"></span> }
+              <span class="w-4 h-4 rounded flex-shrink-0" [ngClass]="{'bg-gradient-to-br from-yellow-500 to-amber-600': shortcut.icon === 'plex', 'bg-gradient-to-br from-green-500 to-emerald-600': shortcut.icon === 'nzbget', 'bg-gradient-to-br from-amber-500 to-orange-600': shortcut.icon === 'radarr', 'bg-gradient-to-br from-sky-500 to-blue-600': shortcut.icon === 'sonarr', 'bg-gradient-to-br from-purple-500 to-violet-600': shortcut.icon === 'overseerr', 'bg-gradient-to-br from-orange-500 to-red-600': shortcut.icon === 'tautulli', 'bg-gradient-to-br from-blue-500 to-indigo-600': shortcut.icon === 'qbittorrent'}"></span>
+              <span class="text-xs font-medium text-gray-400 whitespace-nowrap">{{ shortcut.name }}</span>
+            </button>
+          }
         </div>
       } @else if (showShortcutsSkeleton) {
-        <div class="hidden lg:grid grid-cols-7 gap-2">
+        <div class="flex gap-1.5 overflow-hidden">
           @for (i of [1,2,3,4,5]; track i) {
-            <div class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/5 animate-pulse">
-              <div class="w-8 h-8 rounded-full bg-white/10"></div>
-              <div class="w-12 h-3 rounded bg-white/10"></div>
-            </div>
+            <div class="flex items-center gap-1.5 px-3 py-[7px] rounded-[10px] bg-white/[0.03] animate-pulse flex-shrink-0"><div class="w-4 h-4 rounded bg-white/10"></div><div class="w-10 h-3 rounded bg-white/10"></div></div>
           }
         </div>
       }
 
       <!-- NOW STREAMING -->
-      <div class="card p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-xs font-bold gradient-streaming uppercase tracking-wider flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="url(#sg)" viewBox="0 0 24 24"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#ec4899"/></linearGradient></defs><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            Now Streaming ({{ streaming.length }})
-          </h2>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[13px] font-semibold text-gray-500">Now Streaming</span>
           @if (streaming.length > 0) {
-            <div class="flex items-center gap-1 bg-dark-800/50 backdrop-blur-sm rounded-lg p-0.5">
-              <button (click)="toggleStreamingView()" class="p-1.5 rounded transition-colors" [class]="streamingViewMode === 'compact' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-400 hover:text-gray-200'" title="Compact"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></button>
-              <button (click)="toggleStreamingView()" class="p-1.5 rounded transition-colors" [class]="streamingViewMode === 'detailed' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-400 hover:text-gray-200'" title="Detailed"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg></button>
+            <div class="flex items-center gap-1">
+              <span class="text-[12px] text-gray-600">{{ streaming.length }} active</span>
+              <div class="flex items-center gap-0.5 ml-2 bg-white/[0.04] rounded-lg p-0.5">
+                <button (click)="toggleStreamingView()" class="p-1 rounded transition-colors" [class]="streamingViewMode === 'compact' ? 'bg-white/10 text-white' : 'text-gray-500'"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></button>
+                <button (click)="toggleStreamingView()" class="p-1 rounded transition-colors" [class]="streamingViewMode === 'detailed' ? 'bg-white/10 text-white' : 'text-gray-500'"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"/></svg></button>
+              </div>
             </div>
           }
         </div>
 
         @if (showStreamingSkeleton) {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div class="space-y-2.5">
             @for (i of [1,2]; track i) {
-              <div class="rounded-xl border border-white/10 p-3 animate-pulse">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-[72px] rounded-lg bg-white/10"></div>
-                  <div class="flex-1 space-y-2">
-                    <div class="h-4 w-3/4 rounded bg-white/10"></div>
-                    <div class="h-3 w-1/2 rounded bg-white/10"></div>
-                    <div class="h-1.5 w-full rounded-full bg-white/10 mt-2"></div>
-                    <div class="h-3 w-1/3 rounded bg-white/10"></div>
-                  </div>
-                </div>
-              </div>
+              <div class="rounded-2xl bg-white/[0.03] p-3 animate-pulse"><div class="flex items-center gap-3"><div class="w-14 h-[84px] rounded-xl bg-white/[0.06]"></div><div class="flex-1 space-y-2"><div class="h-4 w-3/4 rounded bg-white/[0.06]"></div><div class="h-3 w-1/2 rounded bg-white/[0.06]"></div><div class="h-[3px] w-full rounded-full bg-white/[0.06] mt-3"></div><div class="h-3 w-1/3 rounded bg-white/[0.06]"></div></div></div></div>
             }
           </div>
         } @else if (streaming.length === 0) {
-          <div class="flex items-center justify-center py-8 text-gray-400">
-            <svg class="w-6 h-6 mr-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <div class="flex items-center justify-center py-10 text-gray-600">
+            <svg class="w-5 h-5 mr-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             <span class="text-sm">No active streams</span>
           </div>
         } @else if (streamingViewMode === 'compact') {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div class="space-y-2.5">
             @for (session of streaming; track trackBySession($index, session)) {
-              <div class="group relative rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden hover:scale-[1.02] hover:shadow-lg" [class]="session.playback.decision === 'transcode' ? 'border-amber-500/40 hover:border-amber-500/70' : session.playback.decision === 'copy' ? 'border-blue-500/40 hover:border-blue-500/70' : 'border-primary-500/40 hover:border-primary-500/70'" (click)="toggleSessionExpand(session.sessionKey, $event)">
+              <div class="group relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.97] transition-transform" (click)="toggleSessionExpand(session.sessionKey, $event)">
                 @if (session.media.thumb || session.media.grandparentThumb) {
-                  <div class="absolute inset-0 overflow-hidden"><img [src]="getSessionPoster(session)" alt="" class="w-full h-full object-cover scale-110 blur-[8px] brightness-100 opacity-100"></div>
-                  <div class="absolute inset-0 bg-gradient-to-r from-dark-900/60 via-dark-900/40 to-dark-900/60"></div>
-                } @else { <div class="absolute inset-0 bg-dark-800"></div> }
-                <div class="absolute top-0 left-0 right-0 h-0.5 z-10" [class]="session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500 to-orange-500' : session.playback.decision === 'copy' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'"></div>
-                <div class="relative p-3 z-10">
+                  <div class="absolute inset-0 overflow-hidden"><img [src]="getSessionPoster(session)" alt="" class="w-full h-full object-cover scale-125 blur-[20px] brightness-50 saturate-150"></div>
+                  <div class="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50"></div>
+                } @else { <div class="absolute inset-0 bg-white/[0.03]"></div> }
+                <div class="relative p-3">
                   <div class="flex items-center gap-3">
                     <div class="relative flex-shrink-0">
-                      <div class="w-12 h-[72px] rounded-lg overflow-hidden ring-2 ring-white/20 shadow-xl">
-                        @if (session.media.thumb || session.media.grandparentThumb) { <img [src]="getSessionPoster(session)" [alt]="session.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full bg-dark-700 flex items-center justify-center"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg></div> }
+                      <div class="w-14 h-[84px] rounded-xl overflow-hidden shadow-2xl">
+                        @if (session.media.thumb || session.media.grandparentThumb) { <img [src]="getSessionPoster(session)" [alt]="session.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full bg-white/[0.06] flex items-center justify-center"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div> }
                       </div>
-                      <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-dark-900/80" [class]="session.playback.state === 'playing' ? 'bg-green-500' : session.playback.state === 'paused' ? 'bg-yellow-500' : 'bg-blue-500'">
-                        @if (session.playback.state === 'playing') { <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> } @else if (session.playback.state === 'paused') { <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg> } @else { <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg> }
+                      <div class="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full flex items-center justify-center border-[2.5px] border-black/60" [class]="session.playback.state === 'playing' ? 'bg-green-500' : session.playback.state === 'paused' ? 'bg-yellow-500' : 'bg-blue-500'">
+                        @if (session.playback.state === 'playing') { <svg class="w-[10px] h-[10px] text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> } @else if (session.playback.state === 'paused') { <svg class="w-[10px] h-[10px] text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg> } @else { <svg class="w-[10px] h-[10px] text-white" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg> }
                       </div>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <h3 class="font-semibold text-white text-sm truncate leading-tight drop-shadow-sm">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
-                      <div class="flex items-center gap-1.5 mt-1 text-xs">
-                        <span class="text-gray-200 drop-shadow-sm">{{ session.user.name }}</span><span class="text-gray-400">•</span>
-                        <span class="text-gray-300">{{ session.streamQuality?.resolution || session.quality.resolution }}</span><span class="text-gray-400">•</span>
-                        <span class="font-medium drop-shadow-sm" [class]="session.playback.decision === 'directplay' ? 'text-primary-300' : session.playback.decision === 'transcode' ? 'text-amber-300' : 'text-blue-300'">{{ session.playback.decision === 'directplay' ? 'Direct' : session.playback.decision === 'transcode' ? 'Trans' : 'Stream' }}</span>
+                      <h3 class="font-semibold text-white text-[15px] truncate leading-tight">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
+                      <div class="flex items-center gap-1.5 mt-1 text-[13px]">
+                        <span class="text-white/70">{{ session.user.name }}</span><span class="text-white/30">•</span>
+                        <span class="text-white/60">{{ session.streamQuality?.resolution || session.quality.resolution }}</span><span class="text-white/30">•</span>
+                        <span class="font-semibold" [class]="session.playback.decision === 'directplay' ? 'text-purple-300' : session.playback.decision === 'transcode' ? 'text-amber-300' : 'text-blue-300'">{{ session.playback.decision === 'directplay' ? 'Direct' : session.playback.decision === 'transcode' ? 'Trans' : 'Stream' }}</span>
                       </div>
-                      <div class="mt-2">
-                        <div class="h-1.5 bg-black/30 rounded-full overflow-hidden">
+                      <div class="mt-2.5">
+                        <div class="h-[3px] bg-white/10 rounded-full overflow-hidden">
                           <div class="h-full rounded-full transition-all duration-500 relative overflow-hidden" [class]="session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500 to-orange-400' : session.playback.decision === 'copy' ? 'bg-gradient-to-r from-blue-500 to-cyan-400' : 'bg-gradient-to-r from-purple-500 to-pink-500'" [style.width]="getProgressWidth(session.playback.progress)">
                             @if (session.playback.state === 'playing') { <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer"></div> }
                           </div>
                         </div>
-                        <span class="text-xs text-gray-300 mt-1 block tabular-nums drop-shadow-sm">{{ getElapsedTime(session) }} / {{ getTotalTime(session) }}</span>
+                        <div class="flex justify-between mt-1.5 text-[12px] text-white/40 tabular-nums"><span>{{ getElapsedTime(session) }}</span><span>{{ getTotalTime(session) }}</span></div>
                       </div>
                     </div>
-                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-300 drop-shadow-sm" [class.rotate-90]="isSessionExpanded(session.sessionKey)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <svg class="w-[18px] h-[18px] text-white/20 flex-shrink-0 transition-transform duration-200" [class.rotate-90]="isSessionExpanded(session.sessionKey)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                   </div>
                   @if (isSessionExpanded(session.sessionKey)) {
-                    <div class="mt-3 pt-3 border-t border-white/20 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                      @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-xs text-gray-200 drop-shadow-sm">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
+                    <div class="mt-3 pt-3 border-t border-white/10 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                      @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-[13px] text-white/60">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
                       <div class="flex flex-wrap gap-1.5">
-                        <span class="px-2 py-0.5 rounded-full text-xs bg-black/30 text-gray-200 backdrop-blur-sm">{{ session.streamQuality?.videoCodec || session.quality.videoCodec }}</span>
-                        @if (session.streamQuality?.audioCodec || session.quality.audioCodec) { <span class="px-2 py-0.5 rounded-full text-xs bg-black/30 text-gray-200 backdrop-blur-sm">{{ session.streamQuality?.audioCodec || session.quality.audioCodec }} @if (session.streamQuality?.audioChannels) { {{ formatAudioChannels(session.streamQuality?.audioChannels) }} }</span> }
-                        <span class="px-2 py-0.5 rounded-full text-xs backdrop-blur-sm" [class]="session.network.location === 'lan' ? 'bg-green-500/30 text-green-200' : 'bg-purple-500/30 text-purple-200'">{{ session.network.location | uppercase }}</span>
+                        <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.streamQuality?.videoCodec || session.quality.videoCodec }}</span>
+                        @if (session.streamQuality?.audioCodec || session.quality.audioCodec) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.streamQuality?.audioCodec || session.quality.audioCodec }} @if (session.streamQuality?.audioChannels) { {{ formatAudioChannels(session.streamQuality?.audioChannels) }} }</span> }
+                        <span class="px-2 py-0.5 rounded-md text-[11px]" [class]="session.network.location === 'lan' ? 'bg-green-500/15 text-green-300' : 'bg-purple-500/15 text-purple-300'">{{ session.network.location | uppercase }}</span>
                       </div>
-                      @if (session.playback.decision === 'transcode' && session.transcoding) { <div class="p-2 rounded-lg bg-amber-500/20 border border-amber-500/30 text-xs text-amber-100 backdrop-blur-sm">{{ getTranscodeSummary(session) }} • {{ getHwAccelInfo(session) }} @if (getTranscodeSpeed(session)) { • {{ getTranscodeSpeed(session) }} }</div> }
-                      <div class="flex items-center justify-between text-xs text-gray-300"><span class="drop-shadow-sm">{{ session.player.name }}</span><span class="drop-shadow-sm">Ends {{ getETA(session) }}</span></div>
-                      <button (click)="navigateToMedia(session, $event)" class="w-full py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-all border border-white/20 backdrop-blur-sm">View {{ session.media.type === 'movie' ? 'Movie' : 'Show' }}</button>
+                      @if (session.playback.decision === 'transcode' && session.transcoding) { <div class="p-2 rounded-lg bg-amber-500/10 text-[12px] text-amber-200">{{ getTranscodeSummary(session) }} • {{ getHwAccelInfo(session) }} @if (getTranscodeSpeed(session)) { • {{ getTranscodeSpeed(session) }} }</div> }
+                      <div class="flex items-center justify-between text-[12px] text-white/40"><span>{{ session.player.name }}</span><span>Ends {{ getETA(session) }}</span></div>
+                      <button (click)="navigateToMedia(session, $event)" class="w-full py-2 rounded-lg bg-white/[0.08] active:bg-white/15 text-white text-[13px] font-medium transition-colors">View {{ session.media.type === 'movie' ? 'Movie' : 'Show' }}</button>
                     </div>
                   }
                 </div>
@@ -165,42 +130,37 @@
             }
           </div>
         } @else {
-          <!-- DETAILED VIEW -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          <!-- Detailed view -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
             @for (session of streaming; track trackBySession($index, session)) {
-              <div class="group relative overflow-hidden rounded-xl border border-white/10 shadow-xl cursor-pointer transition-all duration-300 hover:border-white/25 hover:scale-[1.02]" (click)="navigateToMedia(session, $event)">
+              <div class="group relative overflow-hidden rounded-2xl cursor-pointer active:scale-[0.97] transition-transform" (click)="navigateToMedia(session, $event)">
                 @if (session.media.thumb || session.media.grandparentThumb) {
-                  <div class="absolute inset-0 overflow-hidden"><img [src]="getSessionPoster(session)" alt="" class="w-full h-full object-cover scale-110 blur-[8px] brightness-100 opacity-100"></div>
-                  <div class="absolute inset-0 bg-gradient-to-t from-dark-900/70 via-dark-900/40 to-dark-900/50"></div>
-                } @else { <div class="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-pink-900/30"></div> }
-                <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-                <div class="relative p-4 z-10">
+                  <div class="absolute inset-0 overflow-hidden"><img [src]="getSessionPoster(session)" alt="" class="w-full h-full object-cover scale-125 blur-[20px] brightness-50 saturate-150"></div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/40"></div>
+                } @else { <div class="absolute inset-0 bg-white/[0.03]"></div> }
+                <div class="relative p-4">
                   <div class="flex gap-4">
                     <div class="relative flex-shrink-0">
-                      <div class="w-16 h-24 rounded-lg overflow-hidden ring-2 ring-white/30 shadow-2xl">
-                        @if (session.media.thumb || session.media.grandparentThumb) { <img [src]="getSessionPoster(session)" [alt]="session.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full bg-dark-700 flex items-center justify-center"><svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg></div> }
+                      <div class="w-16 h-24 rounded-xl overflow-hidden shadow-2xl">
+                        @if (session.media.thumb || session.media.grandparentThumb) { <img [src]="getSessionPoster(session)" [alt]="session.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full bg-white/[0.06] flex items-center justify-center"><svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div> }
                       </div>
-                      <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-dark-900" [class]="session.playback.state === 'playing' ? 'bg-green-500' : session.playback.state === 'paused' ? 'bg-yellow-500' : 'bg-blue-500'">
-                        @if (session.playback.state === 'playing') { <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> } @else if (session.playback.state === 'paused') { <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg> } @else { <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg> }
+                      <div class="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full flex items-center justify-center border-[2.5px] border-black/60" [class]="session.playback.state === 'playing' ? 'bg-green-500' : session.playback.state === 'paused' ? 'bg-yellow-500' : 'bg-blue-500'">
+                        @if (session.playback.state === 'playing') { <svg class="w-[10px] h-[10px] text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> } @else { <svg class="w-[10px] h-[10px] text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg> }
                       </div>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <h3 class="font-bold text-white truncate drop-shadow-sm">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
-                      @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-sm text-gray-200 truncate drop-shadow-sm">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
-                      <div class="flex items-center gap-2 mt-1.5 text-sm"><span class="text-gray-200 drop-shadow-sm">{{ session.user.name }}</span><span class="text-gray-500">•</span><span class="text-gray-300">{{ session.streamQuality?.resolution || session.quality.resolution }}</span></div>
+                      <h3 class="font-bold text-white text-[16px] truncate">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
+                      @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-sm text-white/60 truncate">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
+                      <div class="flex items-center gap-2 mt-1.5 text-[13px]"><span class="text-white/70">{{ session.user.name }}</span><span class="text-white/30">•</span><span class="text-white/60">{{ session.streamQuality?.resolution || session.quality.resolution }}</span></div>
                       <div class="flex flex-wrap gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm" [class]="session.playback.decision === 'directplay' ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 text-white' : session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500/40 to-orange-500/40 text-amber-100' : 'bg-gradient-to-r from-blue-500/40 to-cyan-500/40 text-blue-100'">{{ getPlaybackDecisionLabel(session.playback.decision) }}</span>
-                        <span class="px-2 py-0.5 rounded-full text-xs backdrop-blur-sm" [class]="session.network.location === 'lan' ? 'bg-green-500/30 text-green-200' : 'bg-purple-500/30 text-purple-200'">{{ session.network.location | uppercase }}</span>
+                        <span class="px-2 py-0.5 rounded-md text-[11px] font-medium" [class]="session.playback.decision === 'directplay' ? 'bg-purple-500/20 text-purple-200' : session.playback.decision === 'transcode' ? 'bg-amber-500/20 text-amber-200' : 'bg-blue-500/20 text-blue-200'">{{ getPlaybackDecisionLabel(session.playback.decision) }}</span>
+                        <span class="px-2 py-0.5 rounded-md text-[11px]" [class]="session.network.location === 'lan' ? 'bg-green-500/15 text-green-300' : 'bg-purple-500/15 text-purple-300'">{{ session.network.location | uppercase }}</span>
                       </div>
                     </div>
                   </div>
                   <div class="mt-3">
-                    <div class="flex justify-between text-xs mb-1.5"><span class="text-white font-medium tabular-nums drop-shadow-sm">{{ getElapsedTime(session) }} / {{ getTotalTime(session) }}</span><span class="text-gray-300 drop-shadow-sm">{{ getETA(session) }}</span></div>
-                    <div class="h-2 bg-black/30 rounded-full overflow-hidden">
-                      <div class="h-full rounded-full transition-all duration-500 relative overflow-hidden" [class]="session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500 to-orange-400' : 'bg-gradient-to-r from-purple-500 to-pink-500'" [style.width]="getProgressWidth(session.playback.progress)">
-                        @if (session.playback.state === 'playing') { <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer"></div> }
-                      </div>
-                    </div>
+                    <div class="flex justify-between text-[12px] mb-1.5"><span class="text-white/70 font-medium tabular-nums">{{ getElapsedTime(session) }} / {{ getTotalTime(session) }}</span><span class="text-white/40">{{ getETA(session) }}</span></div>
+                    <div class="h-[3px] bg-white/10 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-500 relative overflow-hidden" [class]="session.playback.decision === 'transcode' ? 'bg-gradient-to-r from-amber-500 to-orange-400' : 'bg-gradient-to-r from-purple-500 to-pink-500'" [style.width]="getProgressWidth(session.playback.progress)">@if (session.playback.state === 'playing') { <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer"></div> }</div></div>
                   </div>
                 </div>
               </div>
@@ -209,180 +169,187 @@
         }
       </div>
 
-      <!-- THREE COMPACT WIDGETS -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- QUICK STATS -->
-        <div class="glass-card overflow-hidden">
-          <div class="px-3 py-2.5 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-            <h3 class="text-xs font-bold gradient-stats uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Quick Stats</h3>
-          </div>
-          <div class="p-3 space-y-2.5">
-            @if (showStatsSkeleton) {
-              @for (i of [1,2,3,4]; track i) { <div class="flex items-center justify-between animate-pulse"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-white/10"></div><div class="w-16 h-3 rounded bg-white/10"></div></div><div class="w-8 h-5 rounded bg-white/10"></div></div> }
-            } @else {
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center ring-1 ring-white/10"><svg class="w-4 h-4 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div><span class="text-sm text-gray-300">Streaming</span></div>
-                <div class="text-right"><span class="text-lg font-bold text-white">{{ stats?.streaming?.active || 0 }}</span>@if (stats?.streaming?.transcoding) { <span class="text-xs text-amber-400 ml-1">({{ stats?.streaming?.transcoding }}⚡)</span> }</div>
-              </div>
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/30 to-emerald-500/30 flex items-center justify-center ring-1 ring-white/10"><svg class="w-4 h-4 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><span class="text-sm text-gray-300">Downloads</span></div>
-                <div class="text-right"><span class="text-lg font-bold text-white">{{ activeDownloads + queuedDownloads }}</span>@if (totalDownloadSpeed > 0) { <span class="text-xs text-green-400 ml-1">↓{{ formatSpeed(totalDownloadSpeed) }}</span> }</div>
-              </div>
-              <a routerLink="/wanted" class="flex items-center justify-between hover:bg-white/5 -mx-3 px-3 py-1 rounded-lg transition-colors group">
-                <div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-500/30 to-orange-500/30 flex items-center justify-center ring-1 ring-white/10"><svg class="w-4 h-4 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><span class="text-sm text-gray-300 group-hover:text-white transition-colors">Missing</span></div>
-                <span class="text-lg font-bold text-white">{{ (stats?.radarr?.missing || 0) + (stats?.sonarr?.missing || 0) }}</span>
-              </a>
-              <a routerLink="/wanted" class="flex items-center justify-between hover:bg-white/5 -mx-3 px-3 py-1 rounded-lg transition-colors group">
-                <div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center ring-1 ring-white/10"><svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg></div><span class="text-sm text-gray-300 group-hover:text-white transition-colors">Upgrades</span></div>
-                <span class="text-lg font-bold text-white">{{ (stats?.radarr?.upgrades || 0) + (stats?.sonarr?.upgrades || 0) }}</span>
-              </a>
-            }
-          </div>
+      <!-- AT A GLANCE — 2x2 grid -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[13px] font-semibold text-gray-500">At a Glance</span>
         </div>
+        @if (showStatsSkeleton) {
+          <div class="grid grid-cols-2 gap-2.5">
+            @for (i of [1,2,3,4]; track i) { <div class="rounded-[14px] bg-white/[0.03] p-3.5 animate-pulse"><div class="h-7 w-10 rounded bg-white/[0.06] mb-1"></div><div class="h-3 w-14 rounded bg-white/[0.06]"></div></div> }
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="rounded-[14px] bg-white/[0.03] p-3.5 active:scale-[0.96] active:bg-white/[0.06] transition-all cursor-pointer">
+              <div class="text-[28px] font-bold text-white leading-none tracking-tight">{{ stats?.streaming?.active || 0 }}</div>
+              <div class="text-[12px] text-gray-500 mt-1 font-medium">Streaming</div>
+              @if (stats?.streaming?.transcoding) { <div class="text-[11px] text-amber-400 font-medium mt-0.5">{{ stats?.streaming?.transcoding }} transcoding</div> }
+            </div>
+            <div class="rounded-[14px] bg-white/[0.03] p-3.5 active:scale-[0.96] active:bg-white/[0.06] transition-all cursor-pointer">
+              <div class="text-[28px] font-bold text-white leading-none tracking-tight">{{ activeDownloads + queuedDownloads }}</div>
+              <div class="text-[12px] text-gray-500 mt-1 font-medium">Downloads</div>
+              @if (totalDownloadSpeed > 0) { <div class="text-[11px] text-green-400 font-medium mt-0.5">↓ {{ formatSpeed(totalDownloadSpeed) }}</div> }
+            </div>
+            <a routerLink="/wanted" class="rounded-[14px] bg-white/[0.03] p-3.5 active:scale-[0.96] active:bg-white/[0.06] transition-all cursor-pointer block">
+              <div class="text-[28px] font-bold text-white leading-none tracking-tight">{{ (stats?.radarr?.missing || 0) + (stats?.sonarr?.missing || 0) }}</div>
+              <div class="text-[12px] text-gray-500 mt-1 font-medium">Missing</div>
+            </a>
+            <a routerLink="/wanted" class="rounded-[14px] bg-white/[0.03] p-3.5 active:scale-[0.96] active:bg-white/[0.06] transition-all cursor-pointer block">
+              <div class="text-[28px] font-bold text-white leading-none tracking-tight">{{ (stats?.radarr?.upgrades || 0) + (stats?.sonarr?.upgrades || 0) }}</div>
+              <div class="text-[12px] text-gray-500 mt-1 font-medium">Upgrades</div>
+            </a>
+          </div>
+        }
+      </div>
 
-        <!-- DOWNLOADS -->
-        <div class="glass-card overflow-hidden">
-          <div class="px-3 py-2.5 border-b border-white/10 bg-gradient-to-r from-green-500/10 to-teal-500/10 flex items-center justify-between">
-            <h3 class="text-xs font-bold gradient-downloads uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Downloads</h3>
-            @if (downloadClientSpeed > 0) { <span class="text-xs text-green-400 font-bold tabular-nums bg-green-500/20 px-2 py-0.5 rounded-full">↓{{ formatSpeed(downloadClientSpeed) }}</span> }
+      <!-- DOWNLOADS -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[13px] font-semibold text-gray-500">Downloads</span>
+          @if (downloadClientSpeed > 0) { <span class="text-[12px] text-green-400 font-semibold tabular-nums">↓ {{ formatSpeed(downloadClientSpeed) }}</span> }
+        </div>
+        <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
+          <div class="flex border-b border-white/[0.04]">
+            <button (click)="downloadWidgetTab = 'queue'" class="flex-1 px-3 py-2.5 text-[13px] font-medium transition-all border-b-2" [class]="downloadWidgetTab === 'queue' ? 'text-green-400 border-green-500' : 'text-gray-500 border-transparent'">Queue ({{ downloadClientActiveCount }})</button>
+            <button (click)="downloadWidgetTab = 'history'" class="flex-1 px-3 py-2.5 text-[13px] font-medium transition-all border-b-2" [class]="downloadWidgetTab === 'history' ? 'text-green-400 border-green-500' : 'text-gray-500 border-transparent'">History</button>
           </div>
-          <div class="flex border-b border-white/10">
-            <button (click)="downloadWidgetTab = 'queue'" class="flex-1 px-3 py-2 text-xs font-medium transition-all border-b-2" [class]="downloadWidgetTab === 'queue' ? 'text-green-400 border-green-500 bg-green-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Queue ({{ downloadClientActiveCount }})</button>
-            <button (click)="downloadWidgetTab = 'history'" class="flex-1 px-3 py-2 text-xs font-medium transition-all border-b-2" [class]="downloadWidgetTab === 'history' ? 'text-green-400 border-green-500 bg-green-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">History</button>
-          </div>
-          <div class="p-2 space-y-1.5 min-h-[140px] max-h-[180px] overflow-y-auto">
+          <div class="min-h-[100px] max-h-[200px] overflow-y-auto">
             @if (showDownloadsSkeleton) {
-              @for (i of [1,2,3]; track i) { <div class="p-2 rounded-lg bg-white/5 animate-pulse"><div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-1.5 flex-1"><div class="w-8 h-4 rounded bg-white/10"></div><div class="w-32 h-3 rounded bg-white/10"></div></div><div class="w-8 h-3 rounded bg-white/10"></div></div><div class="h-1.5 rounded-full bg-white/10"></div></div> }
+              @for (i of [1,2,3]; track i) { <div class="px-3.5 py-2.5 border-t border-white/[0.03] first:border-0 animate-pulse"><div class="flex items-center gap-2 mb-2"><div class="w-8 h-4 rounded bg-white/[0.06]"></div><div class="w-32 h-3 rounded bg-white/[0.06]"></div><div class="ml-auto w-8 h-3 rounded bg-white/[0.06]"></div></div><div class="h-[2px] rounded-full bg-white/[0.06]"></div></div> }
             } @else if (downloadWidgetTab === 'queue') {
               @if (downloadClientQueue.length === 0) {
-                <div class="flex flex-col items-center justify-center py-6 text-gray-500"><svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><span class="text-xs">Queue empty</span></div>
+                <div class="flex flex-col items-center justify-center py-8 text-gray-600"><svg class="w-7 h-7 mb-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><span class="text-[12px]">Queue empty</span></div>
               } @else {
                 @for (download of downloadClientQueue; track trackByDownload($index, download)) {
-                  <div class="p-2 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                    <div class="flex items-center justify-between mb-1.5">
-                      <div class="flex items-center gap-1.5 flex-1 min-w-0 mr-2">@if (download.source === 'nzbget') { <span class="text-xs font-bold text-green-400 flex-shrink-0 bg-green-500/20 px-1.5 py-0.5 rounded">NZB</span> } @else { <span class="text-xs font-bold text-blue-400 flex-shrink-0 bg-blue-500/20 px-1.5 py-0.5 rounded">qBt</span> }<span class="text-xs text-gray-200 truncate font-medium">{{ download.title }}</span></div>
-                      <span class="text-xs text-white font-bold tabular-nums flex-shrink-0">{{ download.progress | number:'1.0-0' }}%</span>
+                  <div class="px-3.5 py-2.5 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      @if (download.source === 'nzbget') { <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded flex-shrink-0">NZB</span> } @else { <span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded flex-shrink-0">qBt</span> }
+                      <span class="text-[13px] text-gray-300 truncate font-medium flex-1">{{ download.title }}</span>
+                      <span class="text-[13px] text-white font-bold tabular-nums flex-shrink-0">{{ download.progress | number:'1.0-0' }}%</span>
                     </div>
-                    <div class="h-1.5 bg-dark-700 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-300 relative overflow-hidden" [class]="download.status === 'downloading' ? 'bg-gradient-to-r from-green-500 to-emerald-400' : download.status === 'paused' ? 'bg-yellow-500' : 'bg-gray-500'" [style.width]="getProgressWidth(download.progress)">@if (download.status === 'downloading') { <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer"></div> }</div></div>
-                    <div class="flex items-center justify-between mt-1"><span class="text-xs text-gray-500">{{ download.quality || 'Unknown' }}</span>@if (download.speed && download.speed > 0) { <span class="text-xs text-green-400 font-medium tabular-nums">{{ formatSpeed(download.speed) }}</span> } @else if (download.eta) { <span class="text-xs text-gray-500">{{ download.eta }}</span> } @else if (download.status === 'paused') { <span class="text-xs text-yellow-400">Paused</span> }</div>
+                    <div class="h-[2px] bg-white/[0.06] rounded-full overflow-hidden mt-2"><div class="h-full rounded-full transition-all duration-300 relative overflow-hidden" [class]="download.status === 'downloading' ? 'bg-gradient-to-r from-green-500 to-emerald-400' : download.status === 'paused' ? 'bg-yellow-500' : 'bg-gray-500'" [style.width]="getProgressWidth(download.progress)">@if (download.status === 'downloading') { <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer"></div> }</div></div>
+                    <div class="flex items-center justify-between mt-1"><span class="text-[11px] text-gray-600">{{ download.quality || 'Unknown' }}</span>@if (download.speed && download.speed > 0) { <span class="text-[11px] text-green-400 font-medium tabular-nums">{{ formatSpeed(download.speed) }}</span> } @else if (download.eta) { <span class="text-[11px] text-gray-600">{{ download.eta }}</span> } @else if (download.status === 'paused') { <span class="text-[11px] text-yellow-400">Paused</span> }</div>
                   </div>
                 }
               }
             } @else {
               @if (downloadClientHistory.length === 0) {
-                <div class="flex flex-col items-center justify-center py-6 text-gray-500"><svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-xs">No recent history</span></div>
+                <div class="flex flex-col items-center justify-center py-8 text-gray-600"><svg class="w-7 h-7 mb-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[12px]">No recent history</span></div>
               } @else {
                 @for (download of downloadClientHistory; track trackByDownload($index, download)) {
-                  <div class="p-2 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-1.5 flex-1 min-w-0 mr-2">@if (download.source === 'nzbget') { <span class="text-xs font-bold text-green-400 flex-shrink-0 bg-green-500/20 px-1.5 py-0.5 rounded">NZB</span> } @else { <span class="text-xs font-bold text-blue-400 flex-shrink-0 bg-blue-500/20 px-1.5 py-0.5 rounded">qBt</span> }<span class="text-xs text-gray-200 truncate font-medium">{{ download.title }}</span></div>
+                  <div class="px-3.5 py-2.5 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      @if (download.source === 'nzbget') { <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded flex-shrink-0">NZB</span> } @else { <span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded flex-shrink-0">qBt</span> }
+                      <span class="text-[13px] text-gray-300 truncate font-medium flex-1">{{ download.title }}</span>
                       @if (download.status === 'seeding') { <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg> } @else if (download.status === 'importing' || download.status === 'extracting') { <svg class="w-4 h-4 text-yellow-400 flex-shrink-0 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> } @else if (download.status === 'failed') { <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> } @else { <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> }
                     </div>
-                    <div class="flex items-center justify-between mt-1"><span class="text-xs text-gray-500">{{ download.quality || 'Unknown' }}</span>@if (download.status === 'seeding') { <span class="text-xs text-blue-400">Seeding</span> } @else if (download.status === 'importing') { <span class="text-xs text-yellow-400">Importing</span> } @else if (download.status === 'extracting') { <span class="text-xs text-yellow-400">Extracting</span> } @else if (download.status === 'failed') { <span class="text-xs text-red-400">Failed</span> } @else { <span class="text-xs text-green-400">Done</span> }</div>
+                    <div class="flex items-center justify-between mt-1"><span class="text-[11px] text-gray-600">{{ download.quality || 'Unknown' }}</span>@if (download.status === 'seeding') { <span class="text-[11px] text-blue-400">Seeding</span> } @else if (download.status === 'importing') { <span class="text-[11px] text-yellow-400">Importing</span> } @else if (download.status === 'extracting') { <span class="text-[11px] text-yellow-400">Extracting</span> } @else if (download.status === 'failed') { <span class="text-[11px] text-red-400">Failed</span> } @else { <span class="text-[11px] text-green-400">Done</span> }</div>
                   </div>
                 }
               }
             }
           </div>
         </div>
+      </div>
 
-        <!-- RECENT ACTIVITY -->
-        <div class="glass-card overflow-hidden">
-          <div class="px-3 py-2.5 border-b border-white/10 bg-gradient-to-r from-orange-500/10 to-red-500/10">
-            <h3 class="text-xs font-bold gradient-activity uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Recent Activity</h3>
+      <!-- RECENT ACTIVITY -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[13px] font-semibold text-gray-500">Recent Activity</span>
+          @if (hasActivityData) { <button (click)="openActivityModal()" class="text-[12px] text-primary-400 font-medium">See All</button> }
+        </div>
+        <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
+          <div class="flex border-b border-white/[0.04]">
+            <button (click)="setActivityTab('watched')" class="flex-1 px-2 py-2.5 text-[13px] font-medium transition-all border-b-2 relative" [class]="activeActivityTab === 'watched' ? 'text-orange-400 border-orange-400' : 'text-gray-500 border-transparent'">Watched</button>
+            <button (click)="setActivityTab('downloaded')" class="flex-1 px-2 py-2.5 text-[13px] font-medium transition-all border-b-2 relative" [class]="activeActivityTab === 'downloaded' ? 'text-orange-400 border-orange-400' : 'text-gray-500 border-transparent'">Downloaded</button>
+            <button (click)="setActivityTab('added')" class="flex-1 px-2 py-2.5 text-[13px] font-medium transition-all border-b-2 relative" [class]="activeActivityTab === 'added' ? 'text-orange-400 border-orange-400' : 'text-gray-500 border-transparent'">Added</button>
           </div>
-          <div class="flex border-b border-white/10">
-            <button (click)="setActivityTab('watched')" class="flex-1 px-2 py-2 text-xs font-medium transition-all border-b-2" [class]="activeActivityTab === 'watched' ? 'text-orange-400 border-orange-500 bg-orange-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Watched</button>
-            <button (click)="setActivityTab('downloaded')" class="flex-1 px-2 py-2 text-xs font-medium transition-all border-b-2" [class]="activeActivityTab === 'downloaded' ? 'text-orange-400 border-orange-500 bg-orange-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Downloaded</button>
-            <button (click)="setActivityTab('added')" class="flex-1 px-2 py-2 text-xs font-medium transition-all border-b-2" [class]="activeActivityTab === 'added' ? 'text-orange-400 border-orange-500 bg-orange-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Added</button>
-          </div>
-          <div class="p-2 space-y-1 min-h-[140px] max-h-[180px] overflow-y-auto">
+          <div class="min-h-[100px] max-h-[200px] overflow-y-auto">
             @if (showActivitySkeleton) {
-              @for (i of [1,2,3,4]; track i) { <div class="flex items-center gap-2.5 py-1.5 px-1.5 animate-pulse"><div class="w-8 h-12 rounded-lg bg-white/10 flex-shrink-0"></div><div class="flex-1 space-y-1.5"><div class="h-3 w-3/4 rounded bg-white/10"></div><div class="h-2.5 w-1/2 rounded bg-white/10"></div></div></div> }
+              @for (i of [1,2,3,4]; track i) { <div class="flex items-center gap-3 px-3.5 py-2.5 border-t border-white/[0.03] first:border-0 animate-pulse"><div class="w-[38px] h-14 rounded-lg bg-white/[0.06] flex-shrink-0"></div><div class="flex-1 space-y-1.5"><div class="h-3.5 w-3/4 rounded bg-white/[0.06]"></div><div class="h-3 w-1/2 rounded bg-white/[0.06]"></div></div></div> }
             } @else if (filteredActivity.length === 0) {
-              <div class="flex flex-col items-center justify-center py-6 text-gray-500"><svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-xs">No recent activity</span></div>
+              <div class="flex flex-col items-center justify-center py-8 text-gray-600"><svg class="w-7 h-7 mb-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[12px]">No recent activity</span></div>
             } @else {
               @for (activity of filteredActivity.slice(0, 6); track trackByActivity($index, activity)) {
-                <div class="flex items-center gap-2.5 py-1.5 px-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                  <div class="w-8 h-12 rounded-lg bg-dark-700 flex-shrink-0 overflow-hidden ring-1 ring-white/10 shadow-lg">
-                    @if (activity.media.thumb) { <img [src]="getActivityImageUrl(activity.media.thumb)" [alt]="activity.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center"><svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg></div> }
+                <div class="flex items-center gap-3 px-3.5 py-2.5 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors cursor-pointer">
+                  <div class="w-[38px] h-14 rounded-lg bg-white/[0.04] flex-shrink-0 overflow-hidden">
+                    @if (activity.media.thumb) { <img [src]="getActivityImageUrl(activity.media.thumb)" [alt]="activity.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center"><svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div> }
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-xs text-white truncate font-medium">@if (activity.media.type === 'episode' && activity.media.showTitle) { {{ activity.media.showTitle }} @if (activity.media.seasonEpisode) { <span class="text-gray-400 font-normal"> • {{ activity.media.seasonEpisode }}</span> } } @else { {{ activity.media.title }} }</p>
-                    <p class="text-xs text-gray-500 truncate">@if (activity.type === 'watched' && activity.user) { {{ activity.user }} • } @if (activity.type === 'watched' && activity.watchStatus) { <span class="font-medium" [class]="activity.watchStatus === 'completed' ? 'text-green-400' : activity.watchStatus === 'abandoned' ? 'text-red-400' : 'text-yellow-400'">{{ activity.watchStatus === 'completed' ? '✓' : activity.watchStatus === 'abandoned' ? '✗' : '◐' }}</span> {{ activity.watchProgress }}% • } {{ formatRelativeTime(activity.timestamp) }}</p>
+                    <p class="text-[14px] text-gray-200 truncate font-semibold">@if (activity.media.type === 'episode' && activity.media.showTitle) { {{ activity.media.showTitle }} @if (activity.media.seasonEpisode) { <span class="text-gray-600 font-normal"> • {{ activity.media.seasonEpisode }}</span> } } @else { {{ activity.media.title }} }</p>
+                    <p class="text-[12px] text-gray-600 truncate mt-0.5">@if (activity.type === 'watched' && activity.user) { {{ activity.user }} • } @if (activity.type === 'watched' && activity.watchStatus) { <span class="font-semibold" [class]="activity.watchStatus === 'completed' ? 'text-green-400' : activity.watchStatus === 'abandoned' ? 'text-red-400' : 'text-yellow-400'">{{ activity.watchStatus === 'completed' ? '✓' : activity.watchStatus === 'abandoned' ? '✗' : '◐' }}</span> {{ activity.watchProgress }}% • } {{ formatRelativeTime(activity.timestamp) }}</p>
                   </div>
+                  <span class="text-[12px] text-gray-600 font-medium flex-shrink-0">{{ formatRelativeTime(activity.timestamp) }}</span>
                 </div>
               }
-              @if (filteredActivity.length > 6) { <div class="text-center pt-2"><button (click)="openActivityModal()" class="text-xs text-orange-400 hover:text-orange-300 font-medium transition-colors">View all →</button></div> }
             }
           </div>
         </div>
       </div>
 
-      <!-- REQUESTS & CALENDAR -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- REQUESTS -->
-        <div class="glass-card overflow-hidden">
-          <div class="px-3 py-2.5 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 flex items-center justify-between">
-            <h3 class="text-xs font-bold gradient-requests uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Requests</h3>
-            @if (pendingRequestsCount > 0) { <span class="text-xs font-bold bg-gradient-to-r from-purple-500/30 to-indigo-500/30 text-purple-200 px-2 py-0.5 rounded-full ring-1 ring-purple-500/30">{{ pendingRequestsCount }} pending</span> }
-          </div>
-          <div class="p-2 space-y-2 min-h-[160px] max-h-[220px] overflow-y-auto">
+      <!-- REQUESTS -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[13px] font-semibold text-gray-500">Requests</span>
+          @if (pendingRequestsCount > 0) { <span class="text-[11px] font-semibold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md">{{ pendingRequestsCount }} pending</span> }
+        </div>
+        <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
+          <div class="min-h-[80px] max-h-[240px] overflow-y-auto">
             @if (showRequestsSkeleton) {
-              @for (i of [1,2]; track i) { <div class="p-2.5 rounded-xl bg-white/5 animate-pulse"><div class="flex gap-2.5"><div class="w-11 h-[66px] rounded-lg bg-white/10 flex-shrink-0"></div><div class="flex-1 space-y-2"><div class="h-4 w-3/4 rounded bg-white/10"></div><div class="h-3 w-1/2 rounded bg-white/10"></div><div class="h-3 w-1/3 rounded bg-white/10"></div></div></div></div> }
+              @for (i of [1,2]; track i) { <div class="flex gap-3 px-3.5 py-3 border-t border-white/[0.03] first:border-0 animate-pulse"><div class="w-11 h-[66px] rounded-lg bg-white/[0.06] flex-shrink-0"></div><div class="flex-1 space-y-2"><div class="h-4 w-3/4 rounded bg-white/[0.06]"></div><div class="h-3 w-1/2 rounded bg-white/[0.06]"></div><div class="h-3 w-1/3 rounded bg-white/[0.06]"></div></div></div> }
             } @else if (requests.length === 0) {
-              <div class="flex flex-col items-center justify-center py-8 text-gray-500"><svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><span class="text-xs">No requests</span></div>
+              <div class="flex flex-col items-center justify-center py-8 text-gray-600"><svg class="w-7 h-7 mb-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><span class="text-[12px]">No requests</span></div>
             } @else {
               @for (request of requests; track request.id) {
-                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-white/15 transition-all hover:bg-white/10">
-                  <div class="flex gap-2.5">
-                    <div class="w-11 h-[66px] rounded-lg overflow-hidden flex-shrink-0 bg-dark-700 ring-1 ring-white/10 shadow-lg">
-                      @if (request.media.posterPath) { <img [src]="getOverseerrPosterUrl(request.media.posterPath)" [alt]="request.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg></div> }
+                <div class="flex gap-3 px-3.5 py-3 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors cursor-pointer">
+                  <div class="w-11 h-[66px] rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
+                    @if (request.media.posterPath) { <img [src]="getOverseerrPosterUrl(request.media.posterPath)" [alt]="request.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div> }
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="min-w-0"><h4 class="text-[14px] font-semibold text-gray-200 truncate">{{ request.media.title || 'Unknown Title' }}</h4><p class="text-[12px] text-gray-600 mt-0.5"><span class="capitalize">{{ request.type }}</span> • {{ request.requestedBy.displayName }}</p><p class="text-[11px] text-gray-700 mt-0.5">{{ formatRequestDateTime(request.createdAt) }}</p></div>
+                      <span class="text-[10px] px-2 py-[3px] rounded-md font-semibold flex-shrink-0" [class]="request.mediaStatus === 'available' ? 'bg-green-500/10 text-green-300' : request.mediaStatus === 'partially_available' ? 'bg-yellow-500/10 text-yellow-300' : request.mediaStatus === 'processing' ? 'bg-blue-500/10 text-blue-300' : request.mediaStatus === 'pending' ? 'bg-purple-500/10 text-purple-300' : 'bg-white/[0.06] text-gray-400'">{{ request.mediaStatusLabel || 'Requested' }}</span>
                     </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-start justify-between gap-1">
-                        <div class="min-w-0"><h4 class="text-sm font-semibold text-white truncate">{{ request.media.title || 'Unknown Title' }}</h4><p class="text-xs text-gray-400"><span class="capitalize">{{ request.type }}</span> • {{ request.requestedBy.displayName }}</p><p class="text-xs text-gray-500 mt-0.5">{{ formatRequestDateTime(request.createdAt) }}</p></div>
-                        <span class="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" [class]="request.mediaStatus === 'available' ? 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30' : request.mediaStatus === 'partially_available' ? 'bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-500/30' : request.mediaStatus === 'processing' ? 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/30' : request.mediaStatus === 'pending' ? 'bg-purple-500/20 text-purple-300 ring-1 ring-purple-500/30' : 'bg-gray-500/20 text-gray-300 ring-1 ring-gray-500/30'">{{ request.mediaStatusLabel || 'Requested' }}</span>
+                    @if (request.status === 'pending') {
+                      <div class="flex gap-1.5 mt-2">
+                        <button (click)="approveRequest(request, $event)" class="flex-1 py-1.5 px-2 rounded-lg text-[12px] font-medium bg-green-500/10 active:bg-green-500/20 text-green-300 transition-colors">✓ Approve</button>
+                        <button (click)="declineRequest(request, $event)" class="flex-1 py-1.5 px-2 rounded-lg text-[12px] font-medium bg-red-500/10 active:bg-red-500/20 text-red-300 transition-colors">✗ Decline</button>
                       </div>
-                      @if (request.status === 'pending') {
-                        <div class="flex gap-1.5 mt-2">
-                          <button (click)="approveRequest(request, $event)" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-medium bg-green-500/20 hover:bg-green-500/30 text-green-300 transition-all ring-1 ring-green-500/20">✓ Approve</button>
-                          <button (click)="declineRequest(request, $event)" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-medium bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-all ring-1 ring-red-500/20">✗ Decline</button>
-                        </div>
-                      }
-                    </div>
+                    }
                   </div>
                 </div>
               }
             }
           </div>
         </div>
+      </div>
 
-        <!-- CALENDAR -->
-        <div class="glass-card overflow-hidden">
-          <div class="px-3 py-2.5 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 flex items-center justify-between">
-            <h3 class="text-xs font-bold gradient-calendar uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Release Calendar</h3>
-            <span class="text-xs text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">Next {{ calendarDays }} days</span>
-          </div>
-          <div class="p-2 space-y-2 min-h-[160px] max-h-[220px] overflow-y-auto">
+      <!-- CALENDAR -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[13px] font-semibold text-gray-500">Coming Up</span>
+          <span class="text-[12px] text-gray-600">Next {{ calendarDays }} days</span>
+        </div>
+        <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
+          <div class="min-h-[80px] max-h-[240px] overflow-y-auto">
             @if (showCalendarSkeleton) {
-              @for (i of [1,2]; track i) { <div class="space-y-1.5 animate-pulse"><div class="h-3 w-16 rounded bg-white/10 px-1"></div>@for (j of [1,2]; track j) { <div class="flex items-center gap-2.5 p-2 rounded-lg bg-white/5"><div class="w-8 h-12 rounded-lg bg-white/10 flex-shrink-0"></div><div class="flex-1 space-y-1.5"><div class="h-3 w-3/4 rounded bg-white/10"></div><div class="h-2.5 w-1/2 rounded bg-white/10"></div></div></div> }</div> }
+              @for (i of [1,2]; track i) { <div class="space-y-1 animate-pulse"><div class="h-3 w-14 rounded bg-white/[0.06] mx-3.5 mt-2.5 mb-1"></div>@for (j of [1,2]; track j) { <div class="flex items-center gap-3 px-3.5 py-2"><div class="w-[34px] h-[50px] rounded-md bg-white/[0.06] flex-shrink-0"></div><div class="flex-1 space-y-1.5"><div class="h-3 w-3/4 rounded bg-white/[0.06]"></div><div class="h-2.5 w-1/2 rounded bg-white/[0.06]"></div></div></div> }</div> }
             } @else if (calendarDates.length === 0) {
-              <div class="flex flex-col items-center justify-center py-8 text-gray-500"><svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-xs">No upcoming releases</span></div>
+              <div class="flex flex-col items-center justify-center py-8 text-gray-600"><svg class="w-7 h-7 mb-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[12px]">No upcoming releases</span></div>
             } @else {
               @for (date of calendarDates; track date) {
-                <div class="space-y-1.5">
-                  <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider px-1">{{ formatCalendarDate(date) }}</h4>
+                <div>
+                  <div class="px-3.5 pt-2.5 pb-1 text-[11px] font-semibold text-primary-400 uppercase tracking-wider">{{ formatCalendarDate(date) }}</div>
                   @for (item of calendarGrouped[date]; track item.id) {
-                    <div class="flex items-center gap-2.5 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all cursor-pointer">
-                      <div class="w-8 h-12 rounded-lg bg-dark-700 flex-shrink-0 overflow-hidden ring-1 ring-white/10 shadow-lg">
-                        @if (item.posterUrl) { <img [src]="item.posterUrl" [alt]="item.title || item.seriesTitle" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center">@if (item.type === 'movie') { <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg> } @else { <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> }</div> }
+                    <div class="flex items-center gap-3 px-3.5 py-2 active:bg-white/[0.03] transition-colors cursor-pointer">
+                      <div class="w-[34px] h-[50px] rounded-md bg-white/[0.04] flex-shrink-0 overflow-hidden">
+                        @if (item.posterUrl) { <img [src]="item.posterUrl" [alt]="item.title || item.seriesTitle" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center">@if (item.type === 'movie') { <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg> } @else { <svg class="w-3 h-3 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14"/></svg> }</div> }
                       </div>
                       <div class="flex-1 min-w-0">
-                        <p class="text-xs text-white truncate font-medium">@if (item.type === 'episode') { {{ item.seriesTitle }} - S{{ item.seasonNumber | number:'2.0-0' }}E{{ item.episodeNumber | number:'2.0-0' }} } @else { {{ item.title }} ({{ item.year }}) }</p>
-                        <p class="text-xs text-gray-500 truncate">@if (item.type === 'episode') { {{ item.title }} } @else { {{ item.releaseType | titlecase }} Release }</p>
+                        <p class="text-[13px] text-gray-300 truncate font-medium">@if (item.type === 'episode') { {{ item.seriesTitle }} - S{{ item.seasonNumber | number:'2.0-0' }}E{{ item.episodeNumber | number:'2.0-0' }} } @else { {{ item.title }} ({{ item.year }}) }</p>
+                        <p class="text-[12px] text-gray-600 truncate">@if (item.type === 'episode') { {{ item.title }} } @else { {{ item.releaseType | titlecase }} Release }</p>
                       </div>
-                      <span class="text-xs text-cyan-400 font-medium flex-shrink-0 bg-cyan-500/10 px-2 py-0.5 rounded-full">{{ formatAirTime(item) }}</span>
+                      <span class="text-[11px] text-primary-400 font-semibold flex-shrink-0">{{ formatAirTime(item) }}</span>
                     </div>
                   }
                 </div>
@@ -392,56 +359,48 @@
         </div>
       </div>
 
+      <div class="h-4"></div>
     </div>
   </div>
 </div>
 
 <!-- Activity Modal -->
 @if (showActivityModal) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeActivityModal()">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-    <div class="relative bg-dark-900 rounded-2xl border border-white/10 shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between p-4 border-b border-white/10">
-        <h2 class="text-lg font-bold text-white">Recent Activity</h2>
-        <button (click)="closeActivityModal()" class="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center" (click)="closeActivityModal()">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative bg-[#0d0d14] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] flex flex-col shadow-2xl" (click)="$event.stopPropagation()">
+      <!-- Drag handle (mobile) -->
+      <div class="flex justify-center pt-2 pb-1 sm:hidden"><div class="w-9 h-1 rounded-full bg-white/20"></div></div>
+      <div class="flex items-center justify-between px-4 py-3">
+        <h2 class="text-[17px] font-bold text-white">Recent Activity</h2>
+        <button (click)="closeActivityModal()" class="p-1.5 rounded-lg active:bg-white/10 transition-colors text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
-      <div class="flex border-b border-white/10">
-        <button (click)="setModalActivityTab('watched')" class="flex-1 px-4 py-3 text-sm font-medium transition-all border-b-2" [class]="modalActivityType === 'watched' ? 'text-orange-400 border-orange-500 bg-orange-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Watched</button>
-        <button (click)="setModalActivityTab('downloaded')" class="flex-1 px-4 py-3 text-sm font-medium transition-all border-b-2" [class]="modalActivityType === 'downloaded' ? 'text-orange-400 border-orange-500 bg-orange-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Downloaded</button>
-        <button (click)="setModalActivityTab('added')" class="flex-1 px-4 py-3 text-sm font-medium transition-all border-b-2" [class]="modalActivityType === 'added' ? 'text-orange-400 border-orange-500 bg-orange-500/10' : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-white/5'">Added</button>
+      <div class="flex border-b border-white/[0.04]">
+        <button (click)="setModalActivityTab('watched')" class="flex-1 px-4 py-3 text-[14px] font-medium transition-all border-b-2" [class]="modalActivityType === 'watched' ? 'text-orange-400 border-orange-400' : 'text-gray-500 border-transparent'">Watched</button>
+        <button (click)="setModalActivityTab('downloaded')" class="flex-1 px-4 py-3 text-[14px] font-medium transition-all border-b-2" [class]="modalActivityType === 'downloaded' ? 'text-orange-400 border-orange-400' : 'text-gray-500 border-transparent'">Downloaded</button>
+        <button (click)="setModalActivityTab('added')" class="flex-1 px-4 py-3 text-[14px] font-medium transition-all border-b-2" [class]="modalActivityType === 'added' ? 'text-orange-400 border-orange-400' : 'text-gray-500 border-transparent'">Added</button>
       </div>
-      <div class="flex-1 overflow-y-auto p-4 space-y-2" (scroll)="onModalScroll($event)">
+      <div class="flex-1 overflow-y-auto" (scroll)="onModalScroll($event)">
         @if (isLoadingModalActivity && modalActivities.length === 0) {
-          <div class="flex items-center justify-center py-12"><svg class="animate-spin h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+          <div class="flex items-center justify-center py-16"><svg class="animate-spin h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
         } @else if (filteredModalActivity.length === 0) {
-          <div class="flex flex-col items-center justify-center py-12 text-gray-500"><svg class="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-sm">No activity found</span></div>
+          <div class="flex flex-col items-center justify-center py-16 text-gray-600"><svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-sm">No activity found</span></div>
         } @else {
           @for (activity of filteredModalActivity; track trackByActivity($index, activity)) {
-            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all cursor-pointer">
-              <div class="w-10 h-[60px] rounded-lg bg-dark-700 flex-shrink-0 overflow-hidden ring-1 ring-white/10 shadow-lg">
-                @if (activity.media.thumb) { <img [src]="getActivityImageUrl(activity.media.thumb)" [alt]="activity.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg></div> }
+            <div class="flex items-center gap-3 px-4 py-3 border-t border-white/[0.03] first:border-0 active:bg-white/[0.03] transition-colors cursor-pointer">
+              <div class="w-10 h-[60px] rounded-lg bg-white/[0.04] flex-shrink-0 overflow-hidden">
+                @if (activity.media.thumb) { <img [src]="getActivityImageUrl(activity.media.thumb)" [alt]="activity.media.title" class="w-full h-full object-cover" loading="lazy"> } @else { <div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/></svg></div> }
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm text-white truncate font-medium">
-                  @if (activity.media.type === 'episode' && activity.media.showTitle) {
-                    {{ activity.media.showTitle }}
-                    @if (activity.media.seasonEpisode) { <span class="text-gray-400 font-normal"> • {{ activity.media.seasonEpisode }}</span> }
-                  } @else { {{ activity.media.title }} }
-                </p>
-                <p class="text-xs text-gray-500 truncate mt-0.5">
-                  @if (activity.type === 'watched' && activity.user) { {{ activity.user }} • }
-                  @if (activity.type === 'watched' && activity.watchStatus) {
-                    <span class="font-medium" [class]="activity.watchStatus === 'completed' ? 'text-green-400' : activity.watchStatus === 'abandoned' ? 'text-red-400' : 'text-yellow-400'">{{ activity.watchStatus === 'completed' ? '✓ Completed' : activity.watchStatus === 'abandoned' ? '✗ Stopped' : '◐ ' + activity.watchProgress + '%' }}</span> •
-                  }
-                  {{ formatRelativeTime(activity.timestamp) }}
-                </p>
+                <p class="text-[14px] text-gray-200 truncate font-semibold">@if (activity.media.type === 'episode' && activity.media.showTitle) { {{ activity.media.showTitle }} @if (activity.media.seasonEpisode) { <span class="text-gray-600 font-normal"> • {{ activity.media.seasonEpisode }}</span> } } @else { {{ activity.media.title }} }</p>
+                <p class="text-[12px] text-gray-600 truncate mt-0.5">@if (activity.type === 'watched' && activity.user) { {{ activity.user }} • } @if (activity.type === 'watched' && activity.watchStatus) { <span class="font-semibold" [class]="activity.watchStatus === 'completed' ? 'text-green-400' : activity.watchStatus === 'abandoned' ? 'text-red-400' : 'text-yellow-400'">{{ activity.watchStatus === 'completed' ? '✓ Completed' : activity.watchStatus === 'abandoned' ? '✗ Stopped' : '◐ ' + activity.watchProgress + '%' }}</span> • } {{ formatRelativeTime(activity.timestamp) }}</p>
               </div>
             </div>
           }
           @if (isLoadingModalActivity) {
             <div class="flex items-center justify-center py-4"><svg class="animate-spin h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
           } @else if (!modalHasMore && filteredModalActivity.length > 0) {
-            <div class="text-center py-4 text-gray-500 text-xs">No more activity</div>
+            <div class="text-center py-4 text-gray-600 text-[12px]">No more activity</div>
           }
         }
       </div>

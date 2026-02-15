@@ -1,1385 +1,316 @@
-<div class="p-4 md:p-6 lg:p-8 max-w-4xl">
+<div class="px-4 md:px-6 pb-4 md:pb-6 max-w-4xl">
   <!-- Header -->
-  <div class="mb-8">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-100">Settings</h1>
-    <p class="text-gray-400 mt-1">Configure your media server connections</p>
+  <div class="pt-3 pb-1 mb-3">
+    <h1 class="text-[28px] font-bold text-white tracking-tight">Settings</h1>
+    <p class="text-gray-500 text-sm -mt-0.5">Configure your media server connections</p>
   </div>
 
   @if (isLoading) {
-    <!-- Loading State -->
-    <div class="flex items-center justify-center h-64">
-      <div class="text-center">
-        <svg class="animate-spin h-8 w-8 text-primary-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="text-gray-400">Loading...</p>
-      </div>
-    </div>
+    <div class="flex items-center justify-center h-64"><svg class="animate-spin h-7 w-7 text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
   } @else {
-    <div class="space-y-6">
-      <!-- Plex Server Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-          </svg>
-          Plex Server
-        </h2>
+    <div class="flex flex-col gap-4">
+
+      <!-- ═══════════════ PLEX SERVER ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+          <span class="text-[15px] font-bold text-white">Plex Server</span>
+        </div>
 
         @if (server) {
-          <!-- Connected Server Info -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
+          <div class="px-4 py-3 border-t border-white/[0.04]">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-primary-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-100">{{ server.name }}</h3>
-                  <p class="text-sm text-gray-400">{{ server.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">
-                    Version: {{ server.version || 'Unknown' }} · 
-                    Last sync: {{ formatDate(server.lastSyncAt) }}
-                  </p>
-                </div>
+              <div>
+                <h3 class="text-[14px] font-semibold text-white">{{ server.name }}</h3>
+                <p class="text-[12px] text-gray-500 mt-0.5">{{ server.host }}</p>
+                <p class="text-[11px] text-gray-600 mt-0.5">Version: {{ server.version || 'Unknown' }} · Last sync: {{ formatDate(server.lastSyncAt) }}</p>
               </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
+              <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div>
             </div>
           </div>
-
-          <div class="flex flex-wrap gap-3">
-            <button 
-              (click)="startSync()"
-              [disabled]="isSyncing"
-              class="btn-primary flex items-center gap-2">
-              @if (isSyncing) {
-                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Syncing...
-              } @else {
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Sync Library
-              }
+          <div class="px-4 py-3 border-t border-white/[0.04] flex flex-wrap gap-2">
+            <button (click)="startSync()" [disabled]="isSyncing" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-40">
+              @if (isSyncing) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Syncing...
+              } @else { <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Sync Library }
             </button>
-            <button 
-              (click)="disconnectServer()"
-              class="btn-danger flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Disconnect
+            <button (click)="disconnectServer()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect
             </button>
           </div>
-
-          <!-- Sync Progress -->
           @if (isSyncing && syncStatus) {
-            <div class="mt-4 p-4 bg-dark-800 rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm text-gray-400">Sync Progress</span>
-                <span class="text-sm text-gray-300">{{ getSyncProgress() }}%</span>
-              </div>
-              <div class="w-full bg-dark-700 rounded-full h-2">
-                <div 
-                  class="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                  [style.width.%]="getSyncProgress()">
-                </div>
-              </div>
-              <p class="text-xs text-gray-500 mt-2">
-                {{ syncStatus.processedItems || 0 }} / {{ syncStatus.totalItems || 0 }} items processed
-              </p>
+            <div class="px-4 py-3 border-t border-white/[0.04]">
+              <div class="flex items-center justify-between mb-1.5"><span class="text-[12px] text-gray-500 font-medium">Sync Progress</span><span class="text-[12px] text-gray-400 font-semibold tabular-nums">{{ getSyncProgress() }}%</span></div>
+              <div class="w-full bg-white/[0.04] rounded-full h-1.5"><div class="bg-primary-500 h-1.5 rounded-full transition-all duration-300" [style.width.%]="getSyncProgress()"></div></div>
+              <p class="text-[11px] text-gray-600 mt-1.5">{{ syncStatus.processedItems || 0 }} / {{ syncStatus.totalItems || 0 }} items processed</p>
             </div>
           }
-
-          <!-- Auto-Sync Settings -->
-          <div class="mt-4 p-4 bg-dark-800 rounded-lg">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h3 class="text-sm font-medium text-gray-200">Auto-Sync</h3>
-                <p class="text-xs text-gray-500">Automatically sync your library at regular intervals</p>
-              </div>
-              <button 
-                (click)="toggleAutoSync()"
-                [disabled]="savingAutoSync"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                [class.bg-primary-600]="autoSyncEnabled"
-                [class.bg-dark-600]="!autoSyncEnabled">
-                <span 
-                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  [class.translate-x-6]="autoSyncEnabled"
-                  [class.translate-x-1]="!autoSyncEnabled">
-                </span>
+          <!-- Auto-Sync -->
+          <div class="px-4 py-3 border-t border-white/[0.04]">
+            <div class="flex items-center justify-between">
+              <div><h3 class="text-[13px] font-semibold text-gray-200">Auto-Sync</h3><p class="text-[11px] text-gray-600">Automatically sync at regular intervals</p></div>
+              <button (click)="toggleAutoSync()" [disabled]="savingAutoSync" class="relative inline-flex h-[26px] w-[46px] items-center rounded-full transition-colors" [class.bg-primary-600]="autoSyncEnabled" [class.bg-white/10]="!autoSyncEnabled">
+                <span class="inline-block h-[20px] w-[20px] transform rounded-full bg-white transition-transform shadow-sm" [class.translate-x-[23px]]="autoSyncEnabled" [class.translate-x-[3px]]="!autoSyncEnabled"></span>
               </button>
             </div>
-
             @if (autoSyncEnabled) {
-              <div class="flex items-center gap-3 mt-3">
-                <label class="text-sm text-gray-400">Sync every:</label>
-                <select 
-                  [(ngModel)]="autoSyncInterval"
-                  (change)="saveAutoSyncSettings()"
-                  [disabled]="savingAutoSync"
-                  class="input-field w-auto text-sm py-1.5">
-                  @for (option of intervalOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
+              <div class="flex items-center gap-2 mt-2.5">
+                <label class="text-[12px] text-gray-500 font-medium">Sync every:</label>
+                <select [(ngModel)]="autoSyncInterval" (change)="saveAutoSyncSettings()" [disabled]="savingAutoSync" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-1.5 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
+                  @for (option of intervalOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }
                 </select>
-                @if (savingAutoSync) {
-                  <svg class="animate-spin h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                }
+                @if (savingAutoSync) { <svg class="animate-spin h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> }
               </div>
-
-              @if (autoSyncSettings?.nextRunAt) {
-                <p class="text-xs text-gray-500 mt-2">
-                  Next sync: {{ formatNextRunTime(autoSyncSettings!.nextRunAt) }}
-                </p>
-              }
+              @if (autoSyncSettings?.nextRunAt) { <p class="text-[11px] text-gray-600 mt-1.5">Next sync: {{ formatNextRunTime(autoSyncSettings!.nextRunAt) }}</p> }
             }
-
-            @if (autoSyncError) {
-              <p class="text-xs text-red-400 mt-2">{{ autoSyncError }}</p>
-            }
+            @if (autoSyncError) { <p class="text-[11px] text-red-400 mt-1.5">{{ autoSyncError }}</p> }
           </div>
-
-          <!-- External URL Setting -->
-          <div class="mt-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use server URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="plexExternalUrl"
-                placeholder="https://my-server.tailnet:32400"
-                class="input-field flex-1">
-              <button 
-                (click)="savePlexExternalUrl()"
-                [disabled]="savingPlexExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingPlexExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
+          <!-- External URL -->
+          <div class="px-4 py-3 border-t border-white/[0.04]">
+            <label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label>
+            <p class="text-[11px] text-gray-600 mb-2">URL for shortcuts (e.g., Tailscale URL). Leave empty to use server URL.</p>
+            <div class="flex items-center gap-2">
+              <input type="text" [(ngModel)]="plexExternalUrl" placeholder="https://my-server.tailnet:32400" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600">
+              <button (click)="savePlexExternalUrl()" [disabled]="savingPlexExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingPlexExternalUrl ? 'Saving...' : 'Save' }}</button>
             </div>
           </div>
         } @else {
           <!-- Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Server URL</label>
-              <input 
-                type="text"
-                [(ngModel)]="host"
-                placeholder="http://192.168.1.100:32400"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">Enter your Plex server URL including port</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Plex Token</label>
-              <input 
-                type="password"
-                [(ngModel)]="token"
-                placeholder="Your Plex token"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">
-                <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   class="text-primary-400 hover:text-primary-300">
-                  How to find your Plex token →
-                </a>
-              </p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="plexExternalUrl"
-                placeholder="https://my-server.tailnet:32400"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Server URL above.</p>
-            </div>
-
-            @if (connectionError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ connectionError }}
-              </div>
-            }
-
-            @if (testResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                ✓ Connected to {{ testResult?.name }} (v{{ testResult?.version }})
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button 
-                (click)="testConnection()"
-                [disabled]="isTesting || !host || !token"
-                class="btn-secondary flex items-center gap-2">
-                @if (isTesting) {
-                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button 
-                (click)="connectServer()"
-                [disabled]="isConnecting || !host || !token"
-                class="btn-primary flex items-center gap-2">
-                @if (isConnecting) {
-                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect Server
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Server URL</label><input type="text" [(ngModel)]="host" placeholder="http://192.168.1.100:32400" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">Enter your Plex server URL including port</p></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Plex Token</label><input type="password" [(ngModel)]="token" placeholder="Your Plex token" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1"><a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noopener noreferrer" class="text-primary-400">How to find your Plex token →</a></p></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="plexExternalUrl" placeholder="https://my-server.tailnet:32400" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use Server URL above.</p></div>
+            @if (connectionError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ connectionError }}</div> }
+            @if (testResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]">✓ Connected to {{ testResult?.name }} (v{{ testResult?.version }})</div> }
+            <div class="flex gap-2">
+              <button (click)="testConnection()" [disabled]="isTesting || !host || !token" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (isTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectServer()" [disabled]="isConnecting || !host || !token" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (isConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect Server }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- Tautulli Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          Tautulli (Playback Analytics)
-        </h2>
-        <p class="text-sm text-gray-400 mb-4">Connect to Tautulli for detailed playback history, device tracking, and transcoding analytics</p>
+      <!-- ═══════════════ TAUTULLI ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span class="text-[15px] font-bold text-white">Tautulli</span>
+          <span class="text-[11px] text-gray-600 font-medium">Playback Analytics</span>
+        </div>
+        <p class="px-4 pb-2 text-[12px] text-gray-500">Connect for detailed playback history, device tracking, and transcoding analytics</p>
 
         @if (tautulliConfigured && tautulliConfig) {
-          <!-- Connected Tautulli Info -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
+          <div class="px-4 py-3 border-t border-white/[0.04]">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-yellow-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-100">{{ tautulliConfig.serverName || 'Tautulli' }}</h3>
-                  <p class="text-sm text-gray-400">{{ tautulliConfig.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">Version: {{ tautulliConfig.version || 'Unknown' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
+              <div><h3 class="text-[14px] font-semibold text-white">{{ tautulliConfig.serverName || 'Tautulli' }}</h3><p class="text-[12px] text-gray-500 mt-0.5">{{ tautulliConfig.host }}</p><p class="text-[11px] text-gray-600 mt-0.5">Version: {{ tautulliConfig.version || 'Unknown' }}</p></div>
+              <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div>
             </div>
           </div>
-
           <!-- Import Status -->
           @if (tautulliImportStatus?.isImporting) {
-            <!-- Import in Progress -->
-            <div class="mb-4 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2 text-yellow-400">
-                  <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  <span class="font-medium">Importing History...</span>
-                </div>
-                <span class="text-sm text-gray-400">{{ tautulliImportStatus?.progress || 0 }}%</span>
-              </div>
-              <div class="w-full bg-dark-700 rounded-full h-2 mb-2">
-                <div 
-                  class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
-                  [style.width.%]="tautulliImportStatus?.progress || 0">
-                </div>
-              </div>
-              <p class="text-xs text-gray-400">
-                {{ formatNumber(tautulliImportStatus?.processedRecords || 0) }} / {{ formatNumber(tautulliImportStatus?.totalRecords || 0) }} sessions processed
-              </p>
-              <button 
-                (click)="cancelTautulliImport()"
-                class="mt-3 text-sm text-red-400 hover:text-red-300">
-                Cancel Import
-              </button>
+            <div class="px-4 py-3 border-t border-white/[0.04] bg-yellow-500/[0.04]">
+              <div class="flex items-center justify-between mb-1.5"><div class="flex items-center gap-1.5 text-yellow-400"><svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span class="text-[13px] font-semibold">Importing History...</span></div><span class="text-[12px] text-gray-400 tabular-nums font-semibold">{{ tautulliImportStatus?.progress || 0 }}%</span></div>
+              <div class="w-full bg-white/[0.04] rounded-full h-1.5 mb-1.5"><div class="bg-yellow-500 h-1.5 rounded-full transition-all duration-300" [style.width.%]="tautulliImportStatus?.progress || 0"></div></div>
+              <p class="text-[11px] text-gray-500">{{ formatNumber(tautulliImportStatus?.processedRecords || 0) }} / {{ formatNumber(tautulliImportStatus?.totalRecords || 0) }} sessions</p>
+              <button (click)="cancelTautulliImport()" class="mt-2 text-[12px] text-red-400 font-medium">Cancel Import</button>
             </div>
           } @else if (tautulliConfig.historyImported) {
-            <div class="mb-4 p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
+            <div class="px-4 py-3 border-t border-white/[0.04] bg-green-500/[0.03]">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="flex items-center gap-2 text-green-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="font-medium">History Imported</span>
-                  </div>
-                  <p class="text-sm text-gray-400 mt-1">
-                    {{ formatNumber(tautulliConfig.totalSessionsImported) }} sessions imported on {{ formatDate(tautulliConfig.historyImportedAt) }}
-                  </p>
+                  <div class="flex items-center gap-1.5 text-green-400"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span class="text-[13px] font-semibold">History Imported</span></div>
+                  <p class="text-[11px] text-gray-500 mt-0.5">{{ formatNumber(tautulliConfig.totalSessionsImported) }} sessions imported on {{ formatDate(tautulliConfig.historyImportedAt) }}</p>
                 </div>
-                <button 
-                  (click)="startTautulliImport()"
-                  class="btn-secondary text-sm flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Re-import
-                </button>
+                <button (click)="startTautulliImport()" class="px-2.5 py-1.5 text-[12px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-lg transition-colors">Re-import</button>
               </div>
             </div>
           } @else {
-            <div class="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-              <div class="flex items-center gap-2 text-blue-400">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span class="font-medium">Import Historical Data</span>
-              </div>
-              <p class="text-sm text-gray-400 mt-1">
-                Import your complete Tautulli history for rich device and transcoding analytics.
-              </p>
-              <button 
-                (click)="startTautulliImport()"
-                class="mt-3 btn-primary text-sm flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                Start Import
-              </button>
+            <div class="px-4 py-3 border-t border-white/[0.04] bg-blue-500/[0.03]">
+              <div class="flex items-center gap-1.5 text-blue-400"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span class="text-[13px] font-semibold">Import Historical Data</span></div>
+              <p class="text-[11px] text-gray-500 mt-0.5">Import your complete Tautulli history for rich device and transcoding analytics.</p>
+              <button (click)="startTautulliImport()" class="mt-2 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors">Start Import</button>
             </div>
           }
-
           <!-- Sync Settings -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h3 class="text-sm font-medium text-gray-200">Real-time Sync</h3>
-                <p class="text-xs text-gray-500">Automatically sync new playback sessions from Tautulli</p>
-              </div>
-              <button 
-                (click)="toggleTautulliSync()"
-                [disabled]="savingTautulliSync"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                [class.bg-primary-600]="tautulliSyncEnabled"
-                [class.bg-dark-600]="!tautulliSyncEnabled">
-                <span 
-                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  [class.translate-x-6]="tautulliSyncEnabled"
-                  [class.translate-x-1]="!tautulliSyncEnabled">
-                </span>
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]">
+            <div class="flex items-center justify-between">
+              <div><h3 class="text-[13px] font-semibold text-gray-200">Real-time Sync</h3><p class="text-[11px] text-gray-600">Automatically sync new playback sessions</p></div>
+              <button (click)="toggleTautulliSync()" [disabled]="savingTautulliSync" class="relative inline-flex h-[26px] w-[46px] items-center rounded-full transition-colors" [class.bg-primary-600]="tautulliSyncEnabled" [class.bg-white/10]="!tautulliSyncEnabled"><span class="inline-block h-[20px] w-[20px] transform rounded-full bg-white transition-transform shadow-sm" [class.translate-x-[23px]]="tautulliSyncEnabled" [class.translate-x-[3px]]="!tautulliSyncEnabled"></span></button>
             </div>
-
             @if (tautulliSyncEnabled) {
-              <div class="flex items-center gap-3 mt-3">
-                <label class="text-sm text-gray-400">Sync every:</label>
-                <select 
-                  [(ngModel)]="tautulliSyncInterval"
-                  (change)="saveTautulliSyncSettings()"
-                  [disabled]="savingTautulliSync"
-                  class="input-field w-auto text-sm py-1.5">
-                  @for (option of tautulliSyncOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
-                </select>
-                @if (savingTautulliSync) {
-                  <svg class="animate-spin h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                }
-              </div>
-
-              <p class="text-xs text-gray-500 mt-2">
-                Last sync: {{ formatTautulliLastSync() }}
-                @if (tautulliConfig.lastSyncSessionCount > 0) {
-                  · {{ tautulliConfig.lastSyncSessionCount }} sessions
-                }
-              </p>
+              <div class="flex items-center gap-2 mt-2.5"><label class="text-[12px] text-gray-500 font-medium">Sync every:</label><select [(ngModel)]="tautulliSyncInterval" (change)="saveTautulliSyncSettings()" [disabled]="savingTautulliSync" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-1.5 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">@for (option of tautulliSyncOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (savingTautulliSync) { <svg class="animate-spin h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> }</div>
+              <p class="text-[11px] text-gray-600 mt-1.5">Last sync: {{ formatTautulliLastSync() }}@if (tautulliConfig.lastSyncSessionCount > 0) { · {{ tautulliConfig.lastSyncSessionCount }} sessions }</p>
             }
           </div>
-
-          <!-- External URL Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Tautulli URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="tautulliExternalUrl"
-                placeholder="https://my-server.tailnet:8181"
-                class="input-field flex-1">
-              <button 
-                (click)="saveTautulliExternalUrl()"
-                [disabled]="savingTautulliExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingTautulliExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
+          <!-- External URL -->
+          <div class="px-4 py-3 border-t border-white/[0.04]">
+            <label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label>
+            <p class="text-[11px] text-gray-600 mb-2">URL for shortcuts. Leave empty to use Tautulli URL.</p>
+            <div class="flex items-center gap-2"><input type="text" [(ngModel)]="tautulliExternalUrl" placeholder="https://my-server.tailnet:8181" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><button (click)="saveTautulliExternalUrl()" [disabled]="savingTautulliExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingTautulliExternalUrl ? 'Saving...' : 'Save' }}</button></div>
           </div>
-
-          <button 
-            (click)="disconnectTautulli()"
-            class="btn-danger flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
-          </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]">
+            <button (click)="disconnectTautulli()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect</button>
+          </div>
         } @else {
-          <!-- Tautulli Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Tautulli URL</label>
-              <input 
-                type="text"
-                [(ngModel)]="tautulliHost"
-                placeholder="http://192.168.1.100:8181"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
-              <input 
-                type="password"
-                [(ngModel)]="tautulliApiKey"
-                placeholder="Your Tautulli API key"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">Found in Tautulli → Settings → Web Interface → API Key</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="tautulliExternalUrl"
-                placeholder="https://my-server.tailnet:8181"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Tautulli URL above.</p>
-            </div>
-
-            @if (tautulliError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ tautulliError }}
-              </div>
-            }
-
-            @if (tautulliTestResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Connected to Tautulli v{{ tautulliTestResult?.version }}</span>
-                </div>
-                <p class="text-xs text-green-300/80 mt-1">
-                  Plex: {{ tautulliTestResult?.plexName }} (v{{ tautulliTestResult?.plexVersion }})
-                </p>
-                @if (tautulliTestResult?.historyCount) {
-                  <p class="text-xs text-green-300/80">
-                    {{ formatNumber(tautulliTestResult?.historyCount ?? 0) }} playback sessions available for import
-                  </p>
-                }
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button 
-                (click)="testTautulliConnection()"
-                [disabled]="tautulliTesting || !tautulliHost || !tautulliApiKey"
-                class="btn-secondary flex items-center gap-2">
-                @if (tautulliTesting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button 
-                (click)="connectTautulli()"
-                [disabled]="tautulliConnecting || !tautulliHost || !tautulliApiKey"
-                class="btn-primary flex items-center gap-2">
-                @if (tautulliConnecting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Tautulli URL</label><input type="text" [(ngModel)]="tautulliHost" placeholder="http://192.168.1.100:8181" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">API Key</label><input type="password" [(ngModel)]="tautulliApiKey" placeholder="Your Tautulli API key" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">Found in Tautulli → Settings → Web Interface → API Key</p></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="tautulliExternalUrl" placeholder="https://my-server.tailnet:8181" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use Tautulli URL above.</p></div>
+            @if (tautulliError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ tautulliError }}</div> }
+            @if (tautulliTestResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]"><div class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Connected to Tautulli v{{ tautulliTestResult?.version }}</span></div><p class="text-[11px] text-green-300/80 mt-0.5">Plex: {{ tautulliTestResult?.plexName }} (v{{ tautulliTestResult?.plexVersion }})</p>@if (tautulliTestResult?.historyCount) { <p class="text-[11px] text-green-300/80">{{ formatNumber(tautulliTestResult?.historyCount ?? 0) }} playback sessions available</p> }</div> }
+            <div class="flex gap-2">
+              <button (click)="testTautulliConnection()" [disabled]="tautulliTesting || !tautulliHost || !tautulliApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (tautulliTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectTautulli()" [disabled]="tautulliConnecting || !tautulliHost || !tautulliApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (tautulliConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- Radarr Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-          </svg>
-          Radarr (Movies)
-        </h2>
-
+      <!-- ═══════════════ RADARR ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+          <span class="text-[15px] font-bold text-white">Radarr</span>
+          <span class="text-[11px] text-gray-600 font-medium">Movies</span>
+        </div>
         @if (radarrConfig && radarrConfig.isConnected) {
-          <!-- Connected Radarr Info -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-orange-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-100">Radarr</h3>
-                  <p class="text-sm text-gray-400">{{ radarrConfig!.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">Version: {{ radarrConfig!.version || 'Unknown' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Max Movie Size Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Max Movie Size (GB)</label>
-            <p class="text-xs text-gray-500 mb-3">Movies larger than this will be flagged as downgrade candidates</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="number"
-                [(ngModel)]="maxMovieSizeGB"
-                min="1"
-                max="200"
-                class="input-field w-24"
-                placeholder="30">
-              <span class="text-gray-400">GB</span>
-              <button 
-                (click)="saveMaxMovieSize()"
-                [disabled]="savingRadarrSize"
-                class="btn-secondary text-sm">
-                @if (savingRadarrSize) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <!-- External URL Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Radarr URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="radarrExternalUrl"
-                placeholder="https://my-server.tailnet:7878"
-                class="input-field flex-1">
-              <button 
-                (click)="saveRadarrExternalUrl()"
-                [disabled]="savingRadarrExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingRadarrExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <button 
-            (click)="disconnectRadarr()"
-            class="btn-danger flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
-          </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><div class="flex items-center justify-between"><div><h3 class="text-[14px] font-semibold text-white">Radarr</h3><p class="text-[12px] text-gray-500 mt-0.5">{{ radarrConfig!.host }}</p><p class="text-[11px] text-gray-600 mt-0.5">Version: {{ radarrConfig!.version || 'Unknown' }}</p></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">Max Movie Size (GB)</label><p class="text-[11px] text-gray-600 mb-2">Movies larger than this will be flagged as downgrade candidates</p><div class="flex items-center gap-2"><input type="number" [(ngModel)]="maxMovieSizeGB" min="1" max="200" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 w-20 focus:ring-1 focus:ring-primary-500/50 focus:outline-none tabular-nums" placeholder="30"><span class="text-[13px] text-gray-500">GB</span><button (click)="saveMaxMovieSize()" [disabled]="savingRadarrSize" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingRadarrSize ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><p class="text-[11px] text-gray-600 mb-2">URL for shortcuts. Leave empty to use Radarr URL.</p><div class="flex items-center gap-2"><input type="text" [(ngModel)]="radarrExternalUrl" placeholder="https://my-server.tailnet:7878" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><button (click)="saveRadarrExternalUrl()" [disabled]="savingRadarrExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingRadarrExternalUrl ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><button (click)="disconnectRadarr()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect</button></div>
         } @else {
-          <!-- Radarr Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Radarr URL</label>
-              <input 
-                type="text"
-                [(ngModel)]="radarrHost"
-                placeholder="http://192.168.1.100:7878"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
-              <input 
-                type="password"
-                [(ngModel)]="radarrApiKey"
-                placeholder="Your Radarr API key"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">Found in Radarr → Settings → General → API Key</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="radarrExternalUrl"
-                placeholder="https://my-server.tailnet:7878"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Radarr URL above.</p>
-            </div>
-
-            @if (radarrError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ radarrError }}
-              </div>
-            }
-
-            @if (radarrTestResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                ✓ Connected to Radarr (v{{ radarrTestResult?.version }})
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button 
-                (click)="testRadarrConnection()"
-                [disabled]="radarrTesting || !radarrHost || !radarrApiKey"
-                class="btn-secondary flex items-center gap-2">
-                @if (radarrTesting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button 
-                (click)="connectRadarr()"
-                [disabled]="radarrConnecting || !radarrHost || !radarrApiKey"
-                class="btn-primary flex items-center gap-2">
-                @if (radarrConnecting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Radarr URL</label><input type="text" [(ngModel)]="radarrHost" placeholder="http://192.168.1.100:7878" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">API Key</label><input type="password" [(ngModel)]="radarrApiKey" placeholder="Your Radarr API key" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">Found in Radarr → Settings → General → API Key</p></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="radarrExternalUrl" placeholder="https://my-server.tailnet:7878" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use Radarr URL above.</p></div>
+            @if (radarrError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ radarrError }}</div> }
+            @if (radarrTestResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]">✓ Connected to Radarr (v{{ radarrTestResult?.version }})</div> }
+            <div class="flex gap-2">
+              <button (click)="testRadarrConnection()" [disabled]="radarrTesting || !radarrHost || !radarrApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (radarrTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectRadarr()" [disabled]="radarrConnecting || !radarrHost || !radarrApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (radarrConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- Sonarr Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          Sonarr (TV Shows)
-        </h2>
-
+      <!-- ═══════════════ SONARR ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2"><svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span class="text-[15px] font-bold text-white">Sonarr</span><span class="text-[11px] text-gray-600 font-medium">TV Shows</span></div>
         @if (sonarrConfig && sonarrConfig.isConnected) {
-          <!-- Connected Sonarr Info -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-100">Sonarr</h3>
-                  <p class="text-sm text-gray-400">{{ sonarrConfig!.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">Version: {{ sonarrConfig!.version || 'Unknown' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Max Episode Size Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Max Episode Size (GB)</label>
-            <p class="text-xs text-gray-500 mb-3">Episodes larger than this will be flagged as downgrade candidates</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="number"
-                [(ngModel)]="maxEpisodeSizeGB"
-                min="1"
-                max="50"
-                class="input-field w-24"
-                placeholder="5">
-              <span class="text-gray-400">GB</span>
-              <button 
-                (click)="saveMaxEpisodeSize()"
-                [disabled]="savingSonarrSize"
-                class="btn-secondary text-sm">
-                @if (savingSonarrSize) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <!-- External URL Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Sonarr URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="sonarrExternalUrl"
-                placeholder="https://my-server.tailnet:8989"
-                class="input-field flex-1">
-              <button 
-                (click)="saveSonarrExternalUrl()"
-                [disabled]="savingSonarrExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingSonarrExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <button 
-            (click)="disconnectSonarr()"
-            class="btn-danger flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
-          </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><div class="flex items-center justify-between"><div><h3 class="text-[14px] font-semibold text-white">Sonarr</h3><p class="text-[12px] text-gray-500 mt-0.5">{{ sonarrConfig!.host }}</p><p class="text-[11px] text-gray-600 mt-0.5">Version: {{ sonarrConfig!.version || 'Unknown' }}</p></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">Max Episode Size (GB)</label><p class="text-[11px] text-gray-600 mb-2">Episodes larger than this will be flagged as downgrade candidates</p><div class="flex items-center gap-2"><input type="number" [(ngModel)]="maxEpisodeSizeGB" min="1" max="50" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 w-20 focus:ring-1 focus:ring-primary-500/50 focus:outline-none tabular-nums" placeholder="5"><span class="text-[13px] text-gray-500">GB</span><button (click)="saveMaxEpisodeSize()" [disabled]="savingSonarrSize" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingSonarrSize ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><p class="text-[11px] text-gray-600 mb-2">URL for shortcuts. Leave empty to use Sonarr URL.</p><div class="flex items-center gap-2"><input type="text" [(ngModel)]="sonarrExternalUrl" placeholder="https://my-server.tailnet:8989" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><button (click)="saveSonarrExternalUrl()" [disabled]="savingSonarrExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingSonarrExternalUrl ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><button (click)="disconnectSonarr()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect</button></div>
         } @else {
-          <!-- Sonarr Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Sonarr URL</label>
-              <input 
-                type="text"
-                [(ngModel)]="sonarrHost"
-                placeholder="http://192.168.1.100:8989"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
-              <input 
-                type="password"
-                [(ngModel)]="sonarrApiKey"
-                placeholder="Your Sonarr API key"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">Found in Sonarr → Settings → General → API Key</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="sonarrExternalUrl"
-                placeholder="https://my-server.tailnet:8989"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Sonarr URL above.</p>
-            </div>
-
-            @if (sonarrError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ sonarrError }}
-              </div>
-            }
-
-            @if (sonarrTestResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                ✓ Connected to Sonarr (v{{ sonarrTestResult?.version }})
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button 
-                (click)="testSonarrConnection()"
-                [disabled]="sonarrTesting || !sonarrHost || !sonarrApiKey"
-                class="btn-secondary flex items-center gap-2">
-                @if (sonarrTesting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button 
-                (click)="connectSonarr()"
-                [disabled]="sonarrConnecting || !sonarrHost || !sonarrApiKey"
-                class="btn-primary flex items-center gap-2">
-                @if (sonarrConnecting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Sonarr URL</label><input type="text" [(ngModel)]="sonarrHost" placeholder="http://192.168.1.100:8989" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">API Key</label><input type="password" [(ngModel)]="sonarrApiKey" placeholder="Your Sonarr API key" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">Found in Sonarr → Settings → General → API Key</p></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="sonarrExternalUrl" placeholder="https://my-server.tailnet:8989" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use Sonarr URL above.</p></div>
+            @if (sonarrError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ sonarrError }}</div> }
+            @if (sonarrTestResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]">✓ Connected to Sonarr (v{{ sonarrTestResult?.version }})</div> }
+            <div class="flex gap-2">
+              <button (click)="testSonarrConnection()" [disabled]="sonarrTesting || !sonarrHost || !sonarrApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (sonarrTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectSonarr()" [disabled]="sonarrConnecting || !sonarrHost || !sonarrApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (sonarrConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- Download Clients Section Header -->
-      <div class="mt-8 mb-4">
-        <h2 class="text-xl font-semibold text-gray-100 flex items-center gap-2">
-          <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download Clients
-        </h2>
-        <p class="text-gray-400 text-sm mt-1">Connect your download clients to see download progress on the Home page</p>
+      <!-- ═══════════════ DOWNLOAD CLIENTS DIVIDER ═══════════════ -->
+      <div class="mt-2 mb-0">
+        <div class="flex items-center gap-2"><svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span class="text-[16px] font-bold text-white">Download Clients</span></div>
+        <p class="text-gray-500 text-[12px] mt-0.5">Connect your download clients to see download progress on the Home page</p>
       </div>
 
-      <!-- NZBGet Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-          </svg>
-          NZBGet (Usenet)
-        </h2>
-
+      <!-- ═══════════════ NZBGET ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg><span class="text-[15px] font-bold text-white">NZBGet</span><span class="text-[11px] text-gray-600 font-medium">Usenet</span></div>
         @if (nzbgetConfig && nzbgetConfig.isConnected) {
-          <!-- Connected NZBGet Info -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-100">NZBGet</h3>
-                  <p class="text-sm text-gray-400">{{ nzbgetConfig!.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">Version: {{ nzbgetConfig!.version || 'Unknown' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- External URL Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use NZBGet URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="nzbgetExternalUrl"
-                placeholder="https://my-server.tailnet:6789"
-                class="input-field flex-1">
-              <button 
-                (click)="saveNzbgetExternalUrl()"
-                [disabled]="savingNzbgetExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingNzbgetExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <button
-            (click)="disconnectNzbget()"
-            class="btn-danger flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
-          </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><div class="flex items-center justify-between"><div><h3 class="text-[14px] font-semibold text-white">NZBGet</h3><p class="text-[12px] text-gray-500 mt-0.5">{{ nzbgetConfig!.host }}</p><p class="text-[11px] text-gray-600 mt-0.5">Version: {{ nzbgetConfig!.version || 'Unknown' }}</p></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><p class="text-[11px] text-gray-600 mb-2">URL for shortcuts. Leave empty to use NZBGet URL.</p><div class="flex items-center gap-2"><input type="text" [(ngModel)]="nzbgetExternalUrl" placeholder="https://my-server.tailnet:6789" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><button (click)="saveNzbgetExternalUrl()" [disabled]="savingNzbgetExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingNzbgetExternalUrl ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><button (click)="disconnectNzbget()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect</button></div>
         } @else {
-          <!-- NZBGet Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">NZBGet URL</label>
-              <input
-                type="text"
-                [(ngModel)]="nzbgetHost"
-                placeholder="http://192.168.1.100:6789"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Username (optional)</label>
-              <input
-                type="text"
-                [(ngModel)]="nzbgetUsername"
-                placeholder="nzbget"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Password (optional)</label>
-              <input
-                type="password"
-                [(ngModel)]="nzbgetPassword"
-                placeholder="Your NZBGet password"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="nzbgetExternalUrl"
-                placeholder="https://my-server.tailnet:6789"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use NZBGet URL above.</p>
-            </div>
-
-            @if (nzbgetError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ nzbgetError }}
-              </div>
-            }
-
-            @if (nzbgetTestResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                Connected to NZBGet (v{{ nzbgetTestResult?.version }})
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button
-                (click)="testNzbgetConnection()"
-                [disabled]="nzbgetTesting || !nzbgetHost"
-                class="btn-secondary flex items-center gap-2">
-                @if (nzbgetTesting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button
-                (click)="connectNzbget()"
-                [disabled]="nzbgetConnecting || !nzbgetHost"
-                class="btn-primary flex items-center gap-2">
-                @if (nzbgetConnecting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">NZBGet URL</label><input type="text" [(ngModel)]="nzbgetHost" placeholder="http://192.168.1.100:6789" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Username <span class="text-gray-600 font-normal">(optional)</span></label><input type="text" [(ngModel)]="nzbgetUsername" placeholder="nzbget" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Password <span class="text-gray-600 font-normal">(optional)</span></label><input type="password" [(ngModel)]="nzbgetPassword" placeholder="Your NZBGet password" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="nzbgetExternalUrl" placeholder="https://my-server.tailnet:6789" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use NZBGet URL above.</p></div>
+            @if (nzbgetError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ nzbgetError }}</div> }
+            @if (nzbgetTestResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]">Connected to NZBGet (v{{ nzbgetTestResult?.version }})</div> }
+            <div class="flex gap-2">
+              <button (click)="testNzbgetConnection()" [disabled]="nzbgetTesting || !nzbgetHost" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (nzbgetTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectNzbget()" [disabled]="nzbgetConnecting || !nzbgetHost" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (nzbgetConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- qBittorrent Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          qBittorrent (Torrents)
-        </h2>
-
+      <!-- ═══════════════ QBITTORRENT ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2"><svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[15px] font-bold text-white">qBittorrent</span><span class="text-[11px] text-gray-600 font-medium">Torrents</span></div>
         @if (qbittorrentConfig && qbittorrentConfig.isConnected) {
-          <!-- Connected qBittorrent Info -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-cyan-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-100">qBittorrent</h3>
-                  <p class="text-sm text-gray-400">{{ qbittorrentConfig!.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">Version: {{ qbittorrentConfig!.version || 'Unknown' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- External URL Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use qBittorrent URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="qbittorrentExternalUrl"
-                placeholder="https://my-server.tailnet:8080"
-                class="input-field flex-1">
-              <button 
-                (click)="saveQbittorrentExternalUrl()"
-                [disabled]="savingQbittorrentExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingQbittorrentExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <button
-            (click)="disconnectQbittorrent()"
-            class="btn-danger flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
-          </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><div class="flex items-center justify-between"><div><h3 class="text-[14px] font-semibold text-white">qBittorrent</h3><p class="text-[12px] text-gray-500 mt-0.5">{{ qbittorrentConfig!.host }}</p><p class="text-[11px] text-gray-600 mt-0.5">Version: {{ qbittorrentConfig!.version || 'Unknown' }}</p></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><p class="text-[11px] text-gray-600 mb-2">URL for shortcuts. Leave empty to use qBittorrent URL.</p><div class="flex items-center gap-2"><input type="text" [(ngModel)]="qbittorrentExternalUrl" placeholder="https://my-server.tailnet:8080" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><button (click)="saveQbittorrentExternalUrl()" [disabled]="savingQbittorrentExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingQbittorrentExternalUrl ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><button (click)="disconnectQbittorrent()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect</button></div>
         } @else {
-          <!-- qBittorrent Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">qBittorrent URL</label>
-              <input
-                type="text"
-                [(ngModel)]="qbittorrentHost"
-                placeholder="http://192.168.1.100:8080"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Username (optional)</label>
-              <input
-                type="text"
-                [(ngModel)]="qbittorrentUsername"
-                placeholder="admin"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Password (optional)</label>
-              <input
-                type="password"
-                [(ngModel)]="qbittorrentPassword"
-                placeholder="Your qBittorrent password"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="qbittorrentExternalUrl"
-                placeholder="https://my-server.tailnet:8080"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use qBittorrent URL above.</p>
-            </div>
-
-            @if (qbittorrentError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ qbittorrentError }}
-              </div>
-            }
-
-            @if (qbittorrentTestResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                Connected to qBittorrent (v{{ qbittorrentTestResult?.version }})
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button
-                (click)="testQbittorrentConnection()"
-                [disabled]="qbittorrentTesting || !qbittorrentHost"
-                class="btn-secondary flex items-center gap-2">
-                @if (qbittorrentTesting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button
-                (click)="connectQbittorrent()"
-                [disabled]="qbittorrentConnecting || !qbittorrentHost"
-                class="btn-primary flex items-center gap-2">
-                @if (qbittorrentConnecting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">qBittorrent URL</label><input type="text" [(ngModel)]="qbittorrentHost" placeholder="http://192.168.1.100:8080" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Username <span class="text-gray-600 font-normal">(optional)</span></label><input type="text" [(ngModel)]="qbittorrentUsername" placeholder="admin" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Password <span class="text-gray-600 font-normal">(optional)</span></label><input type="password" [(ngModel)]="qbittorrentPassword" placeholder="Your qBittorrent password" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="qbittorrentExternalUrl" placeholder="https://my-server.tailnet:8080" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use qBittorrent URL above.</p></div>
+            @if (qbittorrentError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ qbittorrentError }}</div> }
+            @if (qbittorrentTestResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]">Connected to qBittorrent (v{{ qbittorrentTestResult?.version }})</div> }
+            <div class="flex gap-2">
+              <button (click)="testQbittorrentConnection()" [disabled]="qbittorrentTesting || !qbittorrentHost" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (qbittorrentTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectQbittorrent()" [disabled]="qbittorrentConnecting || !qbittorrentHost" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (qbittorrentConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- Overseerr Connection -->
-      <section class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-          Overseerr
-          @if (overseerrConfig) {
-            <span class="ml-auto text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded-full">Connected</span>
-          }
-        </h2>
-        <p class="text-sm text-gray-400 mb-4">Connect to Overseerr to view and manage media requests.</p>
-
+      <!-- ═══════════════ OVERSEERR ═══════════════ -->
+      <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+        <div class="px-4 py-3 flex items-center gap-2"><svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><span class="text-[15px] font-bold text-white">Overseerr</span>@if (overseerrConfig) { <span class="ml-auto text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded-md font-bold">Connected</span> }</div>
+        <p class="px-4 pb-2 text-[12px] text-gray-500">Connect to Overseerr to view and manage media requests.</p>
         @if (overseerrConfig) {
-          <!-- Overseerr Connected State -->
-          <div class="bg-dark-800 rounded-lg p-4 mb-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-200">{{ overseerrConfig.host }}</p>
-                  <p class="text-xs text-gray-500 mt-1">Version: {{ overseerrConfig.version || 'Unknown' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-400">Connected</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- External URL Setting -->
-          <div class="mb-4 p-4 bg-dark-800 rounded-lg">
-            <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-            <p class="text-xs text-gray-500 mb-3">URL for shortcuts (e.g., Tailscale URL). Leave empty to use Overseerr URL.</p>
-            <div class="flex items-center gap-3">
-              <input 
-                type="text"
-                [(ngModel)]="overseerrExternalUrl"
-                placeholder="https://my-server.tailnet:5055"
-                class="input-field flex-1">
-              <button 
-                (click)="saveOverseerrExternalUrl()"
-                [disabled]="savingOverseerrExternalUrl"
-                class="btn-secondary text-sm">
-                @if (savingOverseerrExternalUrl) {
-                  Saving...
-                } @else {
-                  Save
-                }
-              </button>
-            </div>
-          </div>
-
-          <button
-            (click)="disconnectOverseerr()"
-            class="btn-danger flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
-          </button>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><div class="flex items-center justify-between"><div><p class="text-[13px] font-medium text-gray-200">{{ overseerrConfig.host }}</p><p class="text-[11px] text-gray-600 mt-0.5">Version: {{ overseerrConfig.version || 'Unknown' }}</p></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span><span class="text-[12px] text-green-400 font-medium">Connected</span></div></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><p class="text-[11px] text-gray-600 mb-2">URL for shortcuts. Leave empty to use Overseerr URL.</p><div class="flex items-center gap-2"><input type="text" [(ngModel)]="overseerrExternalUrl" placeholder="https://my-server.tailnet:5055" class="bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 flex-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><button (click)="saveOverseerrExternalUrl()" [disabled]="savingOverseerrExternalUrl" class="px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors">{{ savingOverseerrExternalUrl ? 'Saving...' : 'Save' }}</button></div></div>
+          <div class="px-4 py-3 border-t border-white/[0.04]"><button (click)="disconnectOverseerr()" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-red-600/10 active:bg-red-600/20 text-red-400 rounded-xl transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Disconnect</button></div>
         } @else {
-          <!-- Overseerr Connection Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Overseerr URL</label>
-              <input
-                type="text"
-                [(ngModel)]="overseerrHost"
-                placeholder="http://192.168.1.100:5055"
-                class="input-field">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">API Key</label>
-              <input
-                type="password"
-                [(ngModel)]="overseerrApiKey"
-                placeholder="Your Overseerr API key"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">Find this in Overseerr Settings → General → API Key</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">External URL (Optional)</label>
-              <input 
-                type="text"
-                [(ngModel)]="overseerrExternalUrl"
-                placeholder="https://my-server.tailnet:5055"
-                class="input-field">
-              <p class="text-xs text-gray-500 mt-1">URL for shortcuts. Leave empty to use Overseerr URL above.</p>
-            </div>
-
-            @if (overseerrError) {
-              <div class="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-400 text-sm">
-                {{ overseerrError }}
-              </div>
-            }
-
-            @if (overseerrTestResult?.success) {
-              <div class="p-3 bg-green-900/30 border border-green-700 rounded-lg text-green-400 text-sm">
-                Connected to Overseerr (v{{ overseerrTestResult?.version }})
-              </div>
-            }
-
-            <div class="flex gap-3">
-              <button
-                (click)="testOverseerrConnection()"
-                [disabled]="overseerrTesting || !overseerrHost || !overseerrApiKey"
-                class="btn-secondary flex items-center gap-2">
-                @if (overseerrTesting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Testing...
-                } @else {
-                  Test Connection
-                }
-              </button>
-              <button
-                (click)="connectOverseerr()"
-                [disabled]="overseerrConnecting || !overseerrHost || !overseerrApiKey"
-                class="btn-primary flex items-center gap-2">
-                @if (overseerrConnecting) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                  </svg>
-                  Connecting...
-                } @else {
-                  Connect
-                }
-              </button>
+          <div class="px-4 py-3 border-t border-white/[0.04] space-y-3">
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">Overseerr URL</label><input type="text" [(ngModel)]="overseerrHost" placeholder="http://192.168.1.100:5055" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">API Key</label><input type="password" [(ngModel)]="overseerrApiKey" placeholder="Your Overseerr API key" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">Find this in Overseerr Settings → General → API Key</p></div>
+            <div><label class="block text-[13px] font-semibold text-gray-300 mb-1">External URL <span class="text-gray-600 font-normal">(Optional)</span></label><input type="text" [(ngModel)]="overseerrExternalUrl" placeholder="https://my-server.tailnet:5055" class="w-full bg-white/[0.04] border-0 text-gray-300 text-[13px] rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary-500/50 focus:outline-none placeholder-gray-600"><p class="text-[11px] text-gray-600 mt-1">URL for shortcuts. Leave empty to use Overseerr URL above.</p></div>
+            @if (overseerrError) { <div class="p-2.5 bg-red-500/[0.06] rounded-xl text-red-400 text-[13px]">{{ overseerrError }}</div> }
+            @if (overseerrTestResult?.success) { <div class="p-2.5 bg-green-500/[0.06] rounded-xl text-green-400 text-[13px]">Connected to Overseerr (v{{ overseerrTestResult?.version }})</div> }
+            <div class="flex gap-2">
+              <button (click)="testOverseerrConnection()" [disabled]="overseerrTesting || !overseerrHost || !overseerrApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-white/[0.06] active:bg-white/[0.1] text-gray-300 rounded-xl transition-colors disabled:opacity-30">@if (overseerrTesting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing... } @else { Test Connection }</button>
+              <button (click)="connectOverseerr()" [disabled]="overseerrConnecting || !overseerrHost || !overseerrApiKey" class="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium bg-primary-600 active:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-30">@if (overseerrConnecting) { <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Connecting... } @else { Connect }</button>
             </div>
           </div>
         }
       </section>
 
-      <!-- Sync History -->
+      <!-- ═══════════════ SYNC HISTORY ═══════════════ -->
       @if (lastSyncJobs.length > 0) {
-        <section class="card p-6">
-          <h2 class="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Recent Sync History
-          </h2>
-
-          <div class="space-y-3">
-            @for (job of lastSyncJobs; track job.id) {
-              <div class="flex items-center justify-between p-3 bg-dark-800 rounded-lg">
-                <div class="flex items-center gap-3">
-                  @if (job.status === 'completed') {
-                    <div class="w-8 h-8 bg-green-600/20 rounded-full flex items-center justify-center">
-                      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  } @else if (job.status === 'failed') {
-                    <div class="w-8 h-8 bg-red-600/20 rounded-full flex items-center justify-center">
-                      <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                  } @else {
-                    <div class="w-8 h-8 bg-yellow-600/20 rounded-full flex items-center justify-center">
-                      <svg class="w-4 h-4 text-yellow-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    </div>
-                  }
-                  <div>
-                    <p class="text-sm font-medium text-gray-200 capitalize">{{ job.type }} Sync</p>
-                    <p class="text-xs text-gray-500">{{ formatDate(job.startedAt) }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  @if (job.status === 'completed') {
-                    <p class="text-xs text-gray-400">
-                      +{{ job.moviesAdded || 0 }} movies, +{{ job.episodesAdded || 0 }} episodes
-                    </p>
-                  } @else if (job.status === 'failed') {
-                    <p class="text-xs text-red-400">{{ job.error || 'Unknown error' }}</p>
-                  }
-                </div>
+        <section class="rounded-2xl bg-white/[0.03] overflow-hidden">
+          <div class="px-4 py-3 flex items-center gap-2"><svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[15px] font-bold text-white">Recent Sync History</span></div>
+          @for (job of lastSyncJobs; track job.id) {
+            <div class="px-4 py-3 border-t border-white/[0.04] flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                @if (job.status === 'completed') { <div class="w-7 h-7 bg-green-500/10 rounded-full flex items-center justify-center"><svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+                } @else if (job.status === 'failed') { <div class="w-7 h-7 bg-red-500/10 rounded-full flex items-center justify-center"><svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>
+                } @else { <div class="w-7 h-7 bg-yellow-500/10 rounded-full flex items-center justify-center"><svg class="w-3.5 h-3.5 text-yellow-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div> }
+                <div><p class="text-[13px] font-medium text-gray-200 capitalize">{{ job.type }} Sync</p><p class="text-[11px] text-gray-600">{{ formatDate(job.startedAt) }}</p></div>
               </div>
-            }
-          </div>
+              <div class="text-right">
+                @if (job.status === 'completed') { <p class="text-[11px] text-gray-500">+{{ job.moviesAdded || 0 }} movies, +{{ job.episodesAdded || 0 }} episodes</p>
+                } @else if (job.status === 'failed') { <p class="text-[11px] text-red-400">{{ job.error || 'Unknown error' }}</p> }
+              </div>
+            </div>
+          }
         </section>
       }
+
     </div>
   }
 </div>

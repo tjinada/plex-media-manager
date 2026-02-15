@@ -49,7 +49,7 @@
       <!-- Tab Navigation -->
       <div class="flex gap-0.5 border-b border-white/[0.04] overflow-x-auto scrollbar-none -mx-1 px-1">
         @for (tab of ['overview','devices','formats','recommendations']; track tab) {
-          <button (click)="onTabChange(tab)" class="px-3.5 py-2.5 text-[13px] font-medium whitespace-nowrap border-b-2 transition-colors" [class]="activeTab === tab ? 'border-primary-500 text-primary-400' : 'border-transparent text-gray-500'">{{ tab === 'overview' ? 'Overview' : tab === 'devices' ? 'Devices' : tab === 'formats' ? 'Formats' : 'Recommendations' }}</button>
+          <button (click)="onTabChange($any(tab))" class="px-3.5 py-2.5 text-[13px] font-medium whitespace-nowrap border-b-2 transition-colors" [class]="activeTab === tab ? 'border-primary-500 text-primary-400' : 'border-transparent text-gray-500'">{{ tab === 'overview' ? 'Overview' : tab === 'devices' ? 'Devices' : tab === 'formats' ? 'Formats' : 'Recommendations' }}</button>
         }
       </div>
 

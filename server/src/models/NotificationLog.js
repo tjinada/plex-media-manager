@@ -4,7 +4,7 @@ const notificationLogSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['streaming_started', 'compatibility_issue', 'media_downloaded', 'missing_media']
+    enum: ['streaming_started', 'compatibility_issue', 'media_downloaded', 'missing_media', 'test']
   },
   title: {
     type: String,

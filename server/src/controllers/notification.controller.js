@@ -22,13 +22,18 @@ exports.getVapidPublicKey = async (req, res, next) => {
 exports.subscribe = async (req, res, next) => {
   try {
     const { subscription } = req.body;
+    console.log('[subscribe] Received subscription:', JSON.stringify(subscription?.endpoint?.substring(0, 60)));
     if (!subscription || !subscription.endpoint || !subscription.keys) {
+      console.log('[subscribe] Invalid subscription object:', JSON.stringify(req.body));
       return res.status(400).json({ error: 'Invalid subscription object' });
     }
     const userAgent = req.headers['user-agent'] || null;
     await notificationService.subscribe(subscription, userAgent);
+    const count = await notificationService.getSubscriptionCount();
+    console.log(`[subscribe] Saved. Total subscriptions: ${count}`);
     res.json({ success: true });
   } catch (error) {
+    console.error('[subscribe] Error:', error);
     next(error);
   }
 };

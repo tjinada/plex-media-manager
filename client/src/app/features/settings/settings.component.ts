@@ -29,7 +29,7 @@ export interface SyncJob {
   templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit, OnDestroy {
-  readonly appVersion = '1.2.0';
+  readonly appVersion = '1.3.0';
 
   // Notification state
   pushSupported = false;

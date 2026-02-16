@@ -99,10 +99,15 @@ export class PushNotificationService {
 
   /**
    * Check if this browser is currently subscribed
+   * Uses native Push API for reliable state detection
    */
   async isSubscribed(): Promise<boolean> {
     try {
-      const subscription = await this.swPush.subscription.pipe().toPromise();
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return false;
+      }
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
       return !!subscription;
     } catch {
       return false;

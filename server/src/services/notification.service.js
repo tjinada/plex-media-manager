@@ -82,17 +82,22 @@ class NotificationService {
 
   /**
    * Send a notification for a given category
+   * @param {string} category - notification category
+   * @param {object} options - { title, body, url }
+   * @param {boolean} [bypassPrefs=false] - skip preference checks (for test notifications)
    */
-  async notify(category, { title, body, url }) {
+  async notify(category, { title, body, url }, bypassPrefs = false) {
     if (!this.initialized) return;
 
     try {
-      // Check preferences
-      const prefs = await NotificationPreference.getPreferences();
-      if (!prefs.enabled) return;
+      // Check preferences (unless bypassed for test notifications)
+      if (!bypassPrefs) {
+        const prefs = await NotificationPreference.getPreferences();
+        if (!prefs.enabled) return;
 
-      const catPref = prefs.categories?.[category];
-      if (!catPref || !catPref.enabled) return;
+        const catPref = prefs.categories?.[category];
+        if (!catPref || !catPref.enabled) return;
+      }
 
       // Get all subscriptions
       const subscriptions = await PushSubscription.find();

@@ -92,11 +92,11 @@ exports.getHistory = async (req, res, next) => {
  */
 exports.sendTest = async (req, res, next) => {
   try {
-    await notificationService.notify('streaming_started', {
+    await notificationService.notify('test', {
       title: '🔔 Test Notification',
       body: 'Push notifications are working!',
       url: '/settings'
-    });
+    }, true); // bypass preference checks for test
     res.json({ success: true });
   } catch (error) {
     next(error);

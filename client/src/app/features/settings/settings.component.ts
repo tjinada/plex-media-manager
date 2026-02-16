@@ -28,6 +28,8 @@ export interface SyncJob {
   templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit, OnDestroy {
+  readonly appVersion = '1.1.0';
+
   // Server state
   server: PlexServer | null = null;
   isLoading = true;

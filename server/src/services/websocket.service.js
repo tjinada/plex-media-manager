@@ -197,10 +197,8 @@ class WebSocketService {
         sessions.forEach(session => {
           if (!previousKeys.has(session.sessionKey)) {
             this.broadcast('streaming:started', session);
-            // Push notification
-            notificationService.notifyStreamingStarted(session).catch(err =>
-              console.error('Push notify streaming error:', err.message)
-            );
+            // Push notification is handled by session-capture.service.js
+            // which runs independently of WebSocket subscribers
           }
         });
 

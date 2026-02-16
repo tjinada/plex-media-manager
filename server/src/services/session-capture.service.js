@@ -1,5 +1,6 @@
 const { PlexServer, PlaybackSession, Movie, Episode } = require('../models');
 const PlexService = require('./plex.service');
+const notificationService = require('./notification.service');
 
 /**
  * Service to capture active playback sessions in real-time
@@ -72,7 +73,13 @@ class SessionCaptureService {
       for (const session of sessions) {
         try {
           const wasCaptured = await this.processActiveSession(session, server._id, plexService);
-          if (wasCaptured) capturedCount++;
+          if (wasCaptured) {
+            capturedCount++;
+            // Send push notification for new streaming session
+            this.sendStreamingNotification(session).catch(err =>
+              console.error('Push notify streaming error:', err.message)
+            );
+          }
         } catch (error) {
           console.error('Error processing active session:', error.message);
         }
@@ -185,6 +192,42 @@ class SessionCaptureService {
     );
 
     return true;
+  }
+
+  /**
+   * Send push notification for a new streaming session
+   * Transforms raw Plex session data to match the HomeAggregator session format
+   */
+  async sendStreamingNotification(plexSession) {
+    const isEpisode = plexSession.type === 'episode';
+    const media = plexSession.Media?.[0];
+
+    const session = {
+      user: {
+        name: plexSession.User?.title || 'Someone'
+      },
+      media: {
+        type: isEpisode ? 'episode' : 'movie',
+        title: plexSession.title || 'Unknown',
+        showTitle: isEpisode ? plexSession.grandparentTitle : undefined,
+        seasonEpisode: isEpisode
+          ? `S${String(plexSession.parentIndex || 0).padStart(2, '0')}E${String(plexSession.index || 0).padStart(2, '0')}`
+          : undefined
+      },
+      streamQuality: {
+        resolution: this.getResolutionLabel(media) || 'Unknown'
+      },
+      playback: {
+        decision: plexSession.TranscodeSession
+          ? this.normalizeDecision(plexSession.TranscodeSession.videoDecision)
+          : 'directplay'
+      },
+      player: {
+        name: plexSession.Player?.title || plexSession.Player?.device || 'Unknown'
+      }
+    };
+
+    await notificationService.notifyStreamingStarted(session);
   }
 
   /**

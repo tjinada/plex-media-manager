@@ -238,19 +238,59 @@ class NotificationService {
 
   /**
    * Notify: missing media detected
+   * Only notifies when missing counts increase (newly detected) and at most once per 24 hours
    */
   async notifyMissingMedia({ missingMovies, missingEpisodes }) {
-    const parts = [];
-    if (missingMovies > 0) parts.push(`${missingMovies} movie${missingMovies > 1 ? 's' : ''}`);
-    if (missingEpisodes > 0) parts.push(`${missingEpisodes} episode${missingEpisodes > 1 ? 's' : ''}`);
+    if (missingMovies === 0 && missingEpisodes === 0) return;
 
-    if (parts.length === 0) return;
+    try {
+      const mongoose = require('mongoose');
+      const db = mongoose.connection.db;
+      const collection = db.collection('app_settings');
 
-    await this.notify('missing_media', {
-      title: `📋 New missing media detected`,
-      body: `${parts.join(' and ')} missing from your library`,
-      url: '/wanted'
-    });
+      // Get last known state
+      const lastState = await collection.findOne({ key: 'last_missing_counts' });
+      const prevMovies = lastState?.missingMovies || 0;
+      const prevEpisodes = lastState?.missingEpisodes || 0;
+      const lastNotified = lastState?.lastNotifiedAt ? new Date(lastState.lastNotifiedAt) : null;
+
+      // Only care about increases (newly missing)
+      const newMovies = Math.max(0, missingMovies - prevMovies);
+      const newEpisodes = Math.max(0, missingEpisodes - prevEpisodes);
+
+      // 24-hour cooldown
+      const cooldownMs = 24 * 60 * 60 * 1000;
+      const cooldownPassed = !lastNotified || (Date.now() - lastNotified.getTime()) >= cooldownMs;
+
+      // Notify only if new items AND cooldown passed
+      if ((newMovies > 0 || newEpisodes > 0) && cooldownPassed) {
+        const parts = [];
+        if (newMovies > 0) parts.push(`${newMovies} movie${newMovies > 1 ? 's' : ''}`);
+        if (newEpisodes > 0) parts.push(`${newEpisodes} episode${newEpisodes > 1 ? 's' : ''}`);
+
+        await this.notify('missing_media', {
+          title: `📋 Missing media detected`,
+          body: `${parts.join(' and ')} newly missing from your library`,
+          url: '/wanted'
+        });
+
+        // Save with notification timestamp
+        await collection.updateOne(
+          { key: 'last_missing_counts' },
+          { $set: { key: 'last_missing_counts', missingMovies, missingEpisodes, lastNotifiedAt: new Date() } },
+          { upsert: true }
+        );
+      } else {
+        // Save updated counts without touching lastNotifiedAt
+        await collection.updateOne(
+          { key: 'last_missing_counts' },
+          { $set: { key: 'last_missing_counts', missingMovies, missingEpisodes } },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error('Missing media notification error:', error.message);
+    }
   }
 
   /**

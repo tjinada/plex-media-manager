@@ -143,11 +143,10 @@ class NotificationService {
           sentCount++;
         } catch (error) {
           failedCount++;
+          console.error(`Push failed for ${sub.endpoint.substring(0, 60)}...: status=${error.statusCode}, message=${error.body || error.message}`);
           // 410 Gone, 404, or 403 = subscription expired/invalid, remove it
           if (error.statusCode === 410 || error.statusCode === 404 || error.statusCode === 403) {
             expiredEndpoints.push(sub.endpoint);
-          } else {
-            console.error(`Push failed for ${sub.endpoint}: status=${error.statusCode}, message=${error.message}`);
           }
         }
       }

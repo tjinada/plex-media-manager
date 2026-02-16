@@ -1109,6 +1109,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   async togglePushSubscription(): Promise<void> {
+    if (this.pushLoading) return;
     this.pushLoading = true;
     try {
       if (this.pushSubscribed) {
@@ -1117,14 +1118,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
       } else {
         const success = await this.pushService.subscribe();
         this.pushSubscribed = success;
+        if (!success) {
+          console.error('Push subscription returned false');
+        }
       }
       // Refresh device count
       const { subscribedDevices } = await this.pushService.getPreferences();
       this.notifSubscribedDevices = subscribedDevices;
     } catch (error) {
       console.error('Toggle push failed:', error);
+    } finally {
+      this.pushLoading = false;
     }
-    this.pushLoading = false;
   }
 
   async toggleNotifCategory(category: string): Promise<void> {

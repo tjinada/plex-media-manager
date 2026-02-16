@@ -328,8 +328,12 @@
                     <div class="text-[11px] text-gray-600">{{ notifSubscribedDevices }} device{{ notifSubscribedDevices !== 1 ? 's' : '' }} subscribed</div>
                   </div>
                 </div>
-                <button (click)="togglePushSubscription()" [disabled]="pushLoading" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="pushSubscribed ? 'bg-primary-600' : 'bg-white/10'">
-                  <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="pushSubscribed ? 'translate-x-5' : 'translate-x-0'"></span>
+                <button (click)="togglePushSubscription()" [disabled]="pushLoading" class="relative h-7 w-12 rounded-full transition-colors flex-shrink-0" [ngClass]="pushSubscribed ? 'bg-primary-600' : 'bg-white/10'">
+                  @if (pushLoading) {
+                    <svg class="absolute top-1 left-1/2 -translate-x-1/2 h-5 w-5 animate-spin text-white/60" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  } @else {
+                    <span class="absolute top-0.5 left-0.5 h-6 w-6 bg-white rounded-full shadow transition-transform" [ngClass]="pushSubscribed ? 'translate-x-5' : 'translate-x-0'"></span>
+                  }
                 </button>
               </div>
             } @else {

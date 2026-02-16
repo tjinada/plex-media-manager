@@ -43,6 +43,8 @@ class NotificationService {
         vapidSubject = `mailto:admin@${host}`;
       } catch {}
 
+      this._vapidSubject = vapidSubject;
+
       webpush.setVapidDetails(
         vapidSubject,
         this.vapidKeys.publicKey,
@@ -50,7 +52,7 @@ class NotificationService {
       );
 
       this.initialized = true;
-      console.log('Push notification service initialized');
+      console.log(`Push notification service initialized (subject: ${vapidSubject})`);
     } catch (error) {
       console.error('Failed to initialize push notifications:', error.message);
     }
@@ -144,14 +146,26 @@ class NotificationService {
 
       for (const sub of subscriptions) {
         try {
+          // Log the endpoint origin for debugging
+          const endpointUrl = new URL(sub.endpoint);
+          console.log(`[notify] Sending to ${endpointUrl.origin}, vapid subject: ${this._vapidSubject}`);
+
           await webpush.sendNotification(
             { endpoint: sub.endpoint, keys: sub.keys },
-            payload
+            payload,
+            {
+              vapidDetails: {
+                subject: this._vapidSubject,
+                publicKey: this.vapidKeys.publicKey,
+                privateKey: this.vapidKeys.privateKey
+              },
+              TTL: 60 * 60
+            }
           );
           sentCount++;
         } catch (error) {
           failedCount++;
-          console.error(`Push failed for ${sub.endpoint.substring(0, 60)}...: status=${error.statusCode}, message=${error.body || error.message}`);
+          console.error(`Push failed for ${sub.endpoint.substring(0, 60)}...: status=${error.statusCode}, body=${error.body}, message=${error.message}`);
           // 410 Gone, 404, or 403 = subscription expired/invalid, remove it
           if (error.statusCode === 410 || error.statusCode === 404 || error.statusCode === 403) {
             expiredEndpoints.push(sub.endpoint);

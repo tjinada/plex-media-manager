@@ -37,6 +37,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   pushSubscribed = false;
   pushLoading = false;
   pushTestSending = false;
+  pushTestSuccess = false;
   notifPrefs: NotificationPreferences | null = null;
   notifSubscribedDevices = 0;
 
@@ -1091,13 +1092,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // ===== Notification Methods =====
   async loadNotificationSettings(): Promise<void> {
     this.pushSupported = this.pushService.isSupported;
-    if (!this.pushSupported) return;
 
     try {
-      this.pushSubscribed = await this.pushService.isSubscribed();
+      // Always load server-side preferences regardless of push support
       const { preferences, subscribedDevices } = await this.pushService.getPreferences();
       this.notifPrefs = preferences;
       this.notifSubscribedDevices = subscribedDevices;
+
+      // Only check browser subscription state if push is supported
+      if (this.pushSupported) {
+        this.pushSubscribed = await this.pushService.isSubscribed();
+      }
     } catch (error) {
       console.error('Failed to load notification settings:', error);
     }
@@ -1144,8 +1149,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   async sendTestNotification(): Promise<void> {
     this.pushTestSending = true;
-    await this.pushService.sendTest();
+    this.pushTestSuccess = false;
+    const success = await this.pushService.sendTest();
     this.pushTestSending = false;
+    if (success) {
+      this.pushTestSuccess = true;
+      setTimeout(() => this.pushTestSuccess = false, 3000);
+    }
   }
 
   // ===== Auth Methods =====

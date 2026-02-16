@@ -20,6 +20,16 @@ const environment = {
     }
   },
 
+  // Push Notifications (VAPID)
+  vapid: {
+    publicKey: process.env.VAPID_PUBLIC_KEY || '',
+    privateKey: process.env.VAPID_PRIVATE_KEY || '',
+    email: process.env.VAPID_EMAIL || '',
+    get configured() {
+      return !!(environment.vapid.publicKey && environment.vapid.privateKey && environment.vapid.email);
+    }
+  },
+
   // Plex API configuration
   plex: {
     clientIdentifier: process.env.PLEX_CLIENT_ID || 'tj-plex-media-manager',

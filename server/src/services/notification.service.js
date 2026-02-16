@@ -1,58 +1,30 @@
 const webpush = require('web-push');
 const { PushSubscription, NotificationPreference, NotificationLog } = require('../models');
+const environment = require('../config/environment');
 
 class NotificationService {
   constructor() {
-    this.vapidKeys = null;
     this.initialized = false;
   }
 
   /**
-   * Initialize VAPID keys — generates once, stores in MongoDB Settings-style
+   * Initialize VAPID — uses environment variables (pre-generated keys)
    */
   async initialize() {
     try {
-      const mongoose = require('mongoose');
-      const db = mongoose.connection.db;
-      const settingsCol = db.collection('app_settings');
-
-      let doc = await settingsCol.findOne({ key: 'vapid_keys' });
-      if (!doc) {
-        // Generate new VAPID keys
-        const keys = webpush.generateVAPIDKeys();
-        doc = {
-          key: 'vapid_keys',
-          publicKey: keys.publicKey,
-          privateKey: keys.privateKey,
-          createdAt: new Date()
-        };
-        await settingsCol.insertOne(doc);
-        console.log('Generated new VAPID keys');
+      if (!environment.vapid.configured) {
+        console.log('Push notifications not configured (set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL)');
+        return;
       }
 
-      this.vapidKeys = {
-        publicKey: doc.publicKey,
-        privateKey: doc.privateKey
-      };
-
-      // Use CLIENT_URL domain for VAPID subject, or fallback
-      const clientUrl = require('../config/environment').clientUrl;
-      let vapidSubject = 'mailto:admin@localhost';
-      try {
-        const host = new URL(clientUrl).hostname;
-        vapidSubject = `mailto:admin@${host}`;
-      } catch {}
-
-      this._vapidSubject = vapidSubject;
-
       webpush.setVapidDetails(
-        vapidSubject,
-        this.vapidKeys.publicKey,
-        this.vapidKeys.privateKey
+        environment.vapid.email,
+        environment.vapid.publicKey,
+        environment.vapid.privateKey
       );
 
       this.initialized = true;
-      console.log(`Push notification service initialized (subject: ${vapidSubject})`);
+      console.log(`Push notification service initialized (subject: ${environment.vapid.email})`);
     } catch (error) {
       console.error('Failed to initialize push notifications:', error.message);
     }
@@ -62,7 +34,7 @@ class NotificationService {
    * Get the public VAPID key (sent to clients for subscription)
    */
   getPublicKey() {
-    return this.vapidKeys?.publicKey || null;
+    return environment.vapid.publicKey || null;
   }
 
   /**
@@ -97,7 +69,6 @@ class NotificationService {
    * @param {boolean} [bypassPrefs=false] - skip preference checks (for test notifications)
    */
   async notify(category, { title, body, url }, bypassPrefs = false) {
-    console.log(`[notify] called: category=${category}, bypassPrefs=${bypassPrefs}, initialized=${this.initialized}`);
     if (!this.initialized) {
       console.log('[notify] ABORT: not initialized');
       return;
@@ -107,36 +78,27 @@ class NotificationService {
       // Check preferences (unless bypassed for test notifications)
       if (!bypassPrefs) {
         const prefs = await NotificationPreference.getPreferences();
-        if (!prefs.enabled) {
-          console.log('[notify] ABORT: notifications disabled in preferences');
-          return;
-        }
+        if (!prefs.enabled) return;
 
         const catPref = prefs.categories?.[category];
-        if (!catPref || !catPref.enabled) {
-          console.log(`[notify] ABORT: category ${category} disabled`);
-          return;
-        }
+        if (!catPref || !catPref.enabled) return;
       }
 
       // Get all subscriptions
       const subscriptions = await PushSubscription.find();
-      console.log(`[notify] Found ${subscriptions.length} subscriptions`);
+      console.log(`[notify] Sending [${category}] to ${subscriptions.length} subscriptions`);
       if (subscriptions.length === 0) return;
 
+      // Flat payload format — handled by custom service worker push handler
       const payload = JSON.stringify({
-        notification: {
-          title,
-          body,
-          icon: '/assets/icons/icon-192x192.png',
-          badge: '/assets/icons/icon-192x192.png',
-          data: {
-            url: url || '/',
-            category,
-            onActionClick: {
-              default: { operation: 'navigateLastFocusedOrOpen', url: url || '/' }
-            }
-          }
+        title,
+        body,
+        icon: '/assets/icons/icon-192x192.png',
+        badge: '/assets/icons/icon-192x192.png',
+        tag: category,
+        data: {
+          url: url || '/',
+          category
         }
       });
 
@@ -146,28 +108,15 @@ class NotificationService {
 
       for (const sub of subscriptions) {
         try {
-          // Log the endpoint origin for debugging
-          const endpointUrl = new URL(sub.endpoint);
-          console.log(`[notify] Sending to ${endpointUrl.origin}, vapid subject: ${this._vapidSubject}`);
-
           await webpush.sendNotification(
             { endpoint: sub.endpoint, keys: sub.keys },
-            payload,
-            {
-              vapidDetails: {
-                subject: this._vapidSubject,
-                publicKey: this.vapidKeys.publicKey,
-                privateKey: this.vapidKeys.privateKey
-              },
-              TTL: 60 * 60
-            }
+            payload
           );
           sentCount++;
         } catch (error) {
           failedCount++;
-          console.error(`Push failed for ${sub.endpoint.substring(0, 60)}...: status=${error.statusCode}, body=${error.body}, message=${error.message}`);
-          // 410 Gone, 404, or 403 = subscription expired/invalid, remove it
-          if (error.statusCode === 410 || error.statusCode === 404 || error.statusCode === 403) {
+          console.error(`Push failed for ${sub.endpoint.substring(0, 60)}...: status=${error.statusCode}, body=${error.body}`);
+          if (error.statusCode === 404 || error.statusCode === 410) {
             expiredEndpoints.push(sub.endpoint);
           }
         }
@@ -225,7 +174,6 @@ class NotificationService {
   async notifyCompatibilityIssues(issues) {
     if (!issues || issues.length === 0) return;
 
-    // Check severity preference
     const prefs = await NotificationPreference.getPreferences();
     const minSeverity = prefs.categories?.compatibility_issue?.minSeverity || 'critical';
 

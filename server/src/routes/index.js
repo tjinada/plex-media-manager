@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { authMiddleware } = require('../middleware/auth');
 
 const authRoutes = require('./auth.routes');
 const serverRoutes = require('./server.routes');
@@ -20,7 +21,12 @@ const qbittorrentRoutes = require('./qbittorrent.routes');
 const overseerrRoutes = require('./overseerr.routes');
 const notificationRoutes = require('./notification.routes');
 
+// Public routes — no auth required
 router.use('/auth', authRoutes);
+
+// Protected routes — auth middleware applied
+router.use(authMiddleware);
+
 router.use('/server', serverRoutes);
 router.use('/sync', syncRoutes);
 router.use('/movies', moviesRoutes);

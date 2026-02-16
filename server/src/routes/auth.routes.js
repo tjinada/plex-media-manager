@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 
-// POST /api/auth/plex/token - Validate Plex token
-router.post('/plex/token', authController.validateToken);
+router.get('/status', authController.getStatus);
+router.post('/login', authController.login);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+export * from './auth.service';
 export * from './api.service';
 export * from './plex.service';
 export * from './sync.service';

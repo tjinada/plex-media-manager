@@ -59,7 +59,13 @@ export class WebSocketService implements OnDestroy {
 
     // Build WebSocket URL from current location
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    let wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+
+    // Attach auth token if present
+    const token = localStorage.getItem('tjpmm_auth_token');
+    if (token) {
+      wsUrl += `?token=${encodeURIComponent(token)}`;
+    }
 
     try {
       this.socket = new WebSocket(wsUrl);

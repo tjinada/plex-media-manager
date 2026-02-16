@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 const environment = {
   port: process.env.PORT || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -7,6 +9,17 @@ const environment = {
   encryptionKey: process.env.ENCRYPTION_KEY || 'default-dev-key-change-in-prod!',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:4200',
   
+  // Authentication
+  auth: {
+    username: process.env.AUTH_USERNAME || '',
+    password: process.env.AUTH_PASSWORD || '',
+    jwtSecret: process.env.JWT_SECRET || process.env.ENCRYPTION_KEY || crypto.randomBytes(64).toString('hex'),
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '30d',
+    get enabled() {
+      return !!(environment.auth.username && environment.auth.password);
+    }
+  },
+
   // Plex API configuration
   plex: {
     clientIdentifier: process.env.PLEX_CLIENT_ID || 'tj-plex-media-manager',

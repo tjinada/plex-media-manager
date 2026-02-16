@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService, OverseerrService, PushNotificationService } from '@core/services';
+import { AuthService, PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService, OverseerrService, PushNotificationService } from '@core/services';
 import { NotificationPreferences } from '@core/services/push-notification.service';
 import { OverseerrConfig } from '@core/services/overseerr.service';
 import { TautulliConfig, TautulliConnectionInfo, TautulliImportStatus } from '@core/services/tautulli.service';
@@ -29,7 +29,8 @@ export interface SyncJob {
   templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit, OnDestroy {
-  readonly appVersion = '1.3.0';
+  readonly appVersion = '1.4.0';
+  authEnabled = false;
 
   // Notification state
   pushSupported = false;
@@ -179,7 +180,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private nzbgetService: NzbgetService,
     private qbittorrentService: QbittorrentService,
     private overseerrService: OverseerrService,
-    private pushService: PushNotificationService
+    private pushService: PushNotificationService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -193,6 +195,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadQbittorrentConfig();
     this.loadOverseerrConfig();
     this.loadNotificationSettings();
+    this.checkAuthEnabled();
   }
 
   ngOnDestroy(): void {
@@ -1143,6 +1146,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.pushTestSending = true;
     await this.pushService.sendTest();
     this.pushTestSending = false;
+  }
+
+  // ===== Auth Methods =====
+  async checkAuthEnabled(): Promise<void> {
+    try {
+      const status = await this.authService.checkStatus();
+      this.authEnabled = status.authEnabled;
+    } catch {
+      this.authEnabled = false;
+    }
+  }
+
+  signOut(): void {
+    this.authService.signOut();
   }
 
   // ===== Utility Methods =====

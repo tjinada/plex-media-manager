@@ -68,6 +68,7 @@ const startServer = async () => {
 
     server.listen(environment.port, () => {
       console.log(`Server running on port ${environment.port} in ${environment.nodeEnv} mode`);
+      console.log(`Authentication: ${environment.auth.enabled ? 'ENABLED' : 'DISABLED (set AUTH_USERNAME and AUTH_PASSWORD to enable)'}`);
       console.log('WebSocket server ready on /ws');
     });
   } catch (error) {

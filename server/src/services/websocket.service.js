@@ -1,5 +1,8 @@
 const WebSocket = require('ws');
+const jwt = require('jsonwebtoken');
+const url = require('url');
 const notificationService = require('./notification.service');
+const environment = require('../config/environment');
 
 class WebSocketService {
   constructor() {
@@ -18,7 +21,23 @@ class WebSocketService {
   initialize(server) {
     this.wss = new WebSocket.Server({
       server,
-      path: '/ws'
+      path: '/ws',
+      verifyClient: (info, cb) => {
+        // Auth disabled — allow all
+        if (!environment.auth.enabled) return cb(true);
+
+        // Validate token from query param
+        const parsed = url.parse(info.req.url, true);
+        const token = parsed.query.token;
+        if (!token) return cb(false, 401, 'Authentication required');
+
+        try {
+          jwt.verify(token, environment.auth.jwtSecret);
+          cb(true);
+        } catch {
+          cb(false, 401, 'Invalid token');
+        }
+      }
     });
 
     this.wss.on('connection', (ws) => {

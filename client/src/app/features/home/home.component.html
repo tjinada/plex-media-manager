@@ -4,24 +4,24 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-[28px] font-bold text-white tracking-tight">Home</h1>
-        <p class="text-gray-500 text-sm -mt-0.5">What's happening right now</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-1.5">
-          <span class="relative flex h-[7px] w-[7px]">
-            @if (connectionStatus.connected) {
-              <span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50 animate-ping"></span>
-              <span class="relative inline-flex rounded-full h-[7px] w-[7px] bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.6)]"></span>
-            } @else if (connectionStatus.reconnecting) {
-              <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-50 animate-ping"></span>
-              <span class="relative inline-flex rounded-full h-[7px] w-[7px] bg-yellow-500"></span>
-            } @else {
-              <span class="relative inline-flex rounded-full h-[7px] w-[7px] bg-gray-600"></span>
-            }
-          </span>
-          <span class="text-[13px] font-medium" [class]="connectionStatus.connected ? 'text-green-400' : connectionStatus.reconnecting ? 'text-yellow-400' : 'text-gray-600'">
-            {{ connectionStatus.connected ? 'Live' : connectionStatus.reconnecting ? 'Reconnecting...' : 'Offline' }}
-          </span>
+        <div class="flex items-center gap-2 -mt-0.5">
+          <p class="text-gray-500 text-sm">What's happening right now</p>
+          <div class="flex items-center gap-1">
+            <span class="relative flex h-[6px] w-[6px]">
+              @if (connectionStatus.connected) {
+                <span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50 animate-ping"></span>
+                <span class="relative inline-flex rounded-full h-[6px] w-[6px] bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.6)]"></span>
+              } @else if (connectionStatus.reconnecting) {
+                <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-50 animate-ping"></span>
+                <span class="relative inline-flex rounded-full h-[6px] w-[6px] bg-yellow-500"></span>
+              } @else {
+                <span class="relative inline-flex rounded-full h-[6px] w-[6px] bg-gray-600"></span>
+              }
+            </span>
+            <span class="text-[12px] font-medium" [class]="connectionStatus.connected ? 'text-green-400' : connectionStatus.reconnecting ? 'text-yellow-400' : 'text-gray-600'">
+              {{ connectionStatus.connected ? 'Live' : connectionStatus.reconnecting ? 'Reconnecting...' : 'Offline' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ const environment = require('../config/environment');
 /**
  * Authentication middleware
  * - If AUTH_USERNAME and AUTH_PASSWORD are not set, auth is disabled (passthrough)
- * - Otherwise, validates JWT from Authorization header
+ * - Validates JWT from Authorization header OR ?token= query param (for images/ws)
  */
 const authMiddleware = (req, res, next) => {
   // Auth disabled — passthrough
@@ -12,14 +12,23 @@ const authMiddleware = (req, res, next) => {
     return next();
   }
 
+  // Try Authorization header first
+  let token = null;
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  }
+
+  // Fallback to query param (for <img src>, WebSocket, etc.)
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
+
+  if (!token) {
     return res.status(401).json({
       error: { code: 'UNAUTHORIZED', message: 'Authentication required' }
     });
   }
-
-  const token = authHeader.substring(7);
 
   try {
     const decoded = jwt.verify(token, environment.auth.jwtSecret);

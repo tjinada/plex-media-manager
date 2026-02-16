@@ -57,6 +57,12 @@ export class PlexService {
       return '/assets/images/placeholder-poster.svg';
     }
     // Images are proxied through our backend
-    return `/api/server/image?path=${encodeURIComponent(path)}`;
+    // Append auth token since <img src> doesn't use HttpClient interceptors
+    let url = `/api/server/image?path=${encodeURIComponent(path)}`;
+    const token = localStorage.getItem('tjpmm_auth_token');
+    if (token) {
+      url += `&token=${encodeURIComponent(token)}`;
+    }
+    return url;
   }
 }

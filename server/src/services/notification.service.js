@@ -35,8 +35,16 @@ class NotificationService {
         privateKey: doc.privateKey
       };
 
+      // Use CLIENT_URL domain for VAPID subject, or fallback
+      const clientUrl = require('../config/environment').clientUrl;
+      let vapidSubject = 'mailto:admin@localhost';
+      try {
+        const host = new URL(clientUrl).hostname;
+        vapidSubject = `mailto:admin@${host}`;
+      } catch {}
+
       webpush.setVapidDetails(
-        'mailto:admin@plex-media-manager.local',
+        vapidSubject,
         this.vapidKeys.publicKey,
         this.vapidKeys.privateKey
       );

@@ -12,6 +12,7 @@ const sessionCaptureService = require('./src/services/session-capture.service');
 const tautulliSyncService = require('./src/services/tautulli-sync.service');
 const websocketService = require('./src/services/websocket.service');
 const homeAggregatorService = require('./src/services/home-aggregator.service');
+const notificationService = require('./src/services/notification.service');
 
 const app = express();
 
@@ -57,6 +58,9 @@ const startServer = async () => {
 
     // Start Tautulli real-time sync if configured
     await tautulliSyncService.startRealtimeSync();
+
+    // Initialize push notifications
+    await notificationService.initialize();
 
     // Initialize WebSocket server
     websocketService.initialize(server);

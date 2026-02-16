@@ -2,6 +2,7 @@ const { PlexServer, Movie, TVShow, Season, Episode, SyncJob, PlaybackSession } =
 const PlexService = require('./plex.service');
 const { getResolution } = require('../utils/resolution');
 const { normalizeVideoCodec, normalizeAudioCodec, normalizeContainer } = require('../utils/codec');
+const notificationService = require('./notification.service');
 
 // Track current sync job
 let currentSyncJob = null;
@@ -138,6 +139,11 @@ class SyncService {
       await PlexServer.updateOne(
         { _id: this.server._id },
         { lastSyncAt: new Date(), isConnected: true }
+      );
+
+      // Post-sync notifications
+      this.sendPostSyncNotifications().catch(err =>
+        console.error('Post-sync notification error:', err.message)
       );
 
     } catch (error) {
@@ -885,6 +891,57 @@ class SyncService {
         }
       }
     );
+  }
+
+  /**
+   * Send notifications after sync completes
+   */
+  async sendPostSyncNotifications() {
+    try {
+      // 1. Compatibility issues — run analysis and notify about new critical/medium issues
+      const compatibilityService = require('./compatibility.service');
+      const analysis = await compatibilityService.analyzeAll();
+      const issues = [];
+      if (analysis.movieIssues) issues.push(...analysis.movieIssues);
+      if (analysis.episodeIssues) issues.push(...analysis.episodeIssues);
+      // Only notify if there are issues with critical or medium severity
+      const significant = issues.filter(i => i.severity === 'critical' || i.severity === 'medium');
+      if (significant.length > 0) {
+        await notificationService.notifyCompatibilityIssues(significant);
+      }
+
+      // 2. Missing media — check Radarr/Sonarr for missing items
+      try {
+        let missingMovies = 0;
+        let missingEpisodes = 0;
+
+        try {
+          const radarrService = require('./radarr.service');
+          await radarrService.initialize();
+          if (radarrService.client) {
+            const resp = await radarrService.client.get('/wanted/missing', { params: { pageSize: 1 } });
+            missingMovies = resp.data?.totalRecords || 0;
+          }
+        } catch (e) { /* Radarr not configured */ }
+
+        try {
+          const sonarrService = require('./sonarr.service');
+          await sonarrService.initialize();
+          if (sonarrService.client) {
+            const resp = await sonarrService.client.get('/wanted/missing', { params: { pageSize: 1 } });
+            missingEpisodes = resp.data?.totalRecords || 0;
+          }
+        } catch (e) { /* Sonarr not configured */ }
+
+        if (missingMovies > 0 || missingEpisodes > 0) {
+          await notificationService.notifyMissingMedia({ missingMovies, missingEpisodes });
+        }
+      } catch (err) {
+        console.error('Missing media notification error:', err.message);
+      }
+    } catch (error) {
+      console.error('Error sending post-sync notifications:', error.message);
+    }
   }
 
   /**

@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService, OverseerrService } from '@core/services';
+import { PlexService, SyncService, RadarrService, SonarrService, TautulliService, NzbgetService, QbittorrentService, OverseerrService, PushNotificationService } from '@core/services';
+import { NotificationPreferences } from '@core/services/push-notification.service';
 import { OverseerrConfig } from '@core/services/overseerr.service';
 import { TautulliConfig, TautulliConnectionInfo, TautulliImportStatus } from '@core/services/tautulli.service';
 import { NzbgetConfig } from '@core/services/nzbget.service';
@@ -28,7 +29,15 @@ export interface SyncJob {
   templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit, OnDestroy {
-  readonly appVersion = '1.1.0';
+  readonly appVersion = '1.2.0';
+
+  // Notification state
+  pushSupported = false;
+  pushSubscribed = false;
+  pushLoading = false;
+  pushTestSending = false;
+  notifPrefs: NotificationPreferences | null = null;
+  notifSubscribedDevices = 0;
 
   // Server state
   server: PlexServer | null = null;
@@ -169,7 +178,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private tautulliService: TautulliService,
     private nzbgetService: NzbgetService,
     private qbittorrentService: QbittorrentService,
-    private overseerrService: OverseerrService
+    private overseerrService: OverseerrService,
+    private pushService: PushNotificationService
   ) {}
 
   ngOnInit(): void {
@@ -182,6 +192,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadNzbgetConfig();
     this.loadQbittorrentConfig();
     this.loadOverseerrConfig();
+    this.loadNotificationSettings();
   }
 
   ngOnDestroy(): void {
@@ -1072,6 +1083,66 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.savingOverseerrExternalUrl = false;
       }
     });
+  }
+
+  // ===== Notification Methods =====
+  async loadNotificationSettings(): Promise<void> {
+    this.pushSupported = this.pushService.isSupported;
+    if (!this.pushSupported) return;
+
+    try {
+      this.pushSubscribed = await this.pushService.isSubscribed();
+      const { preferences, subscribedDevices } = await this.pushService.getPreferences();
+      this.notifPrefs = preferences;
+      this.notifSubscribedDevices = subscribedDevices;
+    } catch (error) {
+      console.error('Failed to load notification settings:', error);
+    }
+  }
+
+  async togglePushSubscription(): Promise<void> {
+    this.pushLoading = true;
+    try {
+      if (this.pushSubscribed) {
+        await this.pushService.unsubscribe();
+        this.pushSubscribed = false;
+      } else {
+        const success = await this.pushService.subscribe();
+        this.pushSubscribed = success;
+      }
+      // Refresh device count
+      const { subscribedDevices } = await this.pushService.getPreferences();
+      this.notifSubscribedDevices = subscribedDevices;
+    } catch (error) {
+      console.error('Toggle push failed:', error);
+    }
+    this.pushLoading = false;
+  }
+
+  async toggleNotifCategory(category: string): Promise<void> {
+    if (!this.notifPrefs) return;
+    const cat = (this.notifPrefs.categories as any)[category];
+    if (!cat) return;
+    cat.enabled = !cat.enabled;
+    await this.pushService.updatePreferences(this.notifPrefs);
+  }
+
+  async updateCompatSeverity(severity: string): Promise<void> {
+    if (!this.notifPrefs) return;
+    this.notifPrefs.categories.compatibility_issue.minSeverity = severity;
+    await this.pushService.updatePreferences(this.notifPrefs);
+  }
+
+  async toggleNotifMaster(): Promise<void> {
+    if (!this.notifPrefs) return;
+    this.notifPrefs.enabled = !this.notifPrefs.enabled;
+    await this.pushService.updatePreferences(this.notifPrefs);
+  }
+
+  async sendTestNotification(): Promise<void> {
+    this.pushTestSending = true;
+    await this.pushService.sendTest();
+    this.pushTestSending = false;
   }
 
   // ===== Utility Methods =====

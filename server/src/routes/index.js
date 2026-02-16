@@ -18,6 +18,7 @@ const homeRoutes = require('./home.routes');
 const nzbgetRoutes = require('./nzbget.routes');
 const qbittorrentRoutes = require('./qbittorrent.routes');
 const overseerrRoutes = require('./overseerr.routes');
+const notificationRoutes = require('./notification.routes');
 
 router.use('/auth', authRoutes);
 router.use('/server', serverRoutes);
@@ -36,5 +37,6 @@ router.use('/home', homeRoutes);
 router.use('/nzbget', nzbgetRoutes);
 router.use('/qbittorrent', qbittorrentRoutes);
 router.use('/overseerr', overseerrRoutes);
+router.use('/notifications', notificationRoutes);
 
 module.exports = router;

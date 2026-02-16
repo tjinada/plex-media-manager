@@ -311,6 +311,105 @@
         </section>
       }
 
+      <!-- Notifications -->
+      @if (pushSupported) {
+        <section class="space-y-3">
+          <h2 class="text-[13px] font-semibold text-gray-500 uppercase tracking-wider px-1">Notifications</h2>
+          <div class="rounded-2xl bg-white/[0.03] overflow-hidden">
+            <!-- Master toggle -->
+            <div class="px-4 py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                </div>
+                <div>
+                  <div class="text-[14px] font-medium text-gray-200">Push Notifications</div>
+                  <div class="text-[11px] text-gray-600">{{ notifSubscribedDevices }} device{{ notifSubscribedDevices !== 1 ? 's' : '' }} subscribed</div>
+                </div>
+              </div>
+              <button (click)="togglePushSubscription()" [disabled]="pushLoading" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="pushSubscribed ? 'bg-primary-600' : 'bg-white/10'">
+                <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="pushSubscribed ? 'translate-x-5' : 'translate-x-0'"></span>
+              </button>
+            </div>
+
+            @if (pushSubscribed && notifPrefs) {
+              <!-- Notification master enable -->
+              <div class="border-t border-white/[0.04] px-4 py-3 flex items-center justify-between">
+                <div class="text-[13px] text-gray-300">Enable all notifications</div>
+                <button (click)="toggleNotifMaster()" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="notifPrefs.enabled ? 'bg-primary-600' : 'bg-white/10'">
+                  <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="notifPrefs.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
+                </button>
+              </div>
+
+              @if (notifPrefs.enabled) {
+                <!-- Streaming Started -->
+                <div class="border-t border-white/[0.04] px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <div class="text-[13px] text-gray-300">Streaming Started</div>
+                    <div class="text-[11px] text-gray-600">Someone starts playing media</div>
+                  </div>
+                  <button (click)="toggleNotifCategory('streaming_started')" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="notifPrefs.categories.streaming_started.enabled ? 'bg-primary-600' : 'bg-white/10'">
+                    <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="notifPrefs.categories.streaming_started.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
+                  </button>
+                </div>
+
+                <!-- Compatibility Issues -->
+                <div class="border-t border-white/[0.04] px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-[13px] text-gray-300">Compatibility Issues</div>
+                      <div class="text-[11px] text-gray-600">New issues found after sync</div>
+                    </div>
+                    <button (click)="toggleNotifCategory('compatibility_issue')" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="notifPrefs.categories.compatibility_issue.enabled ? 'bg-primary-600' : 'bg-white/10'">
+                      <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="notifPrefs.categories.compatibility_issue.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
+                    </button>
+                  </div>
+                  @if (notifPrefs.categories.compatibility_issue.enabled) {
+                    <div class="mt-2 flex items-center gap-2">
+                      <span class="text-[11px] text-gray-600">Minimum severity:</span>
+                      <select [ngModel]="notifPrefs.categories.compatibility_issue.minSeverity" (ngModelChange)="updateCompatSeverity($event)" class="bg-white/[0.04] border-0 text-gray-300 text-[12px] rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary-500/50 focus:outline-none">
+                        <option value="critical">Critical only</option>
+                        <option value="medium">Medium & above</option>
+                        <option value="all">All severities</option>
+                      </select>
+                    </div>
+                  }
+                </div>
+
+                <!-- Media Downloaded -->
+                <div class="border-t border-white/[0.04] px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <div class="text-[13px] text-gray-300">Media Downloaded</div>
+                    <div class="text-[11px] text-gray-600">When a movie or episode finishes downloading</div>
+                  </div>
+                  <button (click)="toggleNotifCategory('media_downloaded')" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="notifPrefs.categories.media_downloaded.enabled ? 'bg-primary-600' : 'bg-white/10'">
+                    <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="notifPrefs.categories.media_downloaded.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
+                  </button>
+                </div>
+
+                <!-- Missing Media -->
+                <div class="border-t border-white/[0.04] px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <div class="text-[13px] text-gray-300">Missing Media</div>
+                    <div class="text-[11px] text-gray-600">New missing movies or episodes detected</div>
+                  </div>
+                  <button (click)="toggleNotifCategory('missing_media')" class="relative h-6 w-11 rounded-full transition-colors" [ngClass]="notifPrefs.categories.missing_media.enabled ? 'bg-primary-600' : 'bg-white/10'">
+                    <span class="absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow transition-transform" [ngClass]="notifPrefs.categories.missing_media.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
+                  </button>
+                </div>
+
+                <!-- Test button -->
+                <div class="border-t border-white/[0.04] px-4 py-3">
+                  <button (click)="sendTestNotification()" [disabled]="pushTestSending" class="w-full py-2 text-[13px] font-medium bg-white/[0.04] active:bg-white/[0.08] text-gray-400 rounded-xl transition-colors">
+                    {{ pushTestSending ? 'Sending...' : 'Send Test Notification' }}
+                  </button>
+                </div>
+              }
+            }
+          </div>
+        </section>
+      }
+
       <!-- Version -->
       <p class="text-center text-[11px] text-gray-700 py-4">TJ Plex Media Manager v{{ appVersion }}</p>
 

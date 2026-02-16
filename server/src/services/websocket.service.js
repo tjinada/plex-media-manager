@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const notificationService = require('./notification.service');
 
 class WebSocketService {
   constructor() {
@@ -177,6 +178,10 @@ class WebSocketService {
         sessions.forEach(session => {
           if (!previousKeys.has(session.sessionKey)) {
             this.broadcast('streaming:started', session);
+            // Push notification
+            notificationService.notifyStreamingStarted(session).catch(err =>
+              console.error('Push notify streaming error:', err.message)
+            );
           }
         });
 
@@ -218,6 +223,10 @@ class WebSocketService {
               source: item.source,
               quality: item.quality
             });
+            // Push notification
+            notificationService.notifyDownloadCompleted(item).catch(err =>
+              console.error('Push notify download error:', err.message)
+            );
           }
         });
       }

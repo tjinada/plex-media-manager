@@ -11,6 +11,9 @@ const TautulliConfig = require('./TautulliConfig');
 const NzbgetConfig = require('./NzbgetConfig');
 const QbittorrentConfig = require('./QbittorrentConfig');
 const OverseerrConfig = require('./OverseerrConfig');
+const PushSubscription = require('./PushSubscription');
+const NotificationPreference = require('./NotificationPreference');
+const NotificationLog = require('./NotificationLog');
 
 module.exports = {
   PlexServer,
@@ -25,5 +28,8 @@ module.exports = {
   TautulliConfig,
   NzbgetConfig,
   QbittorrentConfig,
-  OverseerrConfig
+  OverseerrConfig,
+  PushSubscription,
+  NotificationPreference,
+  NotificationLog
 };

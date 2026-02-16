@@ -46,24 +46,40 @@ export class PushNotificationService {
    * Check if push is supported in this browser
    */
   get isSupported(): boolean {
-    return this.swPush.isEnabled;
+    return 'serviceWorker' in navigator && 'PushManager' in window;
   }
 
   /**
    * Subscribe this browser to push notifications
+   * Uses native Push API for reliable iOS PWA support
    */
   async subscribe(): Promise<boolean> {
     try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.error('Push API not supported');
+        return false;
+      }
+
       // Get VAPID public key from server
       const { publicKey } = await firstValueFrom(
         this.api.get<{ publicKey: string }>('/notifications/vapid-public-key')
       );
 
-      if (!publicKey) return false;
+      if (!publicKey) {
+        console.error('No VAPID public key returned');
+        return false;
+      }
 
-      // Request browser permission and get subscription
-      const subscription = await this.swPush.requestSubscription({
-        serverPublicKey: publicKey
+      // Wait for service worker to be ready
+      const registration = await navigator.serviceWorker.ready;
+
+      // Convert VAPID key from base64url to Uint8Array
+      const applicationServerKey = this.urlBase64ToUint8Array(publicKey);
+
+      // Subscribe using native Push API
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey
       });
 
       // Send subscription to server
@@ -79,11 +95,28 @@ export class PushNotificationService {
   }
 
   /**
+   * Convert a base64url-encoded string to a Uint8Array (for VAPID key)
+   */
+  private urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  /**
    * Unsubscribe this browser from push notifications
+   * Uses native Push API for reliable iOS PWA support
    */
   async unsubscribe(): Promise<boolean> {
     try {
-      const subscription = await this.swPush.subscription.pipe().toPromise();
+      if (!('serviceWorker' in navigator)) return true;
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         await firstValueFrom(
           this.api.post('/notifications/unsubscribe', { endpoint: subscription.endpoint })

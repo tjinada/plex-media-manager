@@ -92,13 +92,16 @@ exports.getHistory = async (req, res, next) => {
  */
 exports.sendTest = async (req, res, next) => {
   try {
+    console.log('[sendTest] Test notification endpoint hit');
     await notificationService.notify('test', {
       title: '🔔 Test Notification',
       body: 'Push notifications are working!',
       url: '/settings'
     }, true); // bypass preference checks for test
+    console.log('[sendTest] notify() completed');
     res.json({ success: true });
   } catch (error) {
+    console.error('[sendTest] Error:', error);
     next(error);
   }
 };

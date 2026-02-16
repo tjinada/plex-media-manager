@@ -87,20 +87,31 @@ class NotificationService {
    * @param {boolean} [bypassPrefs=false] - skip preference checks (for test notifications)
    */
   async notify(category, { title, body, url }, bypassPrefs = false) {
-    if (!this.initialized) return;
+    console.log(`[notify] called: category=${category}, bypassPrefs=${bypassPrefs}, initialized=${this.initialized}`);
+    if (!this.initialized) {
+      console.log('[notify] ABORT: not initialized');
+      return;
+    }
 
     try {
       // Check preferences (unless bypassed for test notifications)
       if (!bypassPrefs) {
         const prefs = await NotificationPreference.getPreferences();
-        if (!prefs.enabled) return;
+        if (!prefs.enabled) {
+          console.log('[notify] ABORT: notifications disabled in preferences');
+          return;
+        }
 
         const catPref = prefs.categories?.[category];
-        if (!catPref || !catPref.enabled) return;
+        if (!catPref || !catPref.enabled) {
+          console.log(`[notify] ABORT: category ${category} disabled`);
+          return;
+        }
       }
 
       // Get all subscriptions
       const subscriptions = await PushSubscription.find();
+      console.log(`[notify] Found ${subscriptions.length} subscriptions`);
       if (subscriptions.length === 0) return;
 
       const payload = JSON.stringify({

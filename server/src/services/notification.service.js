@@ -149,17 +149,36 @@ class NotificationService {
 
   /**
    * Notify: someone started streaming
+   * @param {object} session - Transformed session from HomeAggregatorService
    */
   async notifyStreamingStarted(session) {
-    const userName = session.userName || session.User?.title || 'Someone';
-    const mediaTitle = session.grandparentTitle
-      ? `${session.grandparentTitle} - ${session.title}`
-      : (session.title || 'Unknown Media');
+    const userName = session.user?.name || 'Someone';
 
+    // Build media title
+    let mediaTitle;
+    if (session.media?.type === 'episode' && session.media?.showTitle) {
+      mediaTitle = `${session.media.showTitle}`;
+      if (session.media.seasonEpisode) {
+        mediaTitle += ` ${session.media.seasonEpisode}`;
+      }
+      if (session.media.title) {
+        mediaTitle += ` - ${session.media.title}`;
+      }
+    } else {
+      mediaTitle = session.media?.title || 'Unknown Media';
+    }
+
+    // Build detail line
     const parts = [];
-    if (session.resolution || session.quality) parts.push(session.resolution || session.quality);
-    if (session.videoDecision) parts.push(session.videoDecision === 'transcode' ? 'Transcode' : 'Direct Play');
-    const detail = parts.length > 0 ? ` (${parts.join(' · ')})` : '';
+    const resolution = session.streamQuality?.resolution || session.quality?.resolution;
+    if (resolution && resolution !== 'Unknown') parts.push(resolution);
+    const decision = session.playback?.decision;
+    if (decision === 'transcode') parts.push('Transcode');
+    else if (decision === 'copy') parts.push('Direct Stream');
+    else if (decision === 'directplay') parts.push('Direct Play');
+    const playerName = session.player?.name;
+    if (playerName && playerName !== 'Unknown') parts.push(playerName);
+    const detail = parts.length > 0 ? `\n${parts.join(' · ')}` : '';
 
     await this.notify('streaming_started', {
       title: `🎬 ${userName} is watching`,
@@ -202,16 +221,17 @@ class NotificationService {
 
   /**
    * Notify: media download completed
+   * @param {object} download - Download item from HomeAggregatorService
    */
   async notifyDownloadCompleted(download) {
     const title = download.title || 'Unknown';
     const type = download.type === 'episode' ? '📺' : '🎬';
     const quality = download.quality ? ` (${download.quality})` : '';
-    const size = download.size ? ` · ${download.size}` : '';
+    const sizeGB = download.size ? ` · ${(download.size / (1024 * 1024 * 1024)).toFixed(1)} GB` : '';
 
     await this.notify('media_downloaded', {
       title: `${type} Download complete`,
-      body: `${title}${quality}${size}`,
+      body: `${title}${quality}${sizeGB}`,
       url: download.type === 'episode' ? '/shows' : '/movies'
     });
   }

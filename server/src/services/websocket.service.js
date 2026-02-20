@@ -225,14 +225,14 @@ class WebSocketService {
 
     try {
       const downloadsData = await this.homeAggregator.getDownloads();
-      const downloads = downloadsData.items || [];
+      const activeItems = downloadsData.activeItems || [];
 
-      // Detect completed downloads
+      // Detect completed downloads (only from active queue, not history)
       if (this.lastDownloadData) {
-        const currentIds = new Set(downloads.map(d => d.id));
+        const currentActiveIds = new Set(activeItems.map(d => d.id));
 
         this.lastDownloadData.forEach(item => {
-          if (!currentIds.has(item.id) && item.progress >= 95) {
+          if (!currentActiveIds.has(item.id) && item.progress >= 95) {
             this.broadcast('download:completed', {
               id: item.id,
               title: item.title,
@@ -248,9 +248,9 @@ class WebSocketService {
         });
       }
 
-      this.lastDownloadData = downloads;
+      this.lastDownloadData = activeItems;
       this.broadcast('downloads:update', {
-        items: downloads,
+        items: downloadsData.items,
         totalSpeed: downloadsData.totalSpeed,
         totalActive: downloadsData.totalActive,
         totalQueued: downloadsData.totalQueued

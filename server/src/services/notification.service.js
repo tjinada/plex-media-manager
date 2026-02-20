@@ -220,11 +220,31 @@ class NotificationService {
   }
 
   /**
+   * Escape special regex characters in a string
+   */
+  escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  /**
    * Notify: media download completed
    * @param {object} download - Download item from HomeAggregatorService
    */
   async notifyDownloadCompleted(download) {
     const title = download.title || 'Unknown';
+
+    // Dedup: skip if we already notified for this title recently (6 hours)
+    const recentDupe = await NotificationLog.findOne({
+      category: 'media_downloaded',
+      body: { $regex: this.escapeRegex(title), $options: 'i' },
+      sentAt: { $gte: new Date(Date.now() - 6 * 60 * 60 * 1000) }
+    });
+
+    if (recentDupe) {
+      console.log(`[notify] Skipping duplicate download notification for: ${title}`);
+      return;
+    }
+
     const type = download.type === 'episode' ? '📺' : '🎬';
     const quality = download.quality ? ` (${download.quality})` : '';
     const sizeGB = download.size ? ` · ${(download.size / (1024 * 1024 * 1024)).toFixed(1)} GB` : '';

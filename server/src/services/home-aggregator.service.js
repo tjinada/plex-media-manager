@@ -178,7 +178,8 @@ class HomeAggregatorService {
    * Get current downloads from all sources (Radarr, Sonarr, NZBGet, qBittorrent)
    */
   async getDownloads() {
-    const downloads = [];
+    const activeDownloads = [];
+    const historyItems = [];
     let totalSpeed = 0;
 
     // Fetch from all sources in parallel
@@ -205,24 +206,27 @@ class HomeAggregatorService {
       })
     ]);
 
-    downloads.push(...radarrQueue);
-    downloads.push(...sonarrQueue);
-    downloads.push(...nzbgetQueue.downloads);
-    downloads.push(...qbtQueue.torrents);
-    downloads.push(...nzbgetHistory);
+    // Active queue items (used for completion detection)
+    activeDownloads.push(...radarrQueue);
+    activeDownloads.push(...sonarrQueue);
+    activeDownloads.push(...nzbgetQueue.downloads);
+    activeDownloads.push(...qbtQueue.torrents);
+
+    // History items (display only, not tracked for completion)
+    historyItems.push(...nzbgetHistory);
 
     // Calculate total download speed
     totalSpeed = (nzbgetQueue.speed || 0) + (qbtQueue.downloadSpeed || 0);
 
-    // Sort by progress descending (most complete first)
-    const sortedDownloads = downloads.sort((a, b) => b.progress - a.progress);
+    // Combined list for display (sorted by progress descending)
+    const allItems = [...activeDownloads, ...historyItems].sort((a, b) => b.progress - a.progress);
 
-    // Add total speed to first item or return with metadata
     return {
-      items: sortedDownloads,
+      items: allItems,
+      activeItems: activeDownloads,
       totalSpeed,
-      totalActive: sortedDownloads.filter(d => d.status === 'downloading').length,
-      totalQueued: sortedDownloads.filter(d => d.status === 'queued').length
+      totalActive: activeDownloads.filter(d => d.status === 'downloading').length,
+      totalQueued: activeDownloads.filter(d => d.status === 'queued').length
     };
   }
 

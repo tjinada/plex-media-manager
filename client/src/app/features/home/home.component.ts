@@ -272,12 +272,34 @@ export class HomeComponent implements OnInit, OnDestroy {
   getTranscodeSummary(session: StreamingSession): string {
     if (!session.transcoding) return '';
     const parts: string[] = [];
-    if (session.transcoding.videoDecision === 'transcode') parts.push('Video: Transcode'); else if (session.transcoding.videoDecision === 'copy') parts.push('Video: Direct Stream');
-    if (session.transcoding.audioDecision === 'transcode') parts.push('Audio: Transcode'); else if (session.transcoding.audioDecision === 'copy') parts.push('Audio: Direct Stream');
+    const stream = session.streamQuality;
+    if (session.transcoding.videoDecision === 'transcode') {
+      let v = 'Video: Transcode';
+      if (stream?.videoCodec && stream.videoCodec !== 'Unknown') v += ` → ${stream.videoCodec.toUpperCase()}`;
+      if (stream?.videoBitrate) v += ` ${this.formatBandwidth(stream.videoBitrate)}`;
+      parts.push(v);
+    } else if (session.transcoding.videoDecision === 'copy') {
+      parts.push('Video: Direct Stream');
+    }
+    if (session.transcoding.audioDecision === 'transcode') {
+      let a = 'Audio: Transcode';
+      if (stream?.audioCodec && stream.audioCodec !== 'Unknown') a += ` → ${stream.audioCodec.toUpperCase()}`;
+      if (stream?.audioBitrate) a += ` ${this.formatBandwidth(stream.audioBitrate)}`;
+      parts.push(a);
+    } else if (session.transcoding.audioDecision === 'copy') {
+      parts.push('Audio: Direct Stream');
+    }
     return parts.join(' • ');
   }
 
-  getHwAccelInfo(session: StreamingSession): string { if (!session.transcoding) return ''; const parts: string[] = []; if (session.transcoding.hwDecode) parts.push('HW Decode'); if (session.transcoding.hwEncode) parts.push('HW Encode'); return parts.length > 0 ? parts.join(' + ') : 'Software'; }
+  getHwAccelInfo(session: StreamingSession): string {
+    if (!session.transcoding) return '';
+    const t = session.transcoding;
+    const parts: string[] = [];
+    if (t.hwDecode) parts.push(t.hwDecodeCodec ? `HW Decode (${t.hwDecodeCodec})` : 'HW Decode');
+    if (t.hwEncode) parts.push(t.hwEncodeCodec ? `HW Encode (${t.hwEncodeCodec})` : 'HW Encode');
+    return parts.length > 0 ? parts.join(' + ') : 'Software';
+  }
   getTranscodeSpeed(session: StreamingSession): string { if (!session.transcoding?.speed) return ''; return `${session.transcoding.speed.toFixed(1)}x`; }
   getPlaybackStateClass(state: string): string { switch (state) { case 'playing': return 'text-green-400'; case 'paused': return 'text-yellow-400'; case 'buffering': return 'text-blue-400'; default: return 'text-gray-400'; } }
   getRemainingTime(session: StreamingSession): string { return this.formatDuration(Math.max(0, session.playback.duration - this.getCurrentElapsedMs(session))); }
@@ -285,6 +307,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   getSessionDuration(session: StreamingSession): string { if (!session.playback.startedAt) return ''; const mins = Math.floor((Date.now() - new Date(session.playback.startedAt).getTime()) / 60000); if (mins < 60) return `${mins}m`; return `${Math.floor(mins / 60)}h ${mins % 60}m`; }
   isQualityDowngraded(session: StreamingSession): boolean { if (!session.sourceQuality || !session.streamQuality) return false; return session.sourceQuality.resolution !== session.streamQuality.resolution; }
   getQualityComparison(session: StreamingSession): string { if (!session.sourceQuality || !session.streamQuality) return ''; if (session.sourceQuality.resolution === session.streamQuality.resolution) return ''; return `${session.sourceQuality.resolution} → ${session.streamQuality.resolution}`; }
+  getResolutionDisplay(session: StreamingSession): string { const cmp = this.getQualityComparison(session); if (cmp) return cmp; return session.sourceQuality?.resolution || session.streamQuality?.resolution || session.quality.resolution; }
   getStreamHealth(session: StreamingSession): 'good' | 'warning' | 'poor' { if (session.playback.state === 'buffering') return 'poor'; if (!session.transcoding?.speed) return 'good'; if (session.transcoding.speed >= 2.0) return 'good'; if (session.transcoding.speed >= 1.0) return 'warning'; return 'poor'; }
   getStreamHealthClass(session: StreamingSession): string { const h = this.getStreamHealth(session); return h === 'good' ? 'bg-green-500' : h === 'warning' ? 'bg-yellow-500' : 'bg-red-500'; }
 

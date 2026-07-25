@@ -31,6 +31,8 @@ export interface StreamingSession {
     audioCodec: string;
     audioChannels?: string;
     bitrate?: number;
+    videoBitrate?: number;
+    audioBitrate?: number;
     container?: string;
   };
   // Stream quality (what's being delivered)
@@ -40,6 +42,8 @@ export interface StreamingSession {
     audioCodec: string;
     audioChannels?: string;
     bitrate?: number;
+    videoBitrate?: number;
+    audioBitrate?: number;
     container?: string;
   };
   // Legacy quality field (backward compatibility)
@@ -60,6 +64,8 @@ export interface StreamingSession {
     audioDecision: 'directplay' | 'transcode' | 'copy';
     hwDecode: boolean;
     hwEncode: boolean;
+    hwDecodeCodec?: string;
+    hwEncodeCodec?: string;
     speed?: number;
     throttled?: boolean;
   };

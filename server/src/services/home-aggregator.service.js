@@ -122,6 +122,8 @@ class HomeAggregatorService {
         audioCodec: session.audio_codec || 'Unknown',
         audioChannels: session.audio_channel_layout || session.audio_channels,
         bitrate: session.bitrate ? parseInt(session.bitrate) : undefined,
+        videoBitrate: session.video_bitrate ? parseInt(session.video_bitrate) : undefined,
+        audioBitrate: session.audio_bitrate ? parseInt(session.audio_bitrate) : undefined,
         container: session.container
       },
       // Stream quality (what's being delivered)
@@ -131,6 +133,8 @@ class HomeAggregatorService {
         audioCodec: session.stream_audio_codec || session.audio_codec || 'Unknown',
         audioChannels: session.stream_audio_channel_layout || session.stream_audio_channels,
         bitrate: session.stream_bitrate ? parseInt(session.stream_bitrate) : undefined,
+        videoBitrate: session.stream_video_bitrate ? parseInt(session.stream_video_bitrate) : undefined,
+        audioBitrate: session.stream_audio_bitrate ? parseInt(session.stream_audio_bitrate) : undefined,
         container: session.stream_container || session.container
       },
       // Keep old quality field for backward compatibility
@@ -149,18 +153,27 @@ class HomeAggregatorService {
       transcoding: session.transcode_decision !== 'direct play' ? {
         videoDecision: this.normalizeDecision(session.stream_video_decision),
         audioDecision: this.normalizeDecision(session.stream_audio_decision),
-        hwDecode: session.transcode_hw_decoding === '1' || session.transcode_hw_decoding === true,
-        hwEncode: session.transcode_hw_encoding === '1' || session.transcode_hw_encoding === true,
+        hwDecode: this.toBool(session.transcode_hw_decoding),
+        hwEncode: this.toBool(session.transcode_hw_encoding),
+        hwDecodeCodec: session.transcode_hw_decode || undefined,
+        hwEncodeCodec: session.transcode_hw_encode || undefined,
         speed: session.transcode_speed ? parseFloat(session.transcode_speed) : undefined,
-        throttled: session.transcode_throttled === '1' || session.transcode_throttled === true
+        throttled: this.toBool(session.transcode_throttled)
       } : undefined,
       network: {
         location: session.location === 'lan' ? 'lan' : 'wan',
         bandwidth: session.bandwidth ? parseInt(session.bandwidth) : undefined,
-        secure: session.secure === '1' || session.secure === true,
-        relayed: session.relayed === '1' || session.relayed === true
+        secure: this.toBool(session.secure),
+        relayed: this.toBool(session.relayed)
       }
     };
+  }
+
+  /**
+   * Parse Tautulli boolean-ish values (may arrive as 1, '1', or true)
+   */
+  toBool(value) {
+    return value === 1 || value === '1' || value === true;
   }
 
   /**

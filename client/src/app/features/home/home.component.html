@@ -94,7 +94,7 @@
                       <h3 class="font-semibold text-white text-[15px] truncate leading-tight">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
                       <div class="flex items-center gap-1.5 mt-1 text-[13px]">
                         <span class="text-white/70">{{ session.user.name }}</span><span class="text-white/30">•</span>
-                        <span class="text-white/60">{{ session.streamQuality?.resolution || session.quality.resolution }}</span><span class="text-white/30">•</span>
+                        <span class="text-white/60">{{ getResolutionDisplay(session) }}</span><span class="text-white/30">•</span>
                         <span class="font-semibold" [class]="session.playback.decision === 'directplay' ? 'text-purple-300' : session.playback.decision === 'transcode' ? 'text-amber-300' : 'text-blue-300'">{{ session.playback.decision === 'directplay' ? 'Direct' : session.playback.decision === 'transcode' ? 'Trans' : 'Stream' }}</span>
                       </div>
                       <div class="mt-2.5">
@@ -112,8 +112,8 @@
                     <div class="mt-3 pt-3 border-t border-white/10 space-y-2 animate-in slide-in-from-top-2 duration-200">
                       @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-[13px] text-white/60">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
                       <div class="flex flex-wrap gap-1.5">
-                        <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.streamQuality?.videoCodec || session.quality.videoCodec }}</span>
-                        @if (session.streamQuality?.audioCodec || session.quality.audioCodec) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.streamQuality?.audioCodec || session.quality.audioCodec }} @if (session.streamQuality?.audioChannels) { {{ formatAudioChannels(session.streamQuality?.audioChannels) }} }</span> }
+                        <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.sourceQuality?.videoCodec || session.quality.videoCodec }}</span>
+                        @if (session.sourceQuality?.audioCodec || session.quality.audioCodec) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.sourceQuality?.audioCodec || session.quality.audioCodec }} @if (session.sourceQuality?.audioChannels) { {{ formatAudioChannels(session.sourceQuality?.audioChannels) }} }</span> }
                         <span class="px-2 py-0.5 rounded-md text-[11px]" [class]="session.network.location === 'lan' ? 'bg-green-500/15 text-green-300' : 'bg-purple-500/15 text-purple-300'">{{ session.network.location | uppercase }}</span>
                       </div>
                       @if (session.playback.decision === 'transcode' && session.transcoding) { <div class="p-2 rounded-lg bg-amber-500/10 text-[12px] text-amber-200">{{ getTranscodeSummary(session) }} • {{ getHwAccelInfo(session) }} @if (getTranscodeSpeed(session)) { • {{ getTranscodeSpeed(session) }} }</div> }
@@ -147,7 +147,7 @@
                     <div class="flex-1 min-w-0">
                       <h3 class="font-bold text-white text-[16px] truncate">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
                       @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-sm text-white/60 truncate">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
-                      <div class="flex items-center gap-2 mt-1.5 text-[13px]"><span class="text-white/70">{{ session.user.name }}</span><span class="text-white/30">•</span><span class="text-white/60">{{ session.streamQuality?.resolution || session.quality.resolution }}</span></div>
+                      <div class="flex items-center gap-2 mt-1.5 text-[13px]"><span class="text-white/70">{{ session.user.name }}</span><span class="text-white/30">•</span><span class="text-white/60">{{ getResolutionDisplay(session) }}</span></div>
                       <div class="flex flex-wrap gap-1.5 mt-2">
                         <span class="px-2 py-0.5 rounded-md text-[11px] font-medium" [class]="session.playback.decision === 'directplay' ? 'bg-purple-500/20 text-purple-200' : session.playback.decision === 'transcode' ? 'bg-amber-500/20 text-amber-200' : 'bg-blue-500/20 text-blue-200'">{{ getPlaybackDecisionLabel(session.playback.decision) }}</span>
                         <span class="px-2 py-0.5 rounded-md text-[11px]" [class]="session.network.location === 'lan' ? 'bg-green-500/15 text-green-300' : 'bg-purple-500/15 text-purple-300'">{{ session.network.location | uppercase }}</span>

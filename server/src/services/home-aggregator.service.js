@@ -124,6 +124,7 @@ class HomeAggregatorService {
         bitrate: session.bitrate ? parseInt(session.bitrate) : undefined,
         videoBitrate: session.video_bitrate ? parseInt(session.video_bitrate) : undefined,
         audioBitrate: session.audio_bitrate ? parseInt(session.audio_bitrate) : undefined,
+        dynamicRange: session.video_dynamic_range || undefined,
         container: session.container
       },
       // Stream quality (what's being delivered)
@@ -135,6 +136,7 @@ class HomeAggregatorService {
         bitrate: session.stream_bitrate ? parseInt(session.stream_bitrate) : undefined,
         videoBitrate: session.stream_video_bitrate ? parseInt(session.stream_video_bitrate) : undefined,
         audioBitrate: session.stream_audio_bitrate ? parseInt(session.stream_audio_bitrate) : undefined,
+        dynamicRange: session.stream_video_dynamic_range || undefined,
         container: session.stream_container || session.container
       },
       // Keep old quality field for backward compatibility
@@ -157,6 +159,7 @@ class HomeAggregatorService {
         hwEncode: this.toBool(session.transcode_hw_encoding),
         hwDecodeCodec: session.transcode_hw_decode || undefined,
         hwEncodeCodec: session.transcode_hw_encode || undefined,
+        subtitleDecision: session.stream_subtitle_decision || undefined,
         speed: session.transcode_speed ? parseFloat(session.transcode_speed) : undefined,
         throttled: this.toBool(session.transcode_throttled)
       } : undefined,

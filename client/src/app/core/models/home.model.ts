@@ -33,6 +33,7 @@ export interface StreamingSession {
     bitrate?: number;
     videoBitrate?: number;
     audioBitrate?: number;
+    dynamicRange?: string;
     container?: string;
   };
   // Stream quality (what's being delivered)
@@ -44,6 +45,7 @@ export interface StreamingSession {
     bitrate?: number;
     videoBitrate?: number;
     audioBitrate?: number;
+    dynamicRange?: string;
     container?: string;
   };
   // Legacy quality field (backward compatibility)
@@ -66,6 +68,7 @@ export interface StreamingSession {
     hwEncode: boolean;
     hwDecodeCodec?: string;
     hwEncodeCodec?: string;
+    subtitleDecision?: string;
     speed?: number;
     throttled?: boolean;
   };

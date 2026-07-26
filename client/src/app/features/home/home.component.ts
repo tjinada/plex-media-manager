@@ -58,8 +58,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   activeDownloadFilter: DownloadFilter = 'all';
   hasMoreActivity = false;
   isLoadingMoreActivity = false;
-  streamingViewMode: 'compact' | 'detailed' = 'compact';
-  expandedSessionKey: string | null = null;
   downloadWidgetTab: 'queue' | 'history' = 'queue';
   requestsWidgetTab: 'pending' | 'all' = 'pending';
   calendarDays = 7;
@@ -202,10 +200,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   get downloadClientSpeed(): number { return this.downloads.filter(d => d.source === 'nzbget' || d.source === 'qbittorrent').reduce((sum, d) => sum + (d.speed || 0), 0); }
 
   // Streaming
-  toggleStreamingView(): void { this.streamingViewMode = this.streamingViewMode === 'compact' ? 'detailed' : 'compact'; this.expandedSessionKey = null; }
   toggleShortcuts(): void { this.shortcutsExpanded = !this.shortcutsExpanded; }
-  toggleSessionExpand(sessionKey: string, event: Event): void { event.stopPropagation(); this.expandedSessionKey = this.expandedSessionKey === sessionKey ? null : sessionKey; }
-  isSessionExpanded(sessionKey: string): boolean { return this.expandedSessionKey === sessionKey; }
 
   // Formatting helpers
   formatBytes(bytes: number): string { if (!bytes || bytes === 0) return '0 B'; const k = 1024; const sizes = ['B', 'KB', 'MB', 'GB', 'TB']; const i = Math.floor(Math.log(bytes) / Math.log(k)); return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]; }
@@ -308,6 +303,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   isQualityDowngraded(session: StreamingSession): boolean { if (!session.sourceQuality || !session.streamQuality) return false; return session.sourceQuality.resolution !== session.streamQuality.resolution; }
   getQualityComparison(session: StreamingSession): string { if (!session.sourceQuality || !session.streamQuality) return ''; if (session.sourceQuality.resolution === session.streamQuality.resolution) return ''; return `${session.sourceQuality.resolution} → ${session.streamQuality.resolution}`; }
   getResolutionDisplay(session: StreamingSession): string { const cmp = this.getQualityComparison(session); if (cmp) return cmp; return session.sourceQuality?.resolution || session.streamQuality?.resolution || session.quality.resolution; }
+  getHdrBadge(session: StreamingSession): string {
+    const src = session.sourceQuality?.dynamicRange;
+    if (!src || src.toUpperCase() === 'SDR') return '';
+    const out = session.streamQuality?.dynamicRange;
+    if (out && out !== src) return `${src} → ${out}`;
+    return src;
+  }
+  isSubtitleBurn(session: StreamingSession): boolean { return session.transcoding?.subtitleDecision === 'burn'; }
+  getSourceBitrate(session: StreamingSession): string { return this.formatBandwidth(session.sourceQuality?.bitrate); }
   getStreamHealth(session: StreamingSession): 'good' | 'warning' | 'poor' { if (session.playback.state === 'buffering') return 'poor'; if (!session.transcoding?.speed) return 'good'; if (session.transcoding.speed >= 2.0) return 'good'; if (session.transcoding.speed >= 1.0) return 'warning'; return 'poor'; }
   getStreamHealthClass(session: StreamingSession): string { const h = this.getStreamHealth(session); return h === 'good' ? 'bg-green-500' : h === 'warning' ? 'bg-yellow-500' : 'bg-red-500'; }
 

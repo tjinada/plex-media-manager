@@ -69,7 +69,7 @@
         } @else {
           <div class="space-y-2.5">
             @for (session of streaming; track trackBySession($index, session)) {
-              <div class="group relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.97] transition-transform" (click)="navigateToMedia(session, $event)">
+              <div class="group relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.97] transition-transform" (click)="toggleSessionExpand(session.sessionKey, $event)">
                 @if (session.media.thumb || session.media.grandparentThumb) {
                   <div class="absolute inset-0 overflow-hidden"><img [src]="getSessionPoster(session)" alt="" class="w-full h-full object-cover scale-125 blur-[20px] brightness-50 saturate-150"></div>
                   <div class="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50"></div>
@@ -86,7 +86,6 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <h3 class="font-semibold text-white text-[15px] truncate leading-tight">@if (session.media.type === 'episode' && session.media.showTitle) { {{ session.media.showTitle }} } @else { {{ session.media.title }} }</h3>
-                      @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-[12.5px] text-white/55 truncate mt-0.5">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
                       <div class="flex items-center gap-1.5 mt-1 text-[13px]">
                         <span class="text-white/70">{{ session.user.name }}</span><span class="text-white/30">•</span>
                         <span class="text-white/60">{{ getResolutionDisplay(session) }}</span><span class="text-white/30">•</span>
@@ -101,21 +100,28 @@
                         <div class="flex justify-between mt-1.5 text-[12px] text-white/40 tabular-nums"><span>{{ getElapsedTime(session) }}</span><span>{{ getTotalTime(session) }}</span></div>
                       </div>
                     </div>
+                    <svg class="w-[18px] h-[18px] text-white/20 flex-shrink-0 transition-transform duration-200" [class.rotate-90]="isSessionExpanded(session.sessionKey)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                   </div>
-                  <div class="flex flex-wrap gap-1.5 mt-2.5">
-                    <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.sourceQuality?.videoCodec || session.quality.videoCodec }}</span>
-                    @if (getHdrBadge(session)) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-indigo-500/15 text-indigo-300">{{ getHdrBadge(session) }}</span> }
-                    @if (session.sourceQuality?.audioCodec || session.quality.audioCodec) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.sourceQuality?.audioCodec || session.quality.audioCodec }} @if (session.sourceQuality?.audioChannels) { {{ formatAudioChannels(session.sourceQuality?.audioChannels) }} }</span> }
-                    @if (getSourceBitrate(session)) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/[0.07] text-white/60 tabular-nums">{{ getSourceBitrate(session) }}</span> }
-                    <span class="px-2 py-0.5 rounded-md text-[11px]" [class]="session.network.location === 'lan' ? 'bg-green-500/15 text-green-300' : 'bg-purple-500/15 text-purple-300'">{{ session.network.location | uppercase }}</span>
-                  </div>
-                  @if (session.playback.decision === 'transcode' && session.transcoding) {
-                    <div class="mt-2 p-2 rounded-lg bg-amber-500/10 text-[12px] text-amber-200 leading-relaxed">
-                      <div>{{ getTranscodeSummary(session) }}@if (isSubtitleBurn(session)) { • Subs: Burn }</div>
-                      <div>{{ getHwAccelInfo(session) }}@if (getTranscodeSpeed(session)) { • {{ getTranscodeSpeed(session) }} }@if (session.transcoding.throttled) { • Throttled }</div>
+                  @if (isSessionExpanded(session.sessionKey)) {
+                    <div class="mt-3 pt-3 border-t border-white/10 animate-in slide-in-from-top-2 duration-200">
+                      @if (session.media.type === 'episode' && session.media.seasonEpisode) { <p class="text-[13px] text-white/60">{{ session.media.seasonEpisode }} • {{ session.media.title }}</p> }
+                      <div class="flex flex-wrap gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.sourceQuality?.videoCodec || session.quality.videoCodec }}</span>
+                        @if (getHdrBadge(session)) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-indigo-500/15 text-indigo-300">{{ getHdrBadge(session) }}</span> }
+                        @if (session.sourceQuality?.audioCodec || session.quality.audioCodec) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/10 text-white/70">{{ session.sourceQuality?.audioCodec || session.quality.audioCodec }} @if (session.sourceQuality?.audioChannels) { {{ formatAudioChannels(session.sourceQuality?.audioChannels) }} }</span> }
+                        @if (getSourceBitrate(session)) { <span class="px-2 py-0.5 rounded-md text-[11px] bg-white/[0.07] text-white/60 tabular-nums">{{ getSourceBitrate(session) }}</span> }
+                        <span class="px-2 py-0.5 rounded-md text-[11px]" [class]="session.network.location === 'lan' ? 'bg-green-500/15 text-green-300' : 'bg-purple-500/15 text-purple-300'">{{ session.network.location | uppercase }}</span>
+                      </div>
+                      @if (session.playback.decision === 'transcode' && session.transcoding) {
+                        <div class="mt-2 p-2 rounded-lg bg-amber-500/10 text-[12px] text-amber-200 leading-relaxed">
+                          <div>{{ getTranscodeSummary(session) }}@if (isSubtitleBurn(session)) { • Subs: Burn }</div>
+                          <div>{{ getHwAccelInfo(session) }}@if (getTranscodeSpeed(session)) { • {{ getTranscodeSpeed(session) }} }@if (session.transcoding.throttled) { • Throttled }</div>
+                        </div>
+                      }
+                      <div class="flex items-center justify-between mt-2 text-[12px] text-white/40"><span class="truncate">{{ session.player.name }}</span><span class="flex-shrink-0 ml-2">Ends {{ getETA(session) }}</span></div>
+                      <button (click)="navigateToMedia(session, $event)" class="w-full mt-2 py-2 rounded-lg bg-white/[0.08] active:bg-white/15 text-white text-[13px] font-medium transition-colors">View {{ session.media.type === 'movie' ? 'Movie' : 'Show' }}</button>
                     </div>
                   }
-                  <div class="flex items-center justify-between mt-2 text-[12px] text-white/40"><span class="truncate">{{ session.player.name }}</span><span class="flex-shrink-0 ml-2">Ends {{ getETA(session) }}</span></div>
                 </div>
               </div>
             }

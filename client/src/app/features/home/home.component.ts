@@ -58,6 +58,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   activeDownloadFilter: DownloadFilter = 'all';
   hasMoreActivity = false;
   isLoadingMoreActivity = false;
+  expandedSessionKey: string | null = null;
   downloadWidgetTab: 'queue' | 'history' = 'queue';
   requestsWidgetTab: 'pending' | 'all' = 'pending';
   calendarDays = 7;
@@ -201,6 +202,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // Streaming
   toggleShortcuts(): void { this.shortcutsExpanded = !this.shortcutsExpanded; }
+  toggleSessionExpand(sessionKey: string, event: Event): void { event.stopPropagation(); this.expandedSessionKey = this.expandedSessionKey === sessionKey ? null : sessionKey; }
+  isSessionExpanded(sessionKey: string): boolean { return this.expandedSessionKey === sessionKey; }
 
   // Formatting helpers
   formatBytes(bytes: number): string { if (!bytes || bytes === 0) return '0 B'; const k = 1024; const sizes = ['B', 'KB', 'MB', 'GB', 'TB']; const i = Math.floor(Math.log(bytes) / Math.log(k)); return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]; }

@@ -1,4 +1,5 @@
 const { KidsConfig, PlexServer } = require('../models');
+const PlexService = require('../services/plex.service');
 const kidsSyncService = require('../services/kids-sync.service');
 
 /**
@@ -19,6 +20,35 @@ async function syncExcludedLibraries(config) {
 
   await server.save();
 }
+
+/**
+ * Movie and show sections on the Plex server, for the settings pickers
+ */
+exports.getSections = async (req, res) => {
+  try {
+    const server = await PlexServer.getServer();
+    if (!server) {
+      return res.status(404).json({ error: 'No Plex server configured' });
+    }
+
+    const plex = new PlexService(server.host, server.token);
+    const libraries = await plex.getLibraries();
+
+    res.json(
+      libraries
+        .filter(lib => lib.type === 'movie' || lib.type === 'show')
+        .map(lib => ({
+          id: String(lib.key),
+          title: lib.title,
+          type: lib.type,
+          locations: (lib.Location || []).map(loc => loc.path)
+        }))
+    );
+  } catch (error) {
+    console.error('Error listing Plex sections:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 /**
  * Current kids configuration and last run summary

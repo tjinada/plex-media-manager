@@ -16,11 +16,16 @@ exports.getShows = async (req, res, next) => {
       videoCodec,
       audioCodec,
       minSize,
-      maxSize
+      maxSize,
+      isKids
     } = req.query;
 
     // Build filter
     const filter = {};
+
+    if (isKids === 'true') {
+      filter.isKids = true;
+    }
 
     if (search) {
       filter.$or = [
@@ -68,7 +73,8 @@ exports.getShows = async (req, res, next) => {
           episodeCount: 1,
           dominantResolution: 1,
           dominantVideoCodec: 1,
-          totalFileSize: 1
+          totalFileSize: 1,
+          isKids: 1
         }),
       TVShow.countDocuments(filter)
     ]);
@@ -84,7 +90,8 @@ exports.getShows = async (req, res, next) => {
         episodeCount: s.episodeCount,
         dominantResolution: s.dominantResolution,
         dominantVideoCodec: s.dominantVideoCodec,
-        totalFileSize: s.totalFileSize
+        totalFileSize: s.totalFileSize,
+        isKids: !!s.isKids
       })),
       pagination: {
         page: parseInt(page, 10),

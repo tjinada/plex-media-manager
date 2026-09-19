@@ -68,6 +68,7 @@ export interface Movie {
   
   libraryName?: string;
   addedAt?: string;
+  isKids?: boolean;
 }
 
 export interface MovieListItem {
@@ -82,6 +83,7 @@ export interface MovieListItem {
   container?: string;
   fileSize?: number;
   duration?: number;
+  isKids?: boolean;
 }
 
 export interface MoviesResponse {

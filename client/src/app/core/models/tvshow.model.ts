@@ -33,6 +33,7 @@ export interface TVShow {
   
   libraryName?: string;
   addedAt?: string;
+  isKids?: boolean;
   
   seasons?: SeasonListItem[];
 }
@@ -48,6 +49,7 @@ export interface TVShowListItem {
   dominantResolution?: string;
   dominantVideoCodec?: string;
   totalFileSize?: number;
+  isKids?: boolean;
 }
 
 export interface Season {

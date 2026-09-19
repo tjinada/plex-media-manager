@@ -17,3 +17,4 @@ export * from './nzbget.service';
 export * from './qbittorrent.service';
 export * from './overseerr.service';
 export * from './push-notification.service';
+export * from './kids.service';

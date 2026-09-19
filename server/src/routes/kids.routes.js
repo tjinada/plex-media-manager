@@ -3,6 +3,7 @@ const router = express.Router();
 const kidsController = require('../controllers/kids.controller');
 
 // Configuration
+router.get('/sections', kidsController.getSections);
 router.get('/config', kidsController.getConfig);
 router.post('/config', kidsController.saveConfig);
 

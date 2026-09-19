@@ -3,11 +3,12 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ShowsService, PlexService } from '@core/services';
 import { TVShow, SeasonListItem, SeasonWithEpisodes, EpisodeListItem } from '@core/models';
+import { KidsToggleComponent } from '@shared/components/kids-toggle/kids-toggle.component';
 
 @Component({
   selector: 'app-show-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, KidsToggleComponent],
   templateUrl: './show-detail.component.html'
 })
 export class ShowDetailComponent implements OnInit {

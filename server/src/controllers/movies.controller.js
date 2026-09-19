@@ -18,11 +18,16 @@ exports.getMovies = async (req, res, next) => {
       audioCodec,
       container,
       minSize,
-      maxSize
+      maxSize,
+      isKids
     } = req.query;
 
     // Build filter
     const filter = {};
+
+    if (isKids === 'true') {
+      filter.isKids = true;
+    }
 
     if (search) {
       filter.$or = [
@@ -104,7 +109,8 @@ exports.getMovies = async (req, res, next) => {
           'media.audioCodec': 1,
           'media.container': 1,
           'media.fileSize': 1,
-          'media.duration': 1
+          'media.duration': 1,
+          isKids: 1
         }),
       Movie.countDocuments(filter)
     ]);
@@ -121,7 +127,8 @@ exports.getMovies = async (req, res, next) => {
         audioCodec: m.media?.audioCodec,
         container: m.media?.container,
         fileSize: m.media?.fileSize,
-        duration: m.media?.duration
+        duration: m.media?.duration,
+        isKids: !!m.isKids
       })),
       pagination: {
         page: parseInt(page, 10),

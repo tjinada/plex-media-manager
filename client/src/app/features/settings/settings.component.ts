@@ -8,6 +8,7 @@ import { TautulliConfig, TautulliConnectionInfo, TautulliImportStatus } from '@c
 import { NzbgetConfig } from '@core/services/nzbget.service';
 import { QbittorrentConfig } from '@core/services/qbittorrent.service';
 import { PlexServer, RadarrConfig, SonarrConfig, AutoSyncSettings } from '@core/models';
+import { KidsSettingsComponent } from './kids-settings/kids-settings.component';
 
 export interface SyncJob {
   id: string;
@@ -25,7 +26,7 @@ export interface SyncJob {
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, KidsSettingsComponent],
   templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit, OnDestroy {

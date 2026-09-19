@@ -1,16 +1,17 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { MoviesService, MovieQueryParams, PlexService, CompatibilityService } from '@core/services';
+import { MoviesService, MovieQueryParams, PlexService, CompatibilityService, KidsService } from '@core/services';
 import { MovieListItem, Pagination, FilterState, SearchResult, MovieSearchResponse } from '@core/models';
 import { FilterPanelComponent, FilterConfig } from '@shared/components/filter-panel/filter-panel.component';
+import { KidsToggleComponent } from '@shared/components/kids-toggle/kids-toggle.component';
 
 @Component({
   selector: 'app-movies',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, FilterPanelComponent],
+  imports: [CommonModule, FormsModule, RouterLink, FilterPanelComponent, KidsToggleComponent],
   templateUrl: './movies.component.html'
 })
 export class MoviesComponent implements OnInit, OnDestroy {
@@ -33,6 +34,10 @@ export class MoviesComponent implements OnInit, OnDestroy {
   searchQuery = '';
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
+
+  // Kids library filter
+  kidsOnly = false;
+  kidsEnabled$ = inject(KidsService).isEnabled();
 
   // Sorting and pagination
   currentPage = 1;
@@ -92,6 +97,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
       minSize: params['minSize'] ? parseInt(params['minSize'], 10) : undefined,
       maxSize: params['maxSize'] ? parseInt(params['maxSize'], 10) : undefined
     };
+    this.kidsOnly = params['kids'] === 'true';
     this.sortField = params['sort'] || 'title';
     this.sortOrder = params['order'] || 'asc';
     this.currentPage = params['page'] ? parseInt(params['page'], 10) : 1;
@@ -108,6 +114,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
     if (this.filters.container) queryParams['container'] = this.filters.container;
     if (this.filters.minSize) queryParams['minSize'] = this.filters.minSize;
     if (this.filters.maxSize) queryParams['maxSize'] = this.filters.maxSize;
+    if (this.kidsOnly) queryParams['kids'] = 'true';
     if (this.sortField !== 'title') queryParams['sort'] = this.sortField;
     if (this.sortOrder !== 'asc') queryParams['order'] = this.sortOrder;
     if (this.currentPage > 1) queryParams['page'] = this.currentPage;
@@ -134,7 +141,8 @@ export class MoviesComponent implements OnInit, OnDestroy {
       audioCodec: this.filters.audioCodec,
       container: this.filters.container,
       minSize: this.filters.minSize,
-      maxSize: this.filters.maxSize
+      maxSize: this.filters.maxSize,
+      isKids: this.kidsOnly || undefined
     };
 
     this.moviesService.getMovies(params).subscribe({
@@ -169,6 +177,13 @@ export class MoviesComponent implements OnInit, OnDestroy {
   onClearFilters(): void {
     this.filters = {};
     this.searchQuery = '';
+    this.kidsOnly = false;
+    this.currentPage = 1;
+    this.updateUrlAndLoad();
+  }
+
+  toggleKidsOnly(): void {
+    this.kidsOnly = !this.kidsOnly;
     this.currentPage = 1;
     this.updateUrlAndLoad();
   }

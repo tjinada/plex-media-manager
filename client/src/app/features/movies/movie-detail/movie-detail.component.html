@@ -29,6 +29,9 @@
           @if (movie.contentRating) { <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-white/[0.06] text-gray-400">{{ movie.contentRating }}</span> }
           @if (movie.rating) { <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-yellow-500/10 text-yellow-300">★ {{ movie.rating.toFixed(1) }}</span> }
         </div>
+        <div class="mb-3">
+          <app-kids-toggle [plexId]="movie.plexId" [isKids]="!!movie.isKids" (isKidsChange)="movie.isKids = $event"></app-kids-toggle>
+        </div>
         <div class="space-y-1 text-[13px]">
           @if (movie.genres && movie.genres.length > 0) { <p><span class="text-gray-600">Genres:</span> <span class="text-gray-400">{{ movie.genres.join(', ') }}</span></p> }
           @if (movie.directors && movie.directors.length > 0) { <p><span class="text-gray-600">Director:</span> <span class="text-gray-400">{{ movie.directors.join(', ') }}</span></p> }

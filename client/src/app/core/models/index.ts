@@ -8,3 +8,4 @@ export * from './watch-history.model';
 export * from './compatibility.model';
 export * from './transcoding.model';
 export * from './home.model';
+export * from './kids.model';

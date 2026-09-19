@@ -3,11 +3,12 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MoviesService, PlexService } from '@core/services';
 import { Movie } from '@core/models';
+import { KidsToggleComponent } from '@shared/components/kids-toggle/kids-toggle.component';
 
 @Component({
   selector: 'app-movie-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, KidsToggleComponent],
   templateUrl: './movie-detail.component.html'
 })
 export class MovieDetailComponent implements OnInit {

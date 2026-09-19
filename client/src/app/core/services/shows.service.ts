@@ -14,6 +14,7 @@ export interface ShowQueryParams {
   audioCodec?: string;
   minSize?: number;
   maxSize?: number;
+  isKids?: boolean;
 }
 
 export interface EpisodeQueryParams {

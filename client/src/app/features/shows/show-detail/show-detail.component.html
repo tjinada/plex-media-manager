@@ -28,6 +28,9 @@
           @if (show.contentRating) { <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-white/[0.06] text-gray-400">{{ show.contentRating }}</span> }
           @if (show.rating) { <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-yellow-500/10 text-yellow-300">★ {{ show.rating.toFixed(1) }}</span> }
         </div>
+        <div class="mb-3">
+          <app-kids-toggle [plexId]="show.plexId" [isKids]="!!show.isKids" (isKidsChange)="show.isKids = $event"></app-kids-toggle>
+        </div>
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-2.5 mb-3">
           <div class="rounded-[14px] bg-white/[0.03] p-3 text-center">

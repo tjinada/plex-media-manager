@@ -65,16 +65,6 @@ class SymlinkService {
   }
 
   /**
-   * Restore a quarantined link back into its farm directory.
-   */
-  async restoreLink(quarantinedPath, farmDir) {
-    const name = path.basename(quarantinedPath).replace(/__[\dTZ-]+$/, '');
-    await fs.mkdir(farmDir, { recursive: true });
-    await fs.rename(quarantinedPath, path.join(farmDir, name));
-    return name;
-  }
-
-  /**
    * List quarantined links for a farm, newest first.
    */
   async listQuarantine(quarantineRoot, farmDir) {

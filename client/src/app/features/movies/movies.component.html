@@ -16,14 +16,17 @@
         <h1 class="text-[28px] font-bold text-white tracking-tight">Movies</h1>
         <p class="text-gray-500 text-sm -mt-0.5">{{ pagination.total }} movies in your library</p>
       </div>
-      <div class="mb-3">
-        <div class="relative max-w-md">
+      <div class="mb-3 flex items-center gap-2">
+        <div class="relative max-w-md flex-1">
           <input type="text" [value]="searchQuery" (input)="onSearchInput($event)" placeholder="Search movies..." class="w-full bg-white/[0.04] border-0 rounded-xl pl-10 pr-9 py-2.5 text-[14px] text-gray-200 placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500/50">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           @if (searchQuery) {
             <button (click)="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 active:text-gray-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
           }
         </div>
+        @if (kidsEnabled$ | async) {
+          <button (click)="toggleKidsOnly()" class="flex-shrink-0 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors" [ngClass]="kidsOnly ? 'bg-amber-500/90 text-black' : 'bg-white/[0.04] text-gray-400 active:bg-white/[0.08]'">Kids only</button>
+        }
       </div>
     </div>
 
@@ -38,7 +41,7 @@
           </div>
           <h2 class="text-lg font-bold text-white mb-1.5">No Movies Found</h2>
           <p class="text-gray-500 text-sm">
-            @if (searchQuery || filters.resolution || filters.videoCodec || filters.audioCodec || filters.container) {
+            @if (searchQuery || kidsOnly || filters.resolution || filters.videoCodec || filters.audioCodec || filters.container) {
               No movies match your filters. Try adjusting your search criteria.
             } @else {
               Your movie library is empty. Sync your Plex library to see movies here.
@@ -55,6 +58,9 @@
                 @if (movie.resolution) {
                   <span class="absolute top-2 right-2 px-1.5 py-0.5 rounded-md text-[10px] font-bold" [ngClass]="getResolutionClass(movie.resolution)">{{ movie.resolution }}</span>
                 }
+                <div class="absolute bottom-2 left-2">
+                  <app-kids-toggle [plexId]="movie.plexId" [isKids]="!!movie.isKids" (isKidsChange)="movie.isKids = $event" [compact]="true"></app-kids-toggle>
+                </div>
                 <button (click)="openSearch(movie, $event)" class="absolute bottom-2 right-2 p-1.5 bg-primary-600 active:bg-primary-700 text-white rounded-full shadow-lg transition-colors" title="Interactive Search">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </button>
@@ -85,7 +91,7 @@
                   <th class="text-right px-3.5 py-3 text-[12px] text-gray-500 font-semibold cursor-pointer" (click)="onSort('media.fileSize')">
                     <div class="flex items-center gap-1.5 justify-end">Size @if (sortField === 'media.fileSize') { <svg class="w-3.5 h-3.5" [class.rotate-180]="sortOrder === 'desc'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg> }</div>
                   </th>
-                  <th class="w-16 px-3.5 py-3"></th>
+                  <th class="w-32 px-3.5 py-3"></th>
                 </tr>
               </thead>
               <tbody>
@@ -107,9 +113,12 @@
                     <td class="px-3.5 py-3 text-[13px] text-gray-500">{{ movie.audioCodec || '-' }}</td>
                     <td class="px-3.5 py-3 text-[13px] text-gray-400 text-right tabular-nums">{{ formatFileSize(movie.fileSize) }}</td>
                     <td class="px-3.5 py-3">
-                      <button (click)="openSearch(movie, $event)" class="p-1.5 bg-primary-600 active:bg-primary-700 text-white rounded-lg transition-colors" title="Interactive Search">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                      </button>
+                      <div class="flex items-center justify-end gap-2">
+                        <app-kids-toggle [plexId]="movie.plexId" [isKids]="!!movie.isKids" (isKidsChange)="movie.isKids = $event" [compact]="true"></app-kids-toggle>
+                        <button (click)="openSearch(movie, $event)" class="p-1.5 bg-primary-600 active:bg-primary-700 text-white rounded-lg transition-colors" title="Interactive Search">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }

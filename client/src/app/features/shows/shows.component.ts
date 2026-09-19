@@ -1,18 +1,19 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { ShowsService, ShowQueryParams, EpisodeQueryParams, PlexService, CompatibilityService } from '@core/services';
+import { ShowsService, ShowQueryParams, EpisodeQueryParams, PlexService, CompatibilityService, KidsService } from '@core/services';
 import { TVShowListItem, EpisodeWithShow, Pagination, FilterState, SearchResult, EpisodeSearchResponse } from '@core/models';
 import { FilterPanelComponent, FilterConfig } from '@shared/components/filter-panel/filter-panel.component';
+import { KidsToggleComponent } from '@shared/components/kids-toggle/kids-toggle.component';
 
 type ViewMode = 'shows' | 'episodes';
 
 @Component({
   selector: 'app-shows',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, FilterPanelComponent],
+  imports: [CommonModule, FormsModule, RouterLink, FilterPanelComponent, KidsToggleComponent],
   templateUrl: './shows.component.html'
 })
 export class ShowsComponent implements OnInit, OnDestroy {
@@ -42,6 +43,10 @@ export class ShowsComponent implements OnInit, OnDestroy {
   searchQuery = '';
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
+
+  // Kids library filter (show view only — episodes are never labelled individually)
+  kidsOnly = false;
+  kidsEnabled$ = inject(KidsService).isEnabled();
 
   // Sorting and pagination
   currentPage = 1;
@@ -100,6 +105,7 @@ export class ShowsComponent implements OnInit, OnDestroy {
       minSize: params['minSize'] ? parseInt(params['minSize'], 10) : undefined,
       maxSize: params['maxSize'] ? parseInt(params['maxSize'], 10) : undefined
     };
+    this.kidsOnly = this.viewMode === 'shows' && params['kids'] === 'true';
     this.sortField = params['sort'] || (this.viewMode === 'episodes' ? 'media.fileSize' : 'title');
     this.sortOrder = params['order'] || (this.viewMode === 'episodes' ? 'desc' : 'asc');
     this.currentPage = params['page'] ? parseInt(params['page'], 10) : 1;
@@ -115,6 +121,7 @@ export class ShowsComponent implements OnInit, OnDestroy {
     if (this.filters.audioCodec) queryParams['audioCodec'] = this.filters.audioCodec;
     if (this.filters.minSize) queryParams['minSize'] = this.filters.minSize;
     if (this.filters.maxSize) queryParams['maxSize'] = this.filters.maxSize;
+    if (this.kidsOnly && this.viewMode === 'shows') queryParams['kids'] = 'true';
     
     const defaultSort = this.viewMode === 'episodes' ? 'media.fileSize' : 'title';
     const defaultOrder = this.viewMode === 'episodes' ? 'desc' : 'asc';
@@ -150,7 +157,8 @@ export class ShowsComponent implements OnInit, OnDestroy {
       videoCodec: this.filters.videoCodec,
       audioCodec: this.filters.audioCodec,
       minSize: this.filters.minSize,
-      maxSize: this.filters.maxSize
+      maxSize: this.filters.maxSize,
+      isKids: this.kidsOnly || undefined
     };
 
     this.showsService.getShows(params).subscribe({
@@ -225,6 +233,13 @@ export class ShowsComponent implements OnInit, OnDestroy {
   onClearFilters(): void {
     this.filters = {};
     this.searchQuery = '';
+    this.kidsOnly = false;
+    this.currentPage = 1;
+    this.updateUrlAndLoad();
+  }
+
+  toggleKidsOnly(): void {
+    this.kidsOnly = !this.kidsOnly;
     this.currentPage = 1;
     this.updateUrlAndLoad();
   }

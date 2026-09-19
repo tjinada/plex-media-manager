@@ -16,6 +16,7 @@ export interface MovieQueryParams {
   container?: string;
   minSize?: number;
   maxSize?: number;
+  isKids?: boolean;
 }
 
 @Injectable({

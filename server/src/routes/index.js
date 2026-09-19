@@ -20,6 +20,7 @@ const nzbgetRoutes = require('./nzbget.routes');
 const qbittorrentRoutes = require('./qbittorrent.routes');
 const overseerrRoutes = require('./overseerr.routes');
 const notificationRoutes = require('./notification.routes');
+const kidsRoutes = require('./kids.routes');
 
 // Public routes — no auth required
 router.use('/auth', authRoutes);
@@ -44,5 +45,6 @@ router.use('/nzbget', nzbgetRoutes);
 router.use('/qbittorrent', qbittorrentRoutes);
 router.use('/overseerr', overseerrRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/kids', kidsRoutes);
 
 module.exports = router;

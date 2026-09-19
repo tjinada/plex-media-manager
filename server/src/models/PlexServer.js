@@ -17,10 +17,11 @@ const plexServerSchema = new mongoose.Schema({
     trim: true,
     default: null
   },
-  externalUrl: {
-    type: String,
-    trim: true,
-    default: null
+  // Library section ids to skip when syncing. The kids sections live here so
+  // their items are not counted twice in stats, storage and compatibility.
+  excludedLibraryIds: {
+    type: [String],
+    default: []
   },
   token: {
     type: String,

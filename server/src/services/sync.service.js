@@ -3,6 +3,7 @@ const PlexService = require('./plex.service');
 const { getResolution } = require('../utils/resolution');
 const { normalizeVideoCodec, normalizeAudioCodec, normalizeContainer } = require('../utils/codec');
 const notificationService = require('./notification.service');
+const kidsSyncService = require('./kids-sync.service');
 
 // Track current sync job
 let currentSyncJob = null;
@@ -68,8 +69,13 @@ class SyncService {
       throw new Error('No Plex server configured');
     }
 
-    // Initialize Plex service
-    this.plexService = new PlexService(this.server.host, this.server.token);
+    // Initialize Plex service. Excluded libraries (e.g. the kids sections)
+    // are projections of the main ones and would otherwise be counted twice.
+    this.plexService = new PlexService(
+      this.server.host,
+      this.server.token,
+      this.server.excludedLibraryIds
+    );
 
     // Test connection
     try {
@@ -144,6 +150,12 @@ class SyncService {
       // Post-sync notifications
       this.sendPostSyncNotifications().catch(err =>
         console.error('Post-sync notification error:', err.message)
+      );
+
+      // Project the kids label onto the symlink farm now the data is fresh.
+      // No-ops when kids sync is unconfigured or disabled.
+      kidsSyncService.reconcileAll().catch(err =>
+        console.error('Kids reconcile error:', err.message)
       );
 
     } catch (error) {

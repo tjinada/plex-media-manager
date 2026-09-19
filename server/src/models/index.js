@@ -14,6 +14,7 @@ const OverseerrConfig = require('./OverseerrConfig');
 const PushSubscription = require('./PushSubscription');
 const NotificationPreference = require('./NotificationPreference');
 const NotificationLog = require('./NotificationLog');
+const KidsConfig = require('./KidsConfig');
 
 module.exports = {
   PlexServer,
@@ -31,5 +32,6 @@ module.exports = {
   OverseerrConfig,
   PushSubscription,
   NotificationPreference,
-  NotificationLog
+  NotificationLog,
+  KidsConfig
 };

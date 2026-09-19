@@ -2,9 +2,10 @@ const axios = require('axios');
 const config = require('../config/environment');
 
 class PlexService {
-  constructor(host, token) {
+  constructor(host, token, excludedLibraryIds = []) {
     this.host = host?.replace(/\/$/, ''); // Remove trailing slash
     this.token = token;
+    this.excludedLibraryIds = (excludedLibraryIds || []).map(String);
     this.headers = {
       'X-Plex-Client-Identifier': config.plex.clientIdentifier,
       'X-Plex-Product': config.plex.product,
@@ -83,7 +84,9 @@ class PlexService {
    */
   async getAllMovies() {
     const libraries = await this.getLibraries();
-    const movieLibraries = libraries.filter(lib => lib.type === 'movie');
+    const movieLibraries = libraries.filter(
+      lib => lib.type === 'movie' && !this.excludedLibraryIds.includes(String(lib.key))
+    );
     
     const allMovies = [];
     
@@ -107,7 +110,9 @@ class PlexService {
    */
   async getAllShows() {
     const libraries = await this.getLibraries();
-    const showLibraries = libraries.filter(lib => lib.type === 'show');
+    const showLibraries = libraries.filter(
+      lib => lib.type === 'show' && !this.excludedLibraryIds.includes(String(lib.key))
+    );
     
     const allShows = [];
     
@@ -521,6 +526,92 @@ class PlexService {
     }
 
     return result;
+  }
+
+  /**
+   * Plex search type id for a section type.
+   */
+  searchType(sectionType) {
+    return sectionType === 'show' ? 2 : 1;
+  }
+
+  /**
+   * Resolve a label NAME to its internal Plex tag id within a section.
+   * Section filtering requires the id; the name is not accepted.
+   * Returns null when the label has never been applied in that section.
+   */
+  async getSectionLabelId(sectionId, sectionType, labelName) {
+    const data = await this.request(`/library/sections/${sectionId}/label`, {
+      params: { type: this.searchType(sectionType) }
+    });
+
+    const directories = data.MediaContainer.Directory || [];
+    const match = directories.find(
+      dir => (dir.title || '').toLowerCase() === labelName.toLowerCase()
+    );
+
+    return match ? match.key : null;
+  }
+
+  /**
+   * All items in a section carrying the given label.
+   */
+  async getItemsByLabel(sectionId, sectionType, labelName) {
+    const labelId = await this.getSectionLabelId(sectionId, sectionType, labelName);
+    if (!labelId) return [];
+
+    const data = await this.request(`/library/sections/${sectionId}/all`, {
+      params: { type: this.searchType(sectionType), label: labelId }
+    });
+
+    return data.MediaContainer.Metadata || [];
+  }
+
+  /**
+   * Current label names on an item.
+   */
+  async getItemLabels(ratingKey) {
+    const metadata = await this.getMetadata(ratingKey);
+    if (!metadata || !metadata.Label) return [];
+    return metadata.Label.map(entry => entry.tag).filter(Boolean);
+  }
+
+  /**
+   * Add or remove a single label on an item.
+   *
+   * IMPORTANT: the add form REPLACES the item's entire label set, so existing
+   * labels are read first and resent. Skipping that silently wipes any other
+   * label on the item. Removal uses the distinct 'tag-' parameter form.
+   * label.locked=1 stops a metadata refresh from discarding the curation.
+   */
+  async setItemLabel(sectionId, sectionType, ratingKey, labelName, add) {
+    const params = {
+      id: ratingKey,
+      type: this.searchType(sectionType),
+      'label.locked': 1
+    };
+
+    if (add) {
+      const existing = await this.getItemLabels(ratingKey);
+      if (existing.some(tag => tag.toLowerCase() === labelName.toLowerCase())) {
+        return false; // already labelled, nothing to write
+      }
+      [...existing, labelName].forEach((tag, index) => {
+        params[`label[${index}].tag.tag`] = tag;
+      });
+    } else {
+      params['label[].tag.tag-'] = labelName;
+    }
+
+    await this.request(`/library/sections/${sectionId}/all`, { method: 'PUT', params });
+    return true;
+  }
+
+  /**
+   * Ask Plex to scan a section. This is a GET, not a PUT.
+   */
+  async refreshSection(sectionId) {
+    await this.request(`/library/sections/${sectionId}/refresh`);
   }
 
   /**

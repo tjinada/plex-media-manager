@@ -67,6 +67,14 @@ const tvShowSchema = new mongoose.Schema({
   // Library Info
   libraryId: String,
   libraryName: String,
+
+  // Cache of the Plex 'kids' label. Refreshed by kids-sync; the label in
+  // Plex remains the source of truth.
+  isKids: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   
   // Timestamps
   addedAt: Date,

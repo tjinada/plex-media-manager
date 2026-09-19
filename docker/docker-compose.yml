@@ -24,6 +24,9 @@ services:
       dockerfile: docker/Dockerfile.server
     container_name: tjpmm-server
     restart: unless-stopped
+    # Unraid's nobody:users. The image defaults to uid 1001, which cannot
+    # write to the media share, so the kids symlinks would fail to create.
+    user: "${PUID:-99}:${PGID:-100}"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -35,6 +38,10 @@ services:
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_EMAIL=${VAPID_EMAIL:-}
+    volumes:
+      # Must match the Plex container's own media mapping, so the relative
+      # symlinks in the kids farm resolve identically in both containers.
+      - ${MEDIA_ROOT:-/mnt/user/data/media}:/media
     depends_on:
       mongo:
         condition: service_healthy
